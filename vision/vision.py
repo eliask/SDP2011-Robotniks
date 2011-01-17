@@ -12,8 +12,8 @@ class Vision():
 
     def run(self):
         while not self.UI.quit:
-            self.capture.getFrame()
-            self.preprocessor.preprocess()
+            frame = self.capture.getFrame()
+            self.pre.preprocess(frame)
             #features.recognise_features()
             self.classifier.classify()
             self.world.update()

@@ -1,8 +1,9 @@
 import pygame, sys, random
 from opencv import cv, highgui
-from features import Features
+import features
+import segmentation
+import threshold
 from preprocess import Preprocessor
-from segmentation import Segmenter
 
 # goalDim = (60, 18)
 # robotDim = (20,18)
@@ -98,7 +99,7 @@ def bar():
     # highgui.cvCreateTrackbar("B", 'X', Xbgr[0], 255, setB)
 
     updateWin("Contour", bg)
-    highgui.cvCreateTrackbar("A", 'Contour', Features.contour_min_area, 800, setFA)
+    #highgui.cvCreateTrackbar("A", 'Contour', Features.contour_min_area, 800, setFA)
     # highgui.cvCreateTrackbar("B", 'Contour', Features.B, 30, setFB)
 
     Iobj = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 3)
@@ -153,7 +154,7 @@ def bar():
 
         cv.cvSub(frame, bg, Imask)
         updateWin('Background subtraction', Imask)
-        gray = Features.threshold(Imask, ('bgr',Xbgr,(255,255,255,)), op=cv.cvOr)
+        gray = threshold.foreground(Imask)
         cv.cvCvtColor(gray, Imask, cv.CV_GRAY2BGR)
 
         #Enlarge the mask a bit to account eliminate missing parts due to noise
@@ -165,7 +166,7 @@ def bar():
         cv.cvAnd(Imask, frame, Iobj)
         updateWin('X', Iobj)
 
-        Features.threshold(Iobj, Features.Tball)
+        threshold.ball(Iobj)
 
         # updateWin('Yellow', Features.threshold(Iavg, Features.Tyellow))
         # updateWin('Yellow orig', Features.threshold(frame, Features.Tyellow))
@@ -187,7 +188,7 @@ def bar():
         cv.cvCvtColor(Iobj, gray, cv.CV_BGR2GRAY)
         #cv.cvDilate(gray, gray)
         #updateWin('X', gray)
-        loc, o = Features.find_connected_components(gray)
+        loc, o = segmentation.find_connected_components(gray)
         updateWin('Contour', o)
 
 
