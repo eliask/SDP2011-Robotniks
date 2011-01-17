@@ -1,6 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
 #from . import *
 import sys
 from opencv import cv, highgui
@@ -9,16 +6,15 @@ class Vision():
 
     def __init__(self, args):
         self.capture = Capture(args[-1])
-
-        self.preprocess = Preprocessor()
-        self.world = World()
+        self.pre = Preprocessor()
+        #self.world = World()
         self.UI = GUI()
 
     def run(self):
         while not self.UI.quit:
             self.capture.getFrame()
             self.preprocessor.preprocess()
-            self.extractFeatures()
+            #features.recognise_features()
             self.classifier.classify()
             self.world.update()
             self.UI.update()

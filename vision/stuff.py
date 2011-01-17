@@ -38,7 +38,7 @@ def setB(x): Xbgr[0]=x
 def setG(x): Xbgr[1]=x
 def setR(x): Xbgr[2]=x
 
-def setFA(x): Features.A=x
+def setFA(x): Features.contour_min_area=x
 def setFB(x): Features.B=x
 
 def bar():
@@ -72,6 +72,9 @@ def bar():
     cbgr = [ cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
              for _ in range(num_chans) ]
 
+    eig_image = cv.cvCreateMat(size.height, size.width, cv.CV_32FC1)
+    temp_image = cv.cvCreateMat(size.height, size.width, cv.CV_32FC1)
+
     gray = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
     Iavg = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 3)
     IGD = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 3)
@@ -94,10 +97,11 @@ def bar():
     # highgui.cvCreateTrackbar("G", 'X', Xbgr[1], 255, setG)
     # highgui.cvCreateTrackbar("B", 'X', Xbgr[0], 255, setB)
 
-    # updateWin("Contour", bg)
-    # highgui.cvCreateTrackbar("A", 'Contour', Features.A, 30, setFA)
+    updateWin("Contour", bg)
+    highgui.cvCreateTrackbar("A", 'Contour', Features.contour_min_area, 800, setFA)
     # highgui.cvCreateTrackbar("B", 'Contour', Features.B, 30, setFB)
 
+    Iobj = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 3)
     Imask = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 3)
     pIat = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
     Iopen = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
@@ -143,26 +147,36 @@ def bar():
         #updateWin('Corrected', Preprocessor.undistort(frame))
 
         ########################################
-        #print [(x.height, x.width) for x in map(cv.cvGetSize, [frame,bg,bg2,Iavg])]
-        cv.cvSub(frame, bg, Iavg)
-        updateWin('BG del 0', Iavg)
-        # cv.cvAbsDiff(Iavg, bg2, Iavg)
-        # updateWin('BG del 2', Iavg)
-        gray = Features.threshold(Iavg, ('bgr',Xbgr,(255,255,255,)), op=cv.cvOr)
-        updateWin('BG del', gray)
-        cv.cvCvtColor(gray, IGD, cv.CV_GRAY2BGR)
-        cv.cvAnd(IGD, frame, IGD)
-        updateWin('X', IGD)
-        #print Xbgr
-
         kernel = cv.cvCreateStructuringElementEx(5, 5,
-                                                 0, 0, #X,Y offsets
+                                                 2,2, #X,Y offsets
                                                  cv.CV_SHAPE_RECT)
+
+        cv.cvSub(frame, bg, Imask)
+        updateWin('Background subtraction', Imask)
+        gray = Features.threshold(Imask, ('bgr',Xbgr,(255,255,255,)), op=cv.cvOr)
+        cv.cvCvtColor(gray, Imask, cv.CV_GRAY2BGR)
+
+        #Enlarge the mask a bit to account eliminate missing parts due to noise
+        cv.cvDilate(Imask, Imask)
+        #This step essentially just reduces the amount of noise
+        cv.cvMorphologyEx(Imask, Imask, None, kernel, cv.CV_MOP_OPEN)
+        cv.cvMorphologyEx(Imask, Imask, None, kernel, cv.CV_MOP_CLOSE)
+        #updateWin('Y', Iobj)
+        cv.cvAnd(Imask, frame, Iobj)
+        updateWin('X', Iobj)
+
+        Features.threshold(Iobj, Features.Tball)
+
+        # updateWin('Yellow', Features.threshold(Iavg, Features.Tyellow))
+        # updateWin('Yellow orig', Features.threshold(frame, Features.Tyellow))
+        #updateWin('Ball orig', Features.threshold(frame, Features.Tball))
+        #updateWin('Yellow orig', Features.threshold(frame, Features.Tyellow))
 
         # Finds the approximate position of each object with little noise
         # The approximation should later be refined by some method
-        cv.cvMorphologyEx(IGD, IGD, None, kernel, cv.CV_MOP_OPEN)
-        cv.cvMorphologyEx(IGD, IGD, None, kernel, cv.CV_MOP_CLOSE)
+        #cv.cvMorphologyEx(IGD, IGD, None, kernel, cv.CV_MOP_OPEN)
+        #cv.cvMorphologyEx(IGD, IGD, None, kernel, cv.CV_MOP_CLOSE)
+        #updateWin('X', IGD)
 
         # It = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
         # cv.cvCvtColor(IGD, It, cv.CV_BGR2GRAY)
@@ -170,15 +184,12 @@ def bar():
         # cv.cvCvtColor(It, IGD, cv.CV_GRAY2BGR)
         # cv.cvAnd(IGD, frame, IGD)
 
-        # cv.cvCvtColor(IGD, gray, cv.CV_BGR2GRAY)
-        updateWin('X', gray)
-        # Features.find_connected_components(gray)
+        cv.cvCvtColor(Iobj, gray, cv.CV_BGR2GRAY)
+        #cv.cvDilate(gray, gray)
+        #updateWin('X', gray)
+        loc, o = Features.find_connected_components(gray)
+        updateWin('Contour', o)
 
-        # updateWin('Yellow', Features.threshold(Iavg, Features.Tyellow))
-        # updateWin('Yellow orig', Features.threshold(frame, Features.Tyellow))
-        # updateWin('Ball orig', Features.threshold(frame, Features.Tball))
-        # updateWin('Ball BG-', Features.threshold(Iavg, Features.Tball))
-        #updateWin('Yellow orig', Features.threshold(frame, Features.Tyellow))
 
         # o=Segmenter.segment(Features.threshold(frame, Features.Tblue), 'Blue')
         # print o
@@ -249,8 +260,9 @@ def bar():
         # kernel = cv.cvCreateStructuringElementEx(3,3,1,1,cv.CV_SHAPE_RECT)
         #cv.cvMorphologyEx(gray, Iopen, None, kernel, cv.CV_MOP_OPEN)
 
-        # highgui.cvShowImage('Raw', frame)
-        # cv.cvReleaseImage(gray) # needed?
+        # cv.cvCvtColor(Iobj, gray, cv.CV_BGR2GRAY)
+        # for (x,y) in cv.GoodFeaturesToTrack(img, eig_image, temp_image, 10, 0.04, 1.0, useHarris = True):
+        #     print "good feature at", x,y
 
         # handle events
         k = highgui.cvWaitKey(5)
@@ -265,8 +277,9 @@ def bar():
 
     #Iavg = cv.cvCreateImage(size, cv.IPL_DEPTH_32S, 3)
     #highgui.cvShowImage('Raw', Iavg)
-    highgui.cvSaveImage("avg.png", Iavg)
-    highgui.cvDestroyAllWindows()
+    #highgui.cvSaveImage("avg.png", Iavg)
+    bar() # Loop
+    #highgui.cvDestroyAllWindows()
 
 if __name__ == "__main__":
     bar()

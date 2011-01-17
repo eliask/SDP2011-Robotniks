@@ -15,7 +15,7 @@ class Capture:
             # First assume the camera is a v4L2 one
             self.capture = highgui.cvCreateCameraCapture(highgui.CV_CAP_V4L2)
             if not self.capture:
-                # If not, open a window presenting all other cameras present
+                # If not, open a window for choosing between all other cameras
                 self.capture = highgui.cvCreateCameraCapture(-1)
 
         if not self.capture:
