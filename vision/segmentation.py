@@ -11,36 +11,38 @@ Arobot = (2000,4000) # 2900..3000 seems typical
 contour_max_level=1
 contour_min_area=200
 
-def find_connected_components( frame):
+def find_connected_components(frame):
+    """Find connected components from an image.
+
+    :: CvMat -> ( [ (CvBox2D, CvRect) ], CvMat )
+
+    Takes as input a grayscale image that should have some blobs in
+    it. Outputs a data structure containing the 'centers' of the blobs
+    and minimal rectangles enclosing them.
+    """
     contours = get_contours(frame)
     out = draw_contours(frame, contours)
 
     candidates = []
     for c in contours.hrange():
         count = c.total
-        print 'Count:',count
-
-        PointArray = cv.cvCreateMat(1, count, cv.CV_32SC2)
-        PointArray2D32f = cv.cvCreateMat(1, count, cv.CV_32FC2)
-
-        cv.cvCvtSeqToArray(c, PointArray,
-                           cv.cvSlice(0, cv.CV_WHOLE_SEQ_END_INDEX) )
-        cv.cvConvert(PointArray, PointArray2D32f)
+        #print 'Count:',count
 
         storage = cv.cvCreateMemStorage(0)
         min_box = cv.cvMinAreaRect2(c, storage)
-        bounding_box = cv.cvBoundingRect(c, 0)
+        bounding_box = cv.cvBoundingRect(c, 0) # TODO: investigate why this failed once
         candidates.append( (min_box, bounding_box) )
 
         area = getBoxArea(min_box)
         width = min(min_box.size.width, min_box.size.height)
         height = max(min_box.size.width, min_box.size.height)
 
-        print 'W:%.3f  H:%.3f  A:%.3f' % (width, height, area)
-        print "Angle:%.3f  Pos:(%.3f, %.3f)" % \
-                      (min_box.angle, min_box.center.x, min_box.center.y)
+        # print 'W:%.3f  H:%.3f  A:%.3f' % (width, height, area)
+        # print "Angle:%.3f  Pos:(%.3f, %.3f)" % \
+        #               (min_box.angle, min_box.center.x, min_box.center.y)
 
     candidates = sorted(candidates, key=lambda x:getBoxArea(x[0]), reverse=True)
+
     return candidates, out
 
 def get_contours(frame):
@@ -64,8 +66,8 @@ def get_contours(frame):
                                 cv.cvContourPerimeter(contours)*0.02,
                                 1 )
 
-    print 'Num:',nb_contours
-    print type(contours), dir(contours)
+    # print 'Num:',nb_contours
+    # print type(contours), dir(contours)
 
     return contours
 

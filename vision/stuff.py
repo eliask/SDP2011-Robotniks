@@ -4,6 +4,7 @@ import features
 import segmentation
 import threshold
 from preprocess import Preprocessor
+from utils import *
 
 # goalDim = (60, 18)
 # robotDim = (20,18)
@@ -21,7 +22,7 @@ def updateWin(name, frame):
     if not winMap.has_key(name):
         winMap[name] = \
         {'window' : highgui.cvNamedWindow(name, highgui.CV_WINDOW_AUTOSIZE)}
-        print winMap[name]
+        #print winMap[name]
 
     highgui.cvShowImage(name, frame)
 
@@ -39,8 +40,8 @@ def setB(x): Xbgr[0]=x
 def setG(x): Xbgr[1]=x
 def setR(x): Xbgr[2]=x
 
-def setFA(x): Features.contour_min_area=x
-def setFB(x): Features.B=x
+def setFA(x): features.params[0]=x
+def setFB(x): features.params[0]=x
 
 def bar():
     # create windows
@@ -99,14 +100,20 @@ def bar():
     # highgui.cvCreateTrackbar("B", 'X', Xbgr[0], 255, setB)
 
     updateWin("Contour", bg)
-    #highgui.cvCreateTrackbar("A", 'Contour', Features.contour_min_area, 800, setFA)
+    # highgui.cvCreateTrackbar("A", 'Contour', Features.contour_min_area, 800, setFA)
     # highgui.cvCreateTrackbar("B", 'Contour', Features.B, 30, setFB)
+
+    updateWin("Hough", bg)
+    highgui.cvCreateTrackbar("param1", 'Hough', features.params[0], 500, setFA)
+    highgui.cvCreateTrackbar("param2", 'Hough', features.params[1], 500, setFB)
 
     Iobj = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 3)
     Imask = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 3)
     pIat = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
     Iopen = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
     Iclose = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
+
+    pre=Preprocessor(cv.cvSize(768, 576))
 
     pause=False
     frame=None
@@ -166,7 +173,29 @@ def bar():
         cv.cvAnd(Imask, frame, Iobj)
         updateWin('X', Iobj)
 
-        threshold.ball(Iobj)
+        #updateWin('Backplate', threshold.backplate(Iobj))
+        #updateWin('Direction marker', threshold.dirmarker(Iobj))
+        mask2 = threshold.dirmarker(Iobj)
+        cv.cvCvtColor(mask2, Imask, cv.CV_GRAY2BGR)
+        #updateWin('Hough', features.detect_dirmarker(Imask))
+        #robot_positions, o = segmentation.find_connected_components(gray)
+        ballmask = threshold.ball(Iobj)
+        updateWin('Ball', ballmask)
+
+        pos = {}
+
+        pos['ball'], oball = \
+            segmentation.find_connected_components(ballmask)
+
+        yellow_mask = threshold.yellowT(Iobj)
+        #updateWin('Yellow', threshold.yellowT(Iobj)) #also includes the ball; xor?
+        pos['yellow'], oyellow = \
+            segmentation.find_connected_components(yellow_mask)
+
+        blue_mask = threshold.blueT(Iobj)
+        #updateWin('Blue', threshold.blueT(Iobj)) #works
+        pos['blue'], oblue = \
+            segmentation.find_connected_components(blue_mask)
 
         # updateWin('Yellow', Features.threshold(Iavg, Features.Tyellow))
         # updateWin('Yellow orig', Features.threshold(frame, Features.Tyellow))
@@ -188,9 +217,19 @@ def bar():
         cv.cvCvtColor(Iobj, gray, cv.CV_BGR2GRAY)
         #cv.cvDilate(gray, gray)
         #updateWin('X', gray)
-        loc, o = segmentation.find_connected_components(gray)
-        updateWin('Contour', o)
+        pos['robots'], ostuff = \
+            segmentation.find_connected_components(gray)
 
+        for o in pos.values():
+            for box2d, rect in o:
+                x,y = BoxCenterPos(box2d)
+                radius = box2d.size.width
+                cv.cvCircle(Iobj, Point(x, y), cv.cvRound(min(30,radius)),
+                            cv.CV_RGB(random.randint(1,255),
+                                      random.randint(1,255),
+                                      random.randint(1,255)) )
+
+        updateWin('Bar', Iobj)
 
         # o=Segmenter.segment(Features.threshold(frame, Features.Tblue), 'Blue')
         # print o
