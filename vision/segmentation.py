@@ -13,24 +13,31 @@ contour_min_area=200
 
 def find_connected_components(frame):
     """Find connected components from an image.
-
     :: CvMat -> ( [ (CvBox2D, CvRect) ], CvMat )
 
     Takes as input a grayscale image that should have some blobs in
     it. Outputs a data structure containing the 'centers' of the blobs
     and minimal rectangles enclosing them.
+
+    The input frame is modified in place.
     """
-    contours = get_contours(frame)
+    contours, cstorage = get_contours(frame)
     out = draw_contours(frame, contours)
 
     candidates = []
+    if contours is None:
+        return ([], None)
+
     for c in contours.hrange():
         count = c.total
         #print 'Count:',count
 
         storage = cv.cvCreateMemStorage(0)
         min_box = cv.cvMinAreaRect2(c, storage)
-        bounding_box = cv.cvBoundingRect(c, 0) # TODO: investigate why this failed once
+        cv.cvReleaseMemStorage(storage)
+
+        bounding_box = cv.cvBoundingRect(c, 0)
+
         candidates.append( (min_box, bounding_box) )
 
         area = getBoxArea(min_box)
@@ -41,14 +48,16 @@ def find_connected_components(frame):
         # print "Angle:%.3f  Pos:(%.3f, %.3f)" % \
         #               (min_box.angle, min_box.center.x, min_box.center.y)
 
+    cv.cvReleaseMemStorage(cstorage)
     candidates = sorted(candidates, key=lambda x:getBoxArea(x[0]), reverse=True)
 
     return candidates, out
 
 def get_contours(frame):
-    # create the storage area
+    """Get contours from an image
+    :: CvMat -> ( CvTypedSeq<CvPoint>, CvCvMemStorage )
+    """
     storage = cv.cvCreateMemStorage(0)
-
     # find the contours
     nb_contours, contours = \
         cv.cvFindContours( frame,
@@ -58,7 +67,9 @@ def get_contours(frame):
                            cv.CV_CHAIN_APPROX_SIMPLE,
                            cv.cvPoint(0, 0) )
 
-    # comment this out if you do not want approximation
+    if contours is None:
+        return None, storage
+
     contours = cv.cvApproxPoly( contours,
                                 cv.sizeof_CvContour,
                                 storage,
@@ -68,8 +79,7 @@ def get_contours(frame):
 
     # print 'Num:',nb_contours
     # print type(contours), dir(contours)
-
-    return contours
+    return contours, storage
 
 def draw_contours(frame, contours):
     out = cv.cvCreateImage(cv.cvGetSize(frame), cv.IPL_DEPTH_8U, 3)

@@ -14,7 +14,7 @@ class Vision():
         while not self.UI.quit:
             frame = self.capture.getFrame()
             self.pre.preprocess(frame)
-            #features.recognise_features()
+            #features.extract_features()
             self.classifier.classify()
             self.world.update()
             self.UI.update()

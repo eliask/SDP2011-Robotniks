@@ -13,9 +13,6 @@ from utils import *
 g_capture = None
 g_slider_pos = 0
 
-def on_trackbar(pos):
-    highgui.cvSetCaptureProperty(capture, highgui.CV_CAP_PROP_POS_FRAMES, pos)
-
 winMap = {}
 
 def updateWin(name, frame):
@@ -43,6 +40,10 @@ def setR(x): Xbgr[2]=x
 def setFA(x): features.params[0]=x
 def setFB(x): features.params[0]=x
 
+def gotoFrame(pos):
+    highgui.cvSetCaptureProperty(g_capture, highgui.CV_CAP_PROP_POS_FRAMES, pos)
+    print "Pos:", highgui.cvGetCaptureProperty(g_capture, highgui.CV_CAP_PROP_POS_FRAMES)
+
 def bar():
     # create windows
     # highgui.cvNamedWindow('Raw', highgui.CV_WINDOW_AUTOSIZE)
@@ -59,6 +60,9 @@ def bar():
 
     frames = highgui.cvGetCaptureProperty(g_capture,
                                           highgui.CV_CAP_PROP_FRAME_COUNT)
+
+    gotoFrame(215)
+
     # print FPS
     print 'FPS:', \
         highgui.cvGetCaptureProperty(g_capture, highgui.CV_CAP_PROP_FPS)
@@ -128,6 +132,9 @@ def bar():
             if frame is None: break
             cv.cvAnd(frame, pitch_mask, frame)
 
+        print "Frame:",n
+        n+=1
+
         #size = cv.cvGetSize(frame)
 
         ########################################
@@ -160,7 +167,7 @@ def bar():
                                                  cv.CV_SHAPE_RECT)
 
         cv.cvSub(frame, bg, Imask)
-        updateWin('Background subtraction', Imask)
+        #updateWin('Background subtraction', Imask)
         gray = threshold.foreground(Imask)
         cv.cvCvtColor(gray, Imask, cv.CV_GRAY2BGR)
 
@@ -180,20 +187,22 @@ def bar():
         #updateWin('Hough', features.detect_dirmarker(Imask))
         #robot_positions, o = segmentation.find_connected_components(gray)
         ballmask = threshold.ball(Iobj)
-        updateWin('Ball', ballmask)
+        #updateWin('Ball', ballmask)
 
         pos = {}
 
         pos['ball'], oball = \
             segmentation.find_connected_components(ballmask)
 
-        yellow_mask = threshold.yellowT(Iobj)
+        yellow_mask = threshold.yellowTAndBall(Iobj)
         #updateWin('Yellow', threshold.yellowT(Iobj)) #also includes the ball; xor?
+        #updateWin('Yellow,ball', yellow_mask) #threshold.yellowTAndBall(Iobj)
         pos['yellow'], oyellow = \
             segmentation.find_connected_components(yellow_mask)
+        # updateWin('Yellow2', oyellow)
 
         blue_mask = threshold.blueT(Iobj)
-        #updateWin('Blue', threshold.blueT(Iobj)) #works
+        updateWin('Blue', threshold.blueT(Iobj)) #works
         pos['blue'], oblue = \
             segmentation.find_connected_components(blue_mask)
 
