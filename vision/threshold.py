@@ -17,7 +17,7 @@ colorspaceConv = \
 # 247 red & green is a good identifier in normal lighting
 # also identifies the ball and stuff; requires BG sub.
 
-Tyellow     = ( 'hsv', (0,   90,  90 ), (40,  255, 255) )
+TyellowAndBall     = ( 'hsv', (0,   90,  90 ), (40,  255, 255) )
 
 # loads of noise and NO dirmarker
 Tdirmarker  = ( 'bgr', (0,   0,   0  ), (100, 100, 100) )
@@ -38,18 +38,57 @@ Tforeground = ( 'bgr', (35,  10,  20 ), (255, 255, 255) )
 def foreground(frame):
     return threshold(frame, Tforeground, op=cv.cvOr)
 
-def ball(frame):
-    return threshold(frame, Tball)
+yellow_kernel = \
+    cv.cvCreateStructuringElementEx(7,7,
+                                    3,3, #X,Y offsets
+                                    cv.CV_SHAPE_CROSS)
+def yellowTAndBall(frame):
+    """Outputs a mask containing the yellow T and the ball
+
+    The dimensions of the T are roughly 32 x 42 pixels.
+    The ball is around 12 to 17 pixels in diameter (being a blob
+    that's not entirely circle-looking)
+    """
+    mask = threshold(frame, TyellowAndBall)
+    cv.cvDilate (mask, mask, yellow_kernel)
+    cv.cvErode (mask, mask, yellow_kernel)
+    return mask
 
 def yellowT(frame):
-    return threshold(frame, Tyellow)
+    # Doesn't work well
+    raise NotImplementedError
+
+    # mask = threshold(frame, TyellowAndBall)
+    mask = yellowTAndBall(frame)
+    # TODO: some duplication of effort
+    cv.cvXor(ball(frame), mask, mask)
+    return mask
+
+ball_kernel = \
+    cv.cvCreateStructuringElementEx(4,4,
+                                    2,2, #X,Y offsets
+                                    cv.CV_SHAPE_CROSS)
+def ball(frame):
+    """
+    Works much like yellowTAndBall, but the return mask is more
+    compact and better matches the shape of the ball.
+    """
+    mask = threshold(frame, Tball)
+    cv.cvDilate (mask, mask, ball_kernel)
+    cv.cvErode (mask, mask, ball_kernel)
+    return mask
 
 def blueT(frame):
-    return threshold(frame, Tblue)
+     mask = threshold(frame, Tblue)
+     # cv.cvDilate (mask, mask, ball_kernel)
+     # cv.cvErode (mask, mask, ball_kernel)
+     return mask
 
-kernel = cv.cvCreateStructuringElementEx(7, 7,
-                                         2,2, #X,Y offsets
-                                         cv.CV_SHAPE_RECT)
+
+dir_kernel = \
+    cv.cvCreateStructuringElementEx(7,7,
+                                    3,3, #X,Y offsets
+                                    cv.CV_SHAPE_RECT)
 def dirmarker(frame):
     #TODO: figure out some way to find the black spot amidst the black background
 
@@ -91,7 +130,10 @@ def get_image_buffers(num_chans, size):
     return image_buffers[:num_chans]
 
 def threshold(frame, record, op=cv.cvAnd):
-    "Threshold a frame using a record of min/max thresholds"
+    """Threshold a frame using a record of min/max thresholds
+
+    Output is a new image.
+    """
     colorspace, min, max = record
 
     tmp = cv.cvCloneImage(frame)
