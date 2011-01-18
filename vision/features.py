@@ -1,8 +1,34 @@
 from opencv import cv, highgui
 from utils import *
 import threshold
+import segmentation
 
 params = [30,50]
+
+def extract_features(frame):
+
+    # mask2 = threshold.dirmarker(Iobj)
+    # cv.cvCvtColor(mask2, Imask, cv.CV_GRAY2BGR)
+
+    def segment(thresholded):
+        pos, _ = segmentation.find_connected_components(thresholded)
+        cv.cvReleaseImage(thresholded)
+        return pos
+
+    pos = {}
+
+    pos['ball'] = segment(threshold.ball(Iobj))
+
+    #updateWin('Yellow', threshold.yellowT(Iobj))
+    pos['yellow'] = segment(threshold.yellowTAndBall(Iobj))
+
+    #updateWin('Blue', threshold.blueT(Iobj)) #works
+    pos['blue'] = segment(threshold.blueT(Iobj))
+
+    gray = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
+    cv.cvCvtColor(frame, gray, cv.CV_BGR2GRAY)
+    pos['objects'] = segment(gray)
+
 
 def detect_ball(self, frame):
     thresholded = threshold.ball(frame)
