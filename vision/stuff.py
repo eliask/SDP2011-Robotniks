@@ -14,13 +14,10 @@ g_capture = None
 g_slider_pos = 0
 
 winMap = {}
-
 def updateWin(name, frame):
     if not winMap.has_key(name):
         winMap[name] = \
         {'window' : highgui.cvNamedWindow(name, highgui.CV_WINDOW_AUTOSIZE)}
-        #print winMap[name]
-
     highgui.cvShowImage(name, frame)
 
 def updateTrackbar(name, window_name):

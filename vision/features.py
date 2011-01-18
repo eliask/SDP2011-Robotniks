@@ -6,29 +6,28 @@ import segmentation
 params = [30,50]
 
 def extract_features(frame):
-
+    """
+    :: CvMat -> dict( label -> [ (CvBox2D, CvRect) ] )
+    """
     # mask2 = threshold.dirmarker(Iobj)
     # cv.cvCvtColor(mask2, Imask, cv.CV_GRAY2BGR)
 
     def segment(thresholded):
         pos, _ = segmentation.find_connected_components(thresholded)
-        cv.cvReleaseImage(thresholded)
+        #cv.cvReleaseImage(thresholded)
         return pos
 
-    pos = {}
-
-    pos['ball'] = segment(threshold.ball(Iobj))
-
-    #updateWin('Yellow', threshold.yellowT(Iobj))
-    pos['yellow'] = segment(threshold.yellowTAndBall(Iobj))
-
-    #updateWin('Blue', threshold.blueT(Iobj)) #works
-    pos['blue'] = segment(threshold.blueT(Iobj))
-
+    size = cv.cvGetSize(frame)
     gray = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
     cv.cvCvtColor(frame, gray, cv.CV_BGR2GRAY)
+
+    pos = {}
+    pos['ball']    = segment(threshold.ball(frame))
+    pos['yellow'] = segment(threshold.yellowTAndBall(frame))
+    pos['blue']    = segment(threshold.blueT(frame))
     pos['objects'] = segment(gray)
 
+    return pos
 
 def detect_ball(self, frame):
     thresholded = threshold.ball(frame)

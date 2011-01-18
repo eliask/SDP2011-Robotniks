@@ -18,7 +18,7 @@ class Preprocessor:
         self.Imask     = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 3)
         self.Iobjects  = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 3)
 
-        self.kernel = \
+        self.bgsub_kernel = \
             cv.cvCreateStructuringElementEx(5, 5, #size
                                             2, 2, #X,Y offsets
                                             cv.CV_SHAPE_RECT)
@@ -44,18 +44,18 @@ class Preprocessor:
         re-initialised each time preprocess is run.
         """
         cv.cvAnd(frame, self.pitch_mask, frame)
-        cv.cvCvtColor(frame, self.gray, cv.CV_BGR2GRAY)
-        cv.cvSub(frame, self.bg, Imask)
+        cv.cvCvtColor(frame, self.Igray, cv.CV_BGR2GRAY)
+        cv.cvSub(frame, self.bg, self.Imask)
 
-        self.gray = threshold.foreground(Imask)
-        cv.cvCvtColor(self.gray, self.Imask, cv.CV_GRAY2BGR)
+        self.Igray = threshold.foreground(self.Imask)
+        cv.cvCvtColor(self.Igray, self.Imask, cv.CV_GRAY2BGR)
 
         #Enlarge the mask a bit to account eliminate missing parts due to noise
         cv.cvDilate(self.Imask, self.Imask)
 
         #This step essentially just reduces the amount of noise
-        cv.cvMorphologyEx(self.Imask, self.Imask, None, kernel, cv.CV_MOP_OPEN)
-        cv.cvMorphologyEx(self.Imask, self.Imask, None, kernel, cv.CV_MOP_CLOSE)
+        cv.cvMorphologyEx(self.Imask, self.Imask, None, self.bgsub_kernel, cv.CV_MOP_OPEN)
+        cv.cvMorphologyEx(self.Imask, self.Imask, None, self.bgsub_kernel, cv.CV_MOP_CLOSE)
 
         #Finally, return the salient bits of the original frame
         cv.cvAnd(self.Imask, frame, self.Iobjects)

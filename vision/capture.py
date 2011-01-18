@@ -4,11 +4,7 @@ class CaptureFailure(Exception): pass
 
 class Capture:
 
-    # Video stream dimensions
-    WIDTH = 768
-    HEIGHT = 576
-
-    def __init__(self, filename=None):
+    def __init__(self, size, filename=None):
         if filename:
             self.capture = highgui.cvCreateFileCapture(filename)
         else:
@@ -23,10 +19,10 @@ class Capture:
 
         highgui.cvSetCaptureProperty(self.capture,
                                      highgui.CV_CAP_PROP_FRAME_WIDTH,
-                                     self.WIDTH)
+                                     size.width)
         highgui.cvSetCaptureProperty(self.capture,
                                      highgui.CV_CAP_PROP_FRAME_HEIGHT,
-                                     self.HEIGHT)
+                                     size.width)
 
     def __del__(self):
         highgui.cvReleaseCapture(self.capture)

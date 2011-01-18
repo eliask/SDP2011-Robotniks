@@ -17,7 +17,8 @@ def find_connected_components(frame):
 
     Takes as input a grayscale image that should have some blobs in
     it. Outputs a data structure containing the 'centers' of the blobs
-    and minimal rectangles enclosing them.
+    and minimal rectangles enclosing them. A maximum of 3 blobs are
+    returned.
 
     The input frame is modified in place.
     """
@@ -49,7 +50,7 @@ def find_connected_components(frame):
         #               (min_box.angle, min_box.center.x, min_box.center.y)
 
     cv.cvReleaseMemStorage(cstorage)
-    candidates = sorted(candidates, key=lambda x:getBoxArea(x[0]), reverse=True)
+    candidates = sorted(candidates, key=lambda x:getBoxArea(x[0]), reverse=True)[:2]
 
     return candidates, out
 
