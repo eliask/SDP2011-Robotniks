@@ -5,6 +5,7 @@ from math import *
 from random import *
 from pygame.locals import *
 import pygame
+from utils import *
 
 image_names = {
     'bg'     : '../vision/background.png',
@@ -108,7 +109,6 @@ class Robot(Entity):
 
 class Simulator:
 
-    tickSize=0.01
     objects=[]
     robots=[]
     images={}
@@ -151,7 +151,7 @@ class Simulator:
             # to get a sense of how it should be programmed.
             #input(pygame.event.get())
 
-            self.clock.tick(100)
+            self.clock.tick(25)
             self.sprites.update()
             self.drawEnts()
 
