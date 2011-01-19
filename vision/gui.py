@@ -34,7 +34,7 @@ class GUI:
             dirx, diry = BoxCenterPos(ent['dirmarker']['box'])
             dx, dy = x - dirx, y - diry
             print "DELTA:",  dx, dy
-            cv.cvCircle(self.frame, Point(x+3*dx, y+3*dx), cv.cvRound(min(15,radius)), cv.CV_RGB(200,200,200))
+            cv.cvCircle(self.frame, Point(x+3*dx, y+3*dy), cv.cvRound(min(15,radius)), cv.CV_RGB(200,200,200))
 
 
         R = ent['rect']
