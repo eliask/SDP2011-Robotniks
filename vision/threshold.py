@@ -50,8 +50,8 @@ def yellowTAndBall(frame):
     that's not entirely circle-looking)
     """
     mask = threshold(frame, TyellowAndBall)
-    cv.cvDilate (mask, mask, yellow_kernel)
-    cv.cvErode (mask, mask, yellow_kernel)
+    cv.cvDilate(mask, mask, yellow_kernel)
+    cv.cvErode(mask, mask, yellow_kernel)
     return mask
 
 def yellowT(frame):
@@ -74,14 +74,14 @@ def ball(frame):
     compact and better matches the shape of the ball.
     """
     mask = threshold(frame, Tball)
-    cv.cvDilate (mask, mask, ball_kernel)
-    cv.cvErode (mask, mask, ball_kernel)
+    cv.cvDilate(mask, mask, ball_kernel)
+    cv.cvErode(mask, mask, ball_kernel)
     return mask
 
 def blueT(frame):
      mask = threshold(frame, Tblue)
-     # cv.cvDilate (mask, mask, ball_kernel)
-     # cv.cvErode (mask, mask, ball_kernel)
+     cv.cvDilate(mask, mask, ball_kernel)
+     cv.cvErode(mask, mask, ball_kernel)
      return mask
 
 
@@ -90,32 +90,7 @@ dir_kernel = \
                                     3,3, #X,Y offsets
                                     cv.CV_SHAPE_RECT)
 def dirmarker(frame):
-    #TODO: figure out some way to find the black spot amidst the black background
-
-    gray = cv.cvCreateImage(cv.cvGetSize(frame), cv.IPL_DEPTH_8U, 1)
-    cv.cvCvtColor(frame, gray, cv.CV_BGR2GRAY)
-    out = threshold(frame, Tdirmarker)
-    #cv.cvCvtColor(out, gray, cv.CV_BGR2GRAY)
-    #cv.cvSmooth (out, out, cv.CV_BLUR, 5,5, 0)
-    #cv.cvCanny(out, out, 5, 15, 3)
-    #edge = cv.cvCreateImage(cv.cvGetSize(frame), cv.IPL_DEPTH_CV32F, 1)
-    # cv.cvCvtColor(frame, gray, cv.CV_GRAY232F)
-    # cv.cvSobel(gray, out, 1,1, 3)
-    return out
-
-    # An alternative implementation:
-
-    # size = cv.cvGetSize(frame)
-
-    # gray, tmp, mask = get_image_buffers(3, size)
-    # cv.cvThreshold(gray, mask, 0, 255, cv.CV_THRESH_BINARY)
-    # cv.cvDilate(mask, mask, kernel)
-    # cv.cvThreshold(gray, tmp, 100, 255, cv.CV_THRESH_BINARY_INV)
-
-    # out = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
-    # cv.cvAnd(tmp, mask, out)
-
-    #return out
+    return threshold(frame, Tdirmarker)
 
 def backplate(frame):
     return threshold(frame, Tbackplate)
@@ -138,12 +113,12 @@ def threshold(frame, record, op=cv.cvAnd):
 
     tmp = cv.cvCloneImage(frame)
     # Work in the correct colorspace
-    # TODO: somewhat inefficient converting the colorspace anew each time
     colorspaceConv[colorspace](tmp)
 
     num_chans = len(min)
     size = cv.cvGetSize(frame)
-    chan = get_image_buffers(num_chans, size)
+    chan = [ cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
+             for _ in range(num_chans) ]
     cv.cvSplit(tmp, chan[0], chan[1], chan[2], None)
 
     minS = map(cv.cvScalar, min)
@@ -154,5 +129,9 @@ def threshold(frame, record, op=cv.cvAnd):
     out = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
     op(chan[0], chan[1], out)
     op(out, chan[2], out)
+
+    # cv.cvReleaseImage(tmp)
+    # #TODO: Why does this cause a segfault?
+    # map(cv.cvReleaseImage, chan)
 
     return out

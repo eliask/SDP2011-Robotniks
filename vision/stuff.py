@@ -1,6 +1,6 @@
 import pygame, sys, random
 from opencv import cv, highgui
-import features
+from features import FeatureExtraction
 import segmentation
 import threshold
 from preprocess import Preprocessor
@@ -34,8 +34,10 @@ def setB(x): Xbgr[0]=x
 def setG(x): Xbgr[1]=x
 def setR(x): Xbgr[2]=x
 
-def setFA(x): features.params[0]=x
-def setFB(x): features.params[0]=x
+# def setFA(x): features.params[0]=x
+# def setFB(x): features.params[0]=x
+
+F = FeatureExtraction( (768, 576) )
 
 def gotoFrame(pos):
     highgui.cvSetCaptureProperty(g_capture, highgui.CV_CAP_PROP_POS_FRAMES, pos)
@@ -100,13 +102,13 @@ def bar():
     # highgui.cvCreateTrackbar("G", 'X', Xbgr[1], 255, setG)
     # highgui.cvCreateTrackbar("B", 'X', Xbgr[0], 255, setB)
 
-    updateWin("Contour", bg)
-    # highgui.cvCreateTrackbar("A", 'Contour', Features.contour_min_area, 800, setFA)
-    # highgui.cvCreateTrackbar("B", 'Contour', Features.B, 30, setFB)
+    # updateWin("Contour", bg)
+    # # highgui.cvCreateTrackbar("A", 'Contour', Features.contour_min_area, 800, setFA)
+    # # highgui.cvCreateTrackbar("B", 'Contour', Features.B, 30, setFB)
 
-    updateWin("Hough", bg)
-    highgui.cvCreateTrackbar("param1", 'Hough', features.params[0], 500, setFA)
-    highgui.cvCreateTrackbar("param2", 'Hough', features.params[1], 500, setFB)
+    # updateWin("Hough", bg)
+    # highgui.cvCreateTrackbar("param1", 'Hough', features.params[0], 500, setFA)
+    # highgui.cvCreateTrackbar("param2", 'Hough', features.params[1], 500, setFB)
 
     Iobj = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 3)
     Imask = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 3)
@@ -186,22 +188,22 @@ def bar():
         ballmask = threshold.ball(Iobj)
         #updateWin('Ball', ballmask)
 
-        pos = {}
+        # pos = {}
 
-        pos['ball'], oball = \
-            segmentation.find_connected_components(ballmask)
+        # pos['ball'], oball = \
+        #     segmentation.find_connected_components(ballmask)
 
-        yellow_mask = threshold.yellowTAndBall(Iobj)
-        #updateWin('Yellow', threshold.yellowT(Iobj)) #also includes the ball; xor?
-        #updateWin('Yellow,ball', yellow_mask) #threshold.yellowTAndBall(Iobj)
-        pos['yellow'], oyellow = \
-            segmentation.find_connected_components(yellow_mask)
-        # updateWin('Yellow2', oyellow)
+        # yellow_mask = threshold.yellowTAndBall(Iobj)
+        # #updateWin('Yellow', threshold.yellowT(Iobj)) #also includes the ball; xor?
+        # #updateWin('Yellow,ball', yellow_mask) #threshold.yellowTAndBall(Iobj)
+        # pos['yellow'], oyellow = \
+        #     segmentation.find_connected_components(yellow_mask)
+        # # updateWin('Yellow2', oyellow)
 
         blue_mask = threshold.blueT(Iobj)
         updateWin('Blue', threshold.blueT(Iobj)) #works
-        pos['blue'], oblue = \
-            segmentation.find_connected_components(blue_mask)
+        # pos['blue'] = \
+        #     segmentation.find_connected_components(blue_mask)
 
         # updateWin('Yellow', Features.threshold(Iavg, Features.Tyellow))
         # updateWin('Yellow orig', Features.threshold(frame, Features.Tyellow))
@@ -220,22 +222,22 @@ def bar():
         # cv.cvCvtColor(It, IGD, cv.CV_GRAY2BGR)
         # cv.cvAnd(IGD, frame, IGD)
 
-        cv.cvCvtColor(Iobj, gray, cv.CV_BGR2GRAY)
-        #cv.cvDilate(gray, gray)
-        #updateWin('X', gray)
-        pos['robots'], ostuff = \
-            segmentation.find_connected_components(gray)
+        # cv.cvCvtColor(Iobj, gray, cv.CV_BGR2GRAY)
+        # #cv.cvDilate(gray, gray)
+        # #updateWin('X', gray)
+        # pos['robots'], ostuff = \
+        #     segmentation.find_connected_components(gray)
 
-        for o in pos.values():
-            for box2d, rect in o:
-                x,y = BoxCenterPos(box2d)
-                radius = box2d.size.width
-                cv.cvCircle(Iobj, Point(x, y), cv.cvRound(min(30,radius)),
-                            cv.CV_RGB(random.randint(1,255),
-                                      random.randint(1,255),
-                                      random.randint(1,255)) )
+        # for o in pos.values():
+        #     for box2d, rect in o:
+        #         x,y = BoxCenterPos(box2d)
+        #         radius = box2d.size.width
+        #         cv.cvCircle(Iobj, Point(x, y), cv.cvRound(min(30,radius)),
+        #                     cv.CV_RGB(random.randint(1,255),
+        #                               random.randint(1,255),
+        #                               random.randint(1,255)) )
 
-        updateWin('Bar', Iobj)
+        # updateWin('Bar', Iobj)
 
         # o=Segmenter.segment(Features.threshold(frame, Features.Tblue), 'Blue')
         # print o

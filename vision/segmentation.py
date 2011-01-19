@@ -13,7 +13,7 @@ contour_min_area=200
 
 def find_connected_components(frame):
     """Find connected components from an image.
-    :: CvMat -> ( [ (CvBox2D, CvRect) ], CvMat )
+    :: CvMat -> [ dict(box<CvBox2D>, rect<CvRect>) ]
 
     Takes as input a grayscale image that should have some blobs in
     it. Outputs a data structure containing the 'centers' of the blobs
@@ -23,36 +23,24 @@ def find_connected_components(frame):
     The input frame is modified in place.
     """
     contours, cstorage = get_contours(frame)
-    out = draw_contours(frame, contours)
+    #out = draw_contours(frame, contours)
 
     candidates = []
     if contours is None:
-        return ([], None)
+        return []
 
     for c in contours.hrange():
-        count = c.total
-        #print 'Count:',count
-
         storage = cv.cvCreateMemStorage(0)
-        min_box = cv.cvMinAreaRect2(c, storage)
+        minBox = cv.cvMinAreaRect2(c, storage)
         cv.cvReleaseMemStorage(storage)
 
-        bounding_box = cv.cvBoundingRect(c, 0)
-
-        candidates.append( (min_box, bounding_box) )
-
-        area = getBoxArea(min_box)
-        width = min(min_box.size.width, min_box.size.height)
-        height = max(min_box.size.width, min_box.size.height)
-
-        # print 'W:%.3f  H:%.3f  A:%.3f' % (width, height, area)
-        # print "Angle:%.3f  Pos:(%.3f, %.3f)" % \
-        #               (min_box.angle, min_box.center.x, min_box.center.y)
+        boundingRect = cv.cvBoundingRect(c, 0)
+        candidates.append({ 'box' : minBox, 'rect' : boundingRect })
 
     cv.cvReleaseMemStorage(cstorage)
-    candidates = sorted(candidates, key=lambda x:getBoxArea(x[0]), reverse=True)[:2]
+    candidates = sorted(candidates, key=lambda x:getBoxArea(x['box']), reverse=True)
 
-    return candidates, out
+    return candidates
 
 def get_contours(frame):
     """Get contours from an image

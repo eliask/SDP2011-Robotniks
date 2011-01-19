@@ -10,6 +10,8 @@ class Preprocessor:
     def __init__(self, size):
         self.size = size
         self.loadMatrices()
+        # print self.Intrinsic
+        # print self.Distortion
 
         self.pitch_mask = highgui.cvLoadImage('pitch_mask.png')
         self.bg = highgui.cvLoadImage('background.png')
@@ -33,8 +35,8 @@ class Preprocessor:
         #TODO: crop the unused bits of the image
         #subimage = cvGetSubRect(frame, cvRect( 0, 0, sz.width, sz.height ))
 
-        #new = self.undistort(frame)
         new = frame
+        #new = self.undistort(frame)
         return self.remove_background(new)
 
     def remove_background(self, frame):
@@ -59,7 +61,6 @@ class Preprocessor:
 
         #Finally, return the salient bits of the original frame
         cv.cvAnd(self.Imask, frame, self.Iobjects)
-
         return self.Iobjects
 
     def hsv_normalise(self, frame):
@@ -89,6 +90,30 @@ class Preprocessor:
         return out
 
     def loadMatrices(self):
+        dmatL = [ 3.4742350115396103e+00, -1.9952057787197582e+01,
+                  -2.7392698000017207e-01, -4.2556074379348396e-01 ]
+        imatL = [ 8.3871330676286266e+02, 0., 3.8777426479020005e+02, 0.,
+                  2.0843086728538442e+03, 2.9815691813893829e+02, 0., 0., 1. ]
+
+        # dmatL = [ 3.3211491777405133e-01, -7.0628802308906480e-01,
+        #           -8.4867888171702516e-02, -4.6887031941976375e-02 ]
+        # imatL = [ 5.3074321438402910e+02, 0., 3.8585825272840685e+02, 0.,
+        #           4.5600731138678350e+02, 3.1912924576389008e+02, 0., 0., 1. ]
+
+        imat = cv.cvCreateMat(3,3, cv.CV_32F)
+        dmat = cv.cvCreateMat(4,1, cv.CV_32F)
+
+        for i in range(3):
+            for j in range(3):
+                imat[i][j] = imatL[3*i + j]
+
+        for i in range(4):
+            dmat[i] = dmatL[i]
+
+        self.Distortion = dmat
+        self.Intrinsic  = imat
+
+    def loadMatrices2(self):
         "Load matrices for barrel distortion correction."
         with open(self.MATRIX_FILE, 'r') as input:
             #(self.Intrinsic, self.Distortion) = pickle.load(input)
