@@ -1,0 +1,49 @@
+The objective of the simulator is to test and gain intuitions about
+how the robot behaves and could behave. Since we get as output a
+relatively real-looking picture, we could also test the vision system
+with this.
+
+Since the real environment has significant latency for getting the
+picture from the camera, we could use a number of buffers to display
+older images first to the vision system, simulating this latency, and
+seeing how well the prediction code is working.
+
+As of now, there are some subgoals we want to satisfy with the
+simulator:
+
+- Make robots collide with other objects.
+
+- Make the ball/pitch friction match the real friction.
+
+- Implement the kicker for the robots.
+
+- Come up with suitable way to convert between the pixel-based
+  simulator and real-world measures. Or make the simulator internally
+  work with real-world measures.
+
+- Measure the robot's maximum directional and rotational speed, the
+  force with which the kicker kicks the ball and possibly acceleration
+  and even mass (if we want to simulate "tackles"). One important
+  thing might be to move in an arc, so we'll probably want to make
+  sure the measured properties duplicate arcing movement faithfully.
+
+- Make our robot's simulated counterpart's move like the physical
+  robot so we can run the unmodified strategy program in both
+  environments.
+
+- Make robots driven by the strategy/behaviour system -- we can test
+  against ourselves and against some "ideal" opponent or against other
+  things like a robot that only moves towards the other robot or the
+  ball.
+
+- Interface the simulator with the vision system for testing purposes:
+  run a standard program where we know the positions of things and
+  compare them to the output of the vision system -- we can automate
+  vision system's testing in this way!
+
+- Similarly, the strategy system can be benchmarked and tested against
+  a number of standard opponent programs (and scenarios like
+  intercepting the ball).
+
+- Implement shadows for further testing the vision system. For maximum
+  effect, put random shadow blobs over the pitch.
