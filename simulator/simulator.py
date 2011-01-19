@@ -53,8 +53,6 @@ class Ball(Entity):
         self.rect.center = self.pos
 
     def reflectWall(self):
-        #print Pitch.top < self.rect.top < self.rect.bottom < Pitch.bottom
-
         if self.rect.top < Pitch.top or self.rect.bottom > Pitch.bottom:
             self.v[1] = -self.v[1]
 
@@ -91,6 +89,7 @@ class Robot(Entity):
         self.turn(angle)
 
     def turn(self, angle):
+        self.angle = angle
         self.image = pygame.transform.rotate(self.base_image, angle)
 
     def update(self):
@@ -154,7 +153,6 @@ class Simulator:
 
             self.clock.tick(100)
             self.sprites.update()
-            #print "tick"
             self.drawEnts()
 
     def input(self, events):
