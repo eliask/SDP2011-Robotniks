@@ -8,20 +8,12 @@ colorspaceConv = \
 # Thresholds for all entities
 # Format: color space, minima, maxima (per channel)
 
-###Useless
-# One picture gives the values (106, 217, 138) for backplates
-#Gives a rough noisy outline -- almost useless
-#Tbackplate  = ( 'bgr', (50,  100,  100 ), (150, 255, 190) )
-
-#Tyellow     = ( 'bgr', (170,   240,  240 ), (210,  255, 255) )
 # 247 red & green is a good identifier in normal lighting
 # also identifies the ball and stuff; requires BG sub.
-
 TyellowAndBall     = ( 'hsv', (0,   90,  90 ), (40,  255, 255) )
 
-# loads of noise and NO dirmarker
+# Works somewhat when away from the edges/shadows
 Tdirmarker  = ( 'bgr', (0,   0,   0  ), (100, 100, 100) )
-#Tbackplate  = ( 'hsv', (30,  30,  100), (100, 255, 255) )
 
 # Identifies the outlines of the robots
 #TODO: the threshold should be determined dynamically from
@@ -38,10 +30,6 @@ Tforeground = ( 'bgr', (35,  10,  20 ), (255, 255, 255) )
 def foreground(frame):
     return threshold(frame, Tforeground, op=cv.cvOr)
 
-yellow_kernel = \
-    cv.cvCreateStructuringElementEx(7,7,
-                                    3,3, #X,Y offsets
-                                    cv.CV_SHAPE_CROSS)
 def yellowTAndBall(frame):
     """Outputs a mask containing the yellow T and the ball
 
@@ -49,62 +37,25 @@ def yellowTAndBall(frame):
     The ball is around 12 to 17 pixels in diameter (being a blob
     that's not entirely circle-looking)
     """
-    mask = threshold(frame, TyellowAndBall)
-    cv.cvDilate(mask, mask, yellow_kernel)
-    cv.cvErode(mask, mask, yellow_kernel)
-    return mask
+    return threshold(frame, TyellowAndBall, magic=True)
 
-def yellowT(frame):
-    # Doesn't work well
-    raise NotImplementedError
-
-    # mask = threshold(frame, TyellowAndBall)
-    mask = yellowTAndBall(frame)
-    # TODO: some duplication of effort
-    cv.cvXor(ball(frame), mask, mask)
-    return mask
-
-ball_kernel = \
-    cv.cvCreateStructuringElementEx(4,4,
-                                    2,2, #X,Y offsets
-                                    cv.CV_SHAPE_CROSS)
 def ball(frame):
     """
     Works much like yellowTAndBall, but the return mask is more
     compact and better matches the shape of the ball.
     """
-    mask = threshold(frame, Tball)
-    cv.cvDilate(mask, mask, ball_kernel)
-    cv.cvErode(mask, mask, ball_kernel)
-    return mask
+    return threshold(frame, Tball, magic=True)
 
 def blueT(frame):
-     mask = threshold(frame, Tblue)
-     cv.cvDilate(mask, mask, ball_kernel)
-     cv.cvErode(mask, mask, ball_kernel)
-     return mask
+    return threshold(frame, Tblue, magic=True)
 
-
-dir_kernel = \
-    cv.cvCreateStructuringElementEx(7,7,
-                                    3,3, #X,Y offsets
-                                    cv.CV_SHAPE_RECT)
 def dirmarker(frame):
     return threshold(frame, Tdirmarker)
 
 def backplate(frame):
     return threshold(frame, Tbackplate)
 
-image_buffers = []
-def get_image_buffers(num_chans, size):
-    if len(image_buffers) < num_chans:
-        image_buffers.extend(
-            [ cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
-              for _ in range(num_chans - len(image_buffers)) ] )
-
-    return image_buffers[:num_chans]
-
-def threshold(frame, record, op=cv.cvAnd):
+def threshold(frame, record, op=cv.cvAnd, magic=False):
     """Threshold a frame using a record of min/max thresholds
 
     Output is a new image.
@@ -112,6 +63,8 @@ def threshold(frame, record, op=cv.cvAnd):
     colorspace, min, max = record
 
     tmp = cv.cvCloneImage(frame)
+    if magic:
+        cv.cvSmooth(tmp, tmp, cv.CV_GAUSSIAN, 11)
     # Work in the correct colorspace
     colorspaceConv[colorspace](tmp)
 
