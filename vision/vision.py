@@ -3,6 +3,7 @@ from opencv import cv, highgui
 from capture import *
 from preprocess import *
 from features import FeatureExtraction
+from interpret import Interpreter
 from gui import *
 import random
 import time
@@ -15,6 +16,7 @@ class Vision():
         self.capture = Capture(self.Size, args[-1])
         self.pre = Preprocessor(self.Size)
         self.featureEx = FeatureExtraction(self.Size)
+        self.interpreter = Interpreter()
         self.UI = GUI()
 
     def run(self):
@@ -26,10 +28,10 @@ class Vision():
             start= time.clock()
             frame = self.capture.getFrame()
             print "preprocess"
-            frame = self.pre.preprocess(frame)
+            frame, processed = self.pre.preprocess(frame)
             print "features"
-            ents = self.featureEx.features(frame)
-
+            ents = self.featureEx.features(processed)
+            self.interpreter.interpret(ents)
             self.UI.update(frame, ents)
             end= time.clock()
             times.append( (end-start) )

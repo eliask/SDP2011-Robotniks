@@ -37,7 +37,7 @@ class Preprocessor:
 
         new = frame
         #new = self.undistort(frame)
-        return self.remove_background(new)
+        return new, self.remove_background(new)
 
     def remove_background(self, frame):
         """Remove background, leaving foreground objects and some noise.

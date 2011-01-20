@@ -1,8 +1,8 @@
 from opencv import cv, highgui
 import math
 
-def BoxCenterPos(point):
-    return (point.center.x, point.center.y)
+def BoxCenter(ent):
+    return (ent['box'].center.x, ent['box'].center.y)
 
 def getBoxArea(box):
     return box.size.width * box.size.height

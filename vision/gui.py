@@ -1,5 +1,6 @@
 from opencv import cv, highgui
 from utils import *
+from math import *
 
 class GUI:
 
@@ -26,19 +27,16 @@ class GUI:
         if type(ent) == list and len(ent) > 0:
             ent = ent[0]
         #print ent
-        x,y = BoxCenterPos(ent['box'])
+        x,y = BoxCenter(ent)
         radius = ent['box'].size.width
         cv.cvCircle(self.frame, Point(x, y), cv.cvRound(min(15,radius)), color)
 
-        if 'dirmarker' in ent and ent['dirmarker']:
-            dirx, diry = BoxCenterPos(ent['dirmarker']['box'])
-            dx, dy = x - dirx, y - diry
-            print "DELTA:",  dx, dy
-            cv.cvCircle(self.frame, Point(x+3*dx, y+3*dy), cv.cvRound(min(15,radius)), cv.CV_RGB(200,200,200))
-
+        if 'orient' in ent and ent['orient']:
+            o = ent['orient']
+            cv.cvCircle(self.frame, Point(x+50*cos(o), y+50*sin(o)),
+                        cv.cvRound(min(15,radius)), cv.CV_RGB(200,200,200))
 
         R = ent['rect']
-        #sub = cv.cvGetSubRect(self.frame, (R.x, R.y, R.width, R.height))
         cv.cvRectangle(self.frame, cv.cvPoint(int(R.x), int(R.y)),
                      cv.cvPoint(int(R.x + R.width), int(R.y + R.height)),
                      color, 2, 8, 0)
@@ -48,35 +46,18 @@ class GUI:
         self.drawRotBox(ents['balls'], color=cv.CV_RGB(255,0,255), label='BALL')
 
         if ents['yellow']:
-            self.convertRobotCoordinates(ents['yellow'])
+            print "Y:", ents['yellow']['box'].angle
             self.drawRotBox(ents['yellow'], color=cv.CV_RGB(255,255,64), label='YELLOW')
-            self.drawRotBox(ents['yellow']['T'], color=cv.CV_RGB(200,200,64), label='YELLOW')
+            self.drawRotBox(ents['yellow']['T'], color=cv.CV_RGB(200,200,64), label='YELLOW T')
             self.drawRotBox(ents['yellow']['dirmarker'],
-                            color=cv.CV_RGB(100,100,0), label='YELLOW')
+                            color=cv.CV_RGB(100,100,0), label='YELLOW DIR')
 
         if ents['blue']:
-            self.convertRobotCoordinates(ents['blue'])
+            print "B:",ents['blue']['box'].angle
             self.drawRotBox(ents['blue'], color=cv.CV_RGB(64,64,255), label='BLUE')
-            self.drawRotBox(ents['blue']['T'], color=cv.CV_RGB(200,64,255), label='BLUE')
+            self.drawRotBox(ents['blue']['T'], color=cv.CV_RGB(200,64,255), label='BLUE T')
             self.drawRotBox(ents['blue']['dirmarker'],
-                            color=cv.CV_RGB(0,0,100), label='BLUE')
-
-    def convertRobotCoordinates(self, robot):
-        if robot['T']:
-            self.convertCoordinates(robot, robot['T'])
-        if robot['dirmarker']:
-            self.convertCoordinates(robot, robot['dirmarker'])
-
-    def convertCoordinates(self, ent, sub):
-        "Convert relative coordinates to absolute"
-        C = ent['box'].center
-        R = ent['rect']
-        c = sub['box'].center
-        sub['box'].center.x = c.x + R.x # ~ roughly correct
-        sub['box'].center.y = c.y + R.y # but TODO: fix or verify
-        r = sub['rect']
-        sub['rect'].x = r.x + R.x
-        sub['rect'].y = r.y + R.y
+                            color=cv.CV_RGB(0,0,100), label='BLUE DIR')
 
     def processInput(self):
         k = highgui.cvWaitKey(5)
