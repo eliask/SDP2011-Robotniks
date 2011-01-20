@@ -6,6 +6,7 @@ from features import FeatureExtraction
 from gui import *
 import random
 import time
+import math
 
 class Vision():
     Size = cv.cvSize(768, 576)
@@ -33,7 +34,11 @@ class Vision():
             end= time.clock()
             times.append( (end-start) )
 
-        print "Runtime/realtime ratio:", sum(times)/N * 25
+        avg = sum(times)/N
+        print "Runtime/realtime ratio:", avg * 25
+        print "Avg. processing time / frame: %.2f ms" % (avg * 1000)
+        print "Standard deviation: %.2f ms" % \
+            ( 1000*math.sqrt(sum(map(lambda x:(x-avg)**2, times)) / N) )
 
 if __name__ == "__main__":
     v = Vision(sys.argv)
