@@ -4,33 +4,44 @@ import threshold
 
 class Preprocessor:
 
-    def __init__(self, size):
-        self.size = size
-        self.initMatrices()
+    cropRect = (0, 79, 768, 424)
 
-        self.pitch_mask = highgui.cvLoadImage('pitch_mask.png')
+    bgsub_kernel = \
+        cv.cvCreateStructuringElementEx(5, 5, #size
+                                        2, 2, #X,Y offsets
+                                        cv.CV_SHAPE_RECT)
+
+    def __init__(self, rawSize):
+        self.rawSize = rawSize
+        self.cropSize = cv.cvSize(self.cropRect[2], self.cropRect[3])
+
+        self.initMatrices()
         self.bg = highgui.cvLoadImage('background.png')
 
-        self.Igray     = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
-        self.Imask     = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 3)
-        self.Iobjects  = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 3)
-        self.Idistort  = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 3)
+        self.Idistort  = cv.cvCreateImage(self.rawSize, cv.IPL_DEPTH_8U, 3)
+        self.Icrop     = cv.cvCreateImage(self.cropSize, cv.IPL_DEPTH_8U, 3)
+        self.Igray     = cv.cvCreateImage(self.cropSize, cv.IPL_DEPTH_8U, 1)
+        self.Imask     = cv.cvCreateImage(self.cropSize, cv.IPL_DEPTH_8U, 3)
+        self.Iobjects  = cv.cvCreateImage(self.cropSize, cv.IPL_DEPTH_8U, 3)
 
-        self.bgsub_kernel = \
-            cv.cvCreateStructuringElementEx(5, 5, #size
-                                            2, 2, #X,Y offsets
-                                            cv.CV_SHAPE_RECT)
+        self.bg = self.crop(self.undistort(self.bg))
+        # highgui.cvSaveImage("calibrated-background.png", self.bg)
 
     def preprocess(self, frame):
         """Preprocess a frame
 
         This method preprocesses a frame by undistorting it using
         prior camera calibration data and then removes the background
-        using an image with no objects.
+        using an image of the background.
         """
-        new = frame
-        #new = self.undistort(frame)
-        return new, self.remove_background(new)
+        undistorted = self.undistort(frame)
+        cropped     = self.crop(undistorted)
+        return cropped, self.remove_background(cropped)
+
+    def crop(self, frame):
+        sub_region = cv.cvGetSubRect(frame, self.cropRect)
+        cv.cvCopy(sub_region, self.Icrop)
+        return self.Icrop
 
     def remove_background(self, frame):
         """Remove background, leaving foreground objects and some noise.
@@ -38,8 +49,8 @@ class Preprocessor:
         It is not safe to modify the returned image, as it will be
         re-initialised each time preprocess is run.
         """
-        cv.cvAnd(frame, self.pitch_mask, frame)
         cv.cvCvtColor(frame, self.Igray, cv.CV_BGR2GRAY)
+        print frame.height, self.bg.height
         cv.cvSub(frame, self.bg, self.Imask)
 
         self.Igray = threshold.foreground(self.Imask)
@@ -84,14 +95,12 @@ class Preprocessor:
     def initMatrices(self):
         "Initialise matrices for camera distortion correction."
 
-        dmatL = [ -0.3258521556854248,
-                  0.19688290357589722,
-                  -0.0048322244547307491,
-                  -0.0044014849700033665 ]
+        dmatL = [ -3.1740235091903346e-01, -8.6157434640872499e-02,
+                   9.2026812110876845e-03, 4.4950266773574115e-03 ]
 
-        imatL = [ 653.95880126953125, 0.0, 304.65557861328125,
-                  0.0, 660.8642578125, 236.62376403808594,
-                  0.0, 0.0, 1.0 ]
+        imatL = [ 8.6980146658682384e+02, 0., 3.7426130495414304e+02,
+                  0., 8.7340754327613899e+02, 2.8428760615670581e+02,
+                  0., 0., 1. ]
 
         imat = cv.cvCreateMat(3,3, cv.CV_32F)
         dmat = cv.cvCreateMat(4,1, cv.CV_32F)
