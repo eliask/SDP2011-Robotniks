@@ -27,7 +27,7 @@ class FeatureExtraction:
         Returns a dictionary containing the positions of robots and ball.
         Both types contain 'box' and 'rect', which refer to their
         bounding boxes and their bounding rectangles, respectively.
-
+        
         Performs size-checking on all entities but doesn't eliminate
         all multiplicity.
         """
