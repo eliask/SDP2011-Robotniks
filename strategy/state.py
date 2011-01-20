@@ -3,8 +3,6 @@ import geometry
 
 # The State class represents a state of the field.
 class State(object):
-	
-	
 	# Initialises a new state.
 	def __init__(self, vision_data, previous_state):
 		self.time = time.time()
