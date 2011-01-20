@@ -17,9 +17,6 @@ class FeatureExtraction:
     def __init__(self, size):
         self.gray = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
 
-    def __del__(self):
-        cv.cvReleaseImage(self.gray)
-
     def features(self, Iobjects):
         """Extract relevant features from objects
         :: CvMat -> dict( label -> [ dict() ] )
