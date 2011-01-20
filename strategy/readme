@@ -24,8 +24,3 @@ By operating each separate component in its own process such that
 	Strategy requests data from vision, and pushes commands to Communication
 	Communication listens for commands from Strategy (and as a server for information from the robot)
 We can avoid worrying about specific timings and communication is one-way and simple.
-
-if(us.is_next_to_ball())
-	kick()
-else
-	go_to_ball()

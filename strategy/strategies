@@ -1,0 +1,5 @@
+Penalty kick:
+	if(next to ball)
+		kick
+	else
+		go to ball
