@@ -8,17 +8,19 @@ import pygame
 from utils import *
 
 image_names = {
-    'bg'     : '../vision/background.png',
+    'bg'     : '../vision/media/calibrated-background-cropped.png',
     'blue'   : 'blue_robot.png',
     'yellow' : 'yellow_robot.png',
     'ball'   : 'ball.png',
     }
 
-Resolution = (768, 576)
+Resolution = (768, 424)
 
-Pitch = Rect(37, 119, 769-37, 465-119)
-LeftGoalArea= Rect(15, 207, 36-15, 377-207)
-RightGoalArea= Rect(733, 207, 36-15, 377-207)
+Pitch = Rect(6, 28, 754, 378)
+# This looks reasonable enough, but if the goal was centered exactly,
+# it would start from y~=126 and end at y~=308 (assuming the same size)
+LeftGoalArea= Rect(0, 132, 6, 181)
+RightGoalArea= Rect(760, 132, 9, 181)
 
 RobotDim = (54, 36)
 BallDim  = (12, 12)
@@ -178,7 +180,7 @@ class Simulator:
         ent.rect = Rect( (pos[0] - BallDim[0]/2,
                           pos[1] - BallDim[1]/2),
                         BallDim )
-        ent.v = [1, 7]
+        ent.v = [1, 70]
 
         self.addEnt(ent)
 
