@@ -4,14 +4,9 @@ import threshold
 
 class Preprocessor:
 
-    # Intrinsic and Distortion matrices are stored in the file:
-    MATRIX_FILE = 'correctionmatrix.dat'
-
     def __init__(self, size):
         self.size = size
-        self.loadMatrices()
-        # print self.Intrinsic
-        # print self.Distortion
+        self.initMatrices()
 
         self.pitch_mask = highgui.cvLoadImage('pitch_mask.png')
         self.bg = highgui.cvLoadImage('background.png')
@@ -19,6 +14,7 @@ class Preprocessor:
         self.Igray     = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
         self.Imask     = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 3)
         self.Iobjects  = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 3)
+        self.Idistort  = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 3)
 
         self.bgsub_kernel = \
             cv.cvCreateStructuringElementEx(5, 5, #size
@@ -32,9 +28,6 @@ class Preprocessor:
         prior camera calibration data and then removes the background
         using an image with no objects.
         """
-        #TODO: crop the unused bits of the image
-        #subimage = cvGetSubRect(frame, cvRect( 0, 0, sz.width, sz.height ))
-
         new = frame
         #new = self.undistort(frame)
         return new, self.remove_background(new)
@@ -85,20 +78,20 @@ class Preprocessor:
         return out
 
     def undistort(self, frame):
-        out = cv.cvCreateImage(self.size, cv.IPL_DEPTH_8U, 3)
-        cv.cvUndistort2(frame, out, self.Intrinsic, self.Distortion)
-        return out
+        cv.cvUndistort2(frame, self.Idistort, self.Intrinsic, self.Distortion)
+        return self.Idistort
 
-    def loadMatrices(self):
-        dmatL = [ 3.4742350115396103e+00, -1.9952057787197582e+01,
-                  -2.7392698000017207e-01, -4.2556074379348396e-01 ]
-        imatL = [ 8.3871330676286266e+02, 0., 3.8777426479020005e+02, 0.,
-                  2.0843086728538442e+03, 2.9815691813893829e+02, 0., 0., 1. ]
+    def initMatrices(self):
+        "Initialise matrices for camera distortion correction."
 
-        # dmatL = [ 3.3211491777405133e-01, -7.0628802308906480e-01,
-        #           -8.4867888171702516e-02, -4.6887031941976375e-02 ]
-        # imatL = [ 5.3074321438402910e+02, 0., 3.8585825272840685e+02, 0.,
-        #           4.5600731138678350e+02, 3.1912924576389008e+02, 0., 0., 1. ]
+        dmatL = [ -0.3258521556854248,
+                  0.19688290357589722,
+                  -0.0048322244547307491,
+                  -0.0044014849700033665 ]
+
+        imatL = [ 653.95880126953125, 0.0, 304.65557861328125,
+                  0.0, 660.8642578125, 236.62376403808594,
+                  0.0, 0.0, 1.0 ]
 
         imat = cv.cvCreateMat(3,3, cv.CV_32F)
         dmat = cv.cvCreateMat(4,1, cv.CV_32F)
@@ -112,19 +105,3 @@ class Preprocessor:
 
         self.Distortion = dmat
         self.Intrinsic  = imat
-
-    def loadMatrices2(self):
-        "Load matrices for barrel distortion correction."
-        with open(self.MATRIX_FILE, 'r') as input:
-            #(self.Intrinsic, self.Distortion) = pickle.load(input)
-            (ilist, dlist) = pickle.load(input)
-
-            imat = cv.cvCreateMat(3,3,1111638021)
-            dmat = cv.cvCreateMat(4,1,1111638021)
-            for i in range(3):
-                for j in range(3):
-                    imat[i][j] = ilist[i][j]
-            for i in range(4):
-                dmat[i] = dlist[i]
-            self.Intrinsic = imat
-            self.Distortion = dmat
