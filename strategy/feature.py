@@ -10,3 +10,4 @@ class Feature(object):
 		self.length = length
 		self.width = width
 		self.velocity = geometry.euclidean_distance(self.position(), previous.position()) / State.time_since_previous()
+		#hello
