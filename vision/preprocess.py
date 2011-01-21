@@ -7,8 +7,8 @@ class Preprocessor:
     cropRect = (0, 79, 768, 424)
 
     bgsub_kernel = \
-        cv.cvCreateStructuringElementEx(5, 5, #size
-                                        2, 2, #X,Y offsets
+        cv.cvCreateStructuringElementEx(5,5, #size
+                                        2,2, #X,Y offsets
                                         cv.CV_SHAPE_RECT)
 
     def __init__(self, rawSize):
@@ -60,8 +60,10 @@ class Preprocessor:
         cv.cvDilate(self.Imask, self.Imask)
 
         #This step essentially just reduces the amount of noise
-        cv.cvMorphologyEx(self.Imask, self.Imask, None, self.bgsub_kernel, cv.CV_MOP_OPEN)
-        cv.cvMorphologyEx(self.Imask, self.Imask, None, self.bgsub_kernel, cv.CV_MOP_CLOSE)
+        cv.cvMorphologyEx(self.Imask, self.Imask, None,
+                          self.bgsub_kernel, cv.CV_MOP_OPEN)
+        cv.cvMorphologyEx(self.Imask, self.Imask, None,
+                          self.bgsub_kernel, cv.CV_MOP_CLOSE)
 
         #Finally, return the salient bits of the original frame
         cv.cvAnd(self.Imask, frame, self.Iobjects)
