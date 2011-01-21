@@ -82,11 +82,11 @@ class Simulator:
                 print event
 
     def makeRobot(self, pos, colour, angle):
-        ent = Robot(pos, self.images[colour], angle)
+        ent = Robot(pos, self.images[colour], angle, self)
         ent.rect = Rect( (pos[0] - RobotDim[0]/2,
                           pos[1] - RobotDim[1]/2),
                         RobotDim )
-        ent['side'] = colour
+        ent.side = colour
         self.world.ents[colour] = ent
         self.robots.append(ent)
         self.addEnt(ent)
@@ -98,7 +98,6 @@ class Simulator:
                         BallDim )
         ent.v = [1, 7]
         self.world.ents['ball'] = ent
-
         self.addEnt(ent)
 
     def addEnt(self, ent):
