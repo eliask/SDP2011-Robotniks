@@ -9,18 +9,18 @@ RobotDim = (54, 36)
 BallDim  = (12, 12)
 Friction = 0.03
 
-class Entity(pygame.sprite.Sprite):
-    def __init__(self, pos, image):
+class Entity(pygame.sprite.Sprite, dict):
+    def __init__(self, pos, image, sim):
         pygame.sprite.Sprite.__init__(self)
         self.pos = pos
         self.image = image
+        self.sim = sim
         self.base_image = image
         self.v = [0.0, 0.0]
 
 class Ball(Entity):
     def __init__(self, pos, image, sim):
-        Entity.__init__(self, pos, image)
-        self.sim = sim
+        Entity.__init__(self, pos, image, sim)
 
     def update(self):
         self.reflectWall()
@@ -63,8 +63,8 @@ class Ball(Entity):
             self.v[1] = self.v[1] - Friction * self.v[1] / q
 
 class Robot(Entity):
-    def __init__(self, pos, image, angle):
-        Entity.__init__(self, pos, image)
+    def __init__(self, pos, image, angle, sim):
+        Entity.__init__(self, pos, image, sim)
         self.angle = angle
         self.w = 0
         self.turn(angle)
@@ -88,3 +88,7 @@ class Robot(Entity):
         self.w = clamp(-8, self.w, 8)
         # TODO: also rotate the 'rect' somehow
         self.turn(self.angle + self.w)
+    
+    def collideRobot(self):
+        other = [ robot in self.sim.robots
+                  if robot['side'] != self['side'] ]

@@ -86,6 +86,7 @@ class Simulator:
         ent.rect = Rect( (pos[0] - RobotDim[0]/2,
                           pos[1] - RobotDim[1]/2),
                         RobotDim )
+        ent['side'] = colour
         self.world.ents[colour] = ent
         self.robots.append(ent)
         self.addEnt(ent)
