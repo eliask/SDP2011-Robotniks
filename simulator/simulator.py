@@ -36,9 +36,12 @@ class Simulator:
             self.vision.processFrame()
 
     def initDisplay(self):
-        pygame.display.set_mode(World.Resolution)
-        pygame.display.set_caption('SDP 9 Simulator')
-        self.screen = pygame.display.get_surface()
+        if self.headless:
+            self.screen = pygame.Surface(World.Resolution)
+        else:
+            pygame.display.set_mode(World.Resolution)
+            pygame.display.set_caption('SDP 9 Simulator')
+            self.screen = pygame.display.get_surface()
 
     def makeObjects(self):
         colours = ('blue', 'yellow')
@@ -55,8 +58,7 @@ class Simulator:
     def run(self):
         pygame.init()
         self.clock = pygame.time.Clock()
-        if not self.headless:
-            self.initDisplay()
+        self.initDisplay()
         self.loadImages()
         self.makeObjects()
         self.drawEnts()
