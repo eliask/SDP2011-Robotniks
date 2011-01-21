@@ -1,7 +1,6 @@
 from math import *
 from utils import *
 
-<<<<<<< HEAD
 def getKickingPosition():
     """Get kicking position and orientation.
 
@@ -93,7 +92,7 @@ def computeIntercepts():
     the ball by going "backwards" its trajectory.
     """
     pass
-=======
+
 def computeGoalKicks():
     bX, bY = centerPos(self.ents['ball'])
 
@@ -107,6 +106,4 @@ def computeGoalKicks():
 
     for angle in angles:
         angle = radians(angle)
-
->>>>>>> be9457c003bd06245619f2e0056b0526282e8f68
 
