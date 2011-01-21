@@ -153,6 +153,6 @@ public class TurnTest {
 		
 		//Reset steering to 0Deg on both wheels
 		motor_left.rotate((int)(rotConstant * -135));
-		motor_right.rotate((int) (rotConstant * 315));
+		motor_right.rotate((int) (rotConstant * 45));
 	}
 }
