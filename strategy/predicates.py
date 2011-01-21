@@ -67,6 +67,7 @@ def opponentIsStationary():
     "The opponent is not moving"
     return False
 
+<<<<<<< HEAD
 def holdingBall():
     "We are holding the ball--it is in front of us and moves with us"
     return False
@@ -74,3 +75,5 @@ def holdingBall():
 def facingTargetGoal():
     "We are facing the opponent's goal area"
     return False
+=======
+>>>>>>> be9457c003bd06245619f2e0056b0526282e8f68
