@@ -6,14 +6,17 @@ import lejos.nxt.*;
 public class SensorMotor {
 
 	public static void main(String[] args) throws InterruptedException{
-		 SensorPort port = SensorPort.S1;     
-	     port.setPowerType(port.POWER_RCX);
-		int sleeptime = 2000;
+		 SensorPort port1 = SensorPort.S1;     
+		 port1.setPowerType(port1.POWER_9V); 
+		 int sleeptime = 10000;
 		 while (sleeptime > 0) {
-			 port.activate();                   // Turns motor on
+			 port1.activate();                   // Turns motor on
 			 Thread.sleep(sleeptime);
-			 port.passivate();                  // Turns motor off
-			 sleeptime = sleeptime - 100;
+			 port1.passivate();                  // Turns motor off
+			 LCD.clearDisplay();
+			 LCD.drawInt(sleeptime,0,1);
+			 Thread.sleep(sleeptime);
+			 sleeptime = sleeptime - 10000;
 		 }
 	     
 	}
