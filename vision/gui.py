@@ -27,7 +27,7 @@ class GUI:
         if type(ent) == list and len(ent) > 0:
             ent = ent[0]
         #print ent
-        x,y = BoxCenter(ent)
+        x,y = centerPos(ent)
         radius = ent['box'].size.width
         cv.cvCircle(self.frame, Point(x, y), cv.cvRound(min(15,radius)), color)
 
