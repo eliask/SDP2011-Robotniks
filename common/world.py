@@ -107,6 +107,9 @@ class World:
                 self.ents[name]['velocity'] = (0, 0)
                 continue
 
+            # TODO: fix the hack
+            self.ents[name]['velocity'] = (0, 0)
+
             # Do this until we have object interpolation working
             # Or maybe check self.states[*][name] != None after all...
             try:
@@ -115,10 +118,10 @@ class World:
                 x1, y1 = centerPos(self.states[-1][name])
                 newV = ( (x1-x0)*self.vWeight + avgV[0]*(1-self.vWeight),
                          (y1-y0)*self.vWeight + avgV[1]*(1-self.vWeight) )
+                self.ents[name]['velocity'] = newV
             except TypeError:
                 pass
 
-            self.ents[name]['velocity'] = newV
 
     def averageVelocities(self, name, states):
         if len(states) == 0:
