@@ -56,7 +56,7 @@ class Preprocessor:
         self.Igray = threshold.foreground(self.Imask)
         cv.cvCvtColor(self.Igray, self.Imask, cv.CV_GRAY2BGR)
 
-        #Enlarge the mask a bit to account eliminate missing parts due to noise
+        #Enlarge the mask a bit to have fewer missing parts due to noise
         cv.cvDilate(self.Imask, self.Imask)
 
         #This step essentially just reduces the amount of noise
