@@ -116,7 +116,8 @@ class World:
             self.ents[name]['velocity'] = newV
 
     def averageVelocities(self, name, states):
-        assert len(states) > 0
+        if len(states) == 0:
+            return (0, 0)
 
         V0 = []; V1 = []
         for state in states:

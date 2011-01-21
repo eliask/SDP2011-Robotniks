@@ -1,4 +1,6 @@
 from opencv import cv, highgui
+import pygame
+import tempfile
 import math
 
 def centerPos(ent):
@@ -13,12 +15,6 @@ def Point(x, y):
 def enum(*sequential, **named):
     enums = dict(zip(sequential, range(len(sequential))), **named)
     return type('Enum', (), enums)
-
-def PygameToCVImage(self, pg_img):
-    tmp = tempfile.mktemp()
-    pygame.image.tostring(pg_img, tmp)
-    frame = highgui.cvLoadImage(tmp)
-    return frame
 
 def CVtoPygameImage(self, frame):
     rgb = cv.CreateMat(frame.height, frame.width, cv.CV_8UC3)

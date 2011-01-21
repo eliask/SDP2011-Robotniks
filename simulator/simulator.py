@@ -5,20 +5,35 @@ from pygame.locals import *
 import pygame
 from math import *
 from random import *
+import tempfile
 from world import World
 from entities import *
+from .common.utils import *
+from .vision.vision import Vision
 
 class Simulator:
 
     objects=[]
     robots=[]
     images={}
+    headless=False
+    vision=None
     quit=False
+
+    def __init__(self, vision=False, headless=False):
+        self.headless = headless
+        if vision:
+            self.vision = Vision(simulator=self)
+            self.visionFile = tempfile.mktemp(suffix='.bmp')
 
     def drawEnts(self):
         self.screen.blit(self.images['bg'], (0,0))
         self.sprites.draw(self.screen)
-        pygame.display.flip()
+        if not self.headless:
+            pygame.display.flip()
+        if self.vision:
+            pygame.image.save(self.screen, self.visionFile)
+            self.vision.processFrame()
 
     def initDisplay(self):
         pygame.display.set_mode(World.Resolution)
@@ -40,7 +55,8 @@ class Simulator:
     def run(self):
         pygame.init()
         self.clock = pygame.time.Clock()
-        self.initDisplay()
+        if not self.headless:
+            self.initDisplay()
         self.loadImages()
         self.makeObjects()
         self.drawEnts()
