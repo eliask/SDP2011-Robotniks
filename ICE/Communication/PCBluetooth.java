@@ -1,5 +1,3 @@
-package Communication;
-
 import java.io.DataOutputStream;
 import java.io.IOException;
 
@@ -28,11 +26,11 @@ public class PCBluetooth {
 			e.printStackTrace();
 			System.exit(1);
 		}
-		
+
 		// Try connect
 		NXTInfo nxtInfo = new NXTInfo(0, name,address);
 		System.out.format("Connecting to %s", nxtInfo.name);
-		
+
 		boolean connected = false;
 		try {
 			connected = communicator.open(nxtInfo);

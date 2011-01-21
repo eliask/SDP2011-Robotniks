@@ -11,7 +11,7 @@ public class CommanderI extends Robotnik._CommanderDisp {
 			pcb = new PCBluetooth();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
-			System.exit(1)
+			System.exit(1);
 		}
 	}
 		
@@ -19,7 +19,7 @@ public class CommanderI extends Robotnik._CommanderDisp {
 		try {
 			pcb.sendMessage(message);
 		} catch (IOException e) {
-			System.err.println("Send Message Failed.")
+			System.err.println("Send Message Failed.");
 			e.printStackTrace();
 		}
 	}
