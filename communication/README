@@ -1,0 +1,7 @@
+Requires stuff from http://lejos.sourceforge.net/nxj-downloads.php
+
+Building requires libusb-dev and libbluetooth-dev
+
+To set classpath, do:
+$ . set-classpath.sh
+

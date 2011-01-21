@@ -7,24 +7,18 @@ import lejos.pc.comm.*;
 // Connects to robot and sends commands
 public class PCBluetooth {
 
-	private static DataOutputStream blueOutStream;
-	private static NXTComm communicator;
-	private static String name = "NXT";
-	private static String address = "00:16:53:07:D6:2B";
+	private DataOutputStream blueOutStream;
+	private NXTComm communicator;
+	private String name = "NXT";
+	private String address = "00:16:53:07:D6:2B";
 
-	public static void main(String[] args) throws InterruptedException{
+	public PCBluetooth() throws InterruptedException{
 		openConnection();
 		Thread.sleep(2000);
-		try {
-			sendMessage(1);
-		} catch (IOException e) {
-			e.printStackTrace();
-			System.exit(1);
-		}
 	}
 
 	// Tries to connect to robot and set up an output stream
-	private static void openConnection() {
+	private void openConnection() {
 		// Set up bluetooth
 		try {
 			communicator = NXTCommFactory.createNXTComm(NXTCommFactory.BLUETOOTH);
@@ -59,7 +53,7 @@ public class PCBluetooth {
 	}
 
 	// Sends a given message to the device
-	public static void sendMessage(int message) throws IOException {
+	public void sendMessage(int message) throws IOException {
 		System.out.println(message);
 		blueOutStream.writeInt(message);
 		blueOutStream.flush();
