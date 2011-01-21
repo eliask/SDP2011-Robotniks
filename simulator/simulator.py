@@ -25,6 +25,7 @@ class Simulator:
         if vision:
             self.vision = Vision(simulator=self)
             self.visionFile = tempfile.mktemp(suffix='.bmp')
+        self.world = World()
 
     def drawEnts(self):
         self.screen.blit(self.images['bg'], (0,0))
@@ -80,14 +81,12 @@ class Simulator:
             else:
                 print event
 
-    def moveEntity(self, ent):
-        pass
-
     def makeRobot(self, pos, colour, angle):
         ent = Robot(pos, self.images[colour], angle)
         ent.rect = Rect( (pos[0] - RobotDim[0]/2,
                           pos[1] - RobotDim[1]/2),
                         RobotDim )
+        self.world.ents[colour] = ent
         self.robots.append(ent)
         self.addEnt(ent)
 
@@ -97,6 +96,7 @@ class Simulator:
                           pos[1] - BallDim[1]/2),
                         BallDim )
         ent.v = [1, 7]
+        self.world.ents['ball'] = ent
 
         self.addEnt(ent)
 

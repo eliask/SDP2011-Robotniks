@@ -22,3 +22,5 @@ class World:
     RightStartPos = ( RightGoalArea.right - 130,
                       RightGoalArea.top + RightGoalArea.height/2 )
 
+    def __init__(self):
+        self.ents = {}
