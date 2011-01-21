@@ -57,7 +57,7 @@ class Interpreter:
         if robot['T']:
             tX, tY = centerPos(robot['T'])
             dx, dy = tX - X, tY - Y
-            return self.convertAngle(atan2(dy, dx))
+            return atan2(dy, dx)
         return None
 
     def angleDir(self, robot):
@@ -65,7 +65,7 @@ class Interpreter:
         if robot['dirmarker']:
             dirX, dirY = centerPos(robot['dirmarker'])
             dx, dy = X - dirX, Y - dirY
-            return self.convertAngle(atan2(dy, dx))
+            return atan2(dy, dx)
         return None
 
     def convertAngle(self, angle):
