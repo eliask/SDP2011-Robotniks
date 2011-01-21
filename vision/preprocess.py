@@ -1,4 +1,3 @@
-import pickle
 from opencv import cv, highgui
 import threshold
 
@@ -16,7 +15,7 @@ class Preprocessor:
         self.cropSize = cv.cvSize(self.cropRect[2], self.cropRect[3])
 
         self.initMatrices()
-        self.bg = highgui.cvLoadImage('background.png')
+        self.bg = highgui.cvLoadImage('vision/background.png')
 
         self.Idistort  = cv.cvCreateImage(self.rawSize, cv.IPL_DEPTH_8U, 3)
         self.Icrop     = cv.cvCreateImage(self.cropSize, cv.IPL_DEPTH_8U, 3)

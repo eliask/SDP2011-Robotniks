@@ -3,10 +3,10 @@ from pygame.locals import *
 class World:
 
     image_names = {
-        'bg'     : '../vision/media/calibrated-background-cropped.png',
-        'blue'   : 'blue_robot.png',
-        'yellow' : 'yellow_robot.png',
-        'ball'   : 'ball.png',
+        'bg'     : 'vision/media/calibrated-background-cropped.png',
+        'blue'   : 'simulator/blue_robot.png',
+        'yellow' : 'simulator/yellow_robot.png',
+        'ball'   : 'simulator/ball.png',
         }
 
     Resolution = (768, 424)
