@@ -164,8 +164,7 @@ class Robot(Entity):
         X = (x20 - x10) / (slope1 - slope2)
         y1 = x10 + slope1 * X
         y2 = x20 + slope2 * X
-        assert approxZero(y1 - y2, epsilon=0.1), "Non-parallel lines don't intersect?!"
-
+        # y1 ~= y2 due to noise and numerical instability/inaccuracies
         return (X, y1)
 
     def getLines(self, corners):
