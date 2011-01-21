@@ -1,5 +1,5 @@
 from math import *
-from utils import *
+from .common.utils import *
 
 def getKickingPosition():
     """Get kicking position and orientation.
@@ -29,8 +29,7 @@ def computeGoalKicks():
     # "non-accidental" clusters
     return successes
 
-
-def createRay(targetGoal, pos, angle, maxBounces=3, pos0=pos):
+def createRay(targetGoal, pos, angle):
     """Simulate the trajectory of an idealised ball.
 
     targetGoal['score'](x0, x1) is a scoring function that returns a
@@ -39,8 +38,11 @@ def createRay(targetGoal, pos, angle, maxBounces=3, pos0=pos):
     x0 and x1 are the starting position and the tested position,
     respectively. If we get a bit further towards the goals
     """
-    # TODO: handle collisions with robots
     scorefn = targetGoal['score']
+    createRay(scorefn, pos, pos, angle, 3)
+
+def createRay(scorefn, pos0, pos, angle, maxBounces):
+    # TODO: handle collisions with robots
     if maxBounces == 0:
         return scorefn(pos0, pos)
 
@@ -50,7 +52,7 @@ def createRay(targetGoal, pos, angle, maxBounces=3, pos0=pos):
     else:
         pitchX = X - Pitch.left
 
-    if 0 <= angle <= pi
+    if 0 <= angle <= pi:
         dy = Pitch.top - Y
     else:
         dy = Y - Pitch.bottom
@@ -66,11 +68,11 @@ def createRay(targetGoal, pos, angle, maxBounces=3, pos0=pos):
 
     pos = hitX, hitY
     score = scorefn(pos0, pos)
-    if abs(score) == 1
+    if abs(score) == 1:
         return score
     else:
         angle = reflectRay(hitX, hitY, angle)
-        createRays(targetGoal, pos, angle, maxBounces-1, pos0)
+        createRay(targetGoal, pos0, pos, angle, maxBounces-1)
 
 
 def reflectRay(angle, hitX, hitY):
