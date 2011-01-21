@@ -1,26 +1,41 @@
-Last year's winners, SDP6 (Holly) had a fairly monolithic strategy system that dealt with everything inside a 
+Last year's winners, SDP6 (Holly) had a fairly monolithic strategy
+system that dealt with everything inside a
+
 single class, with little abstraction.
 
-That's shit, so we want something with lots of abstraction that makes sense at a high level (things like
-robot.is_next_to_ball()) in order to simplify AI programming and, thus, hopefully allow a more powerful AI.
+That's shit, so we want something with lots of abstraction that makes
+sense at a high level (things like
 
-So... the 'state' of the field should be a class, State, that contains a description of the positions and
-direction/speed vectors of each feature (our robot, their robot, ball).  The State class should provide 
-methods for determining different aspects of the state of play (such as who_has_ball(), is_ball_free(), etc).
-In general it should contain all the information in order to create such functions in order to migrate work
-from the actual Strategy class.  The State should be instantiated from vision output.
+robot.is_next_to_ball()) in order to simplify AI programming and,
+thus, hopefully allow a more powerful AI.
 
-There should be an abstract Feature class representing a feature (robot or ball) and methods for determining
-different things regarding the features (e.g. is_next_to(), distance_from(), etc).  Basically, each feature is
-described by a position on the field and a vector describing orientation and speed.
+So... the 'state' of the field should be a class, State, that contains
+a description of the positions and direction/speed vectors of each
+feature (our robot, their robot, ball). The State class should provide
+methods for determining different aspects of the state of play (such
+as who_has_ball(), is_ball_free(), etc). In general it should contain
+all the information in order to create such functions in order to
+migrate work from the actual Strategy class. The State should be
+instantiated from vision output.
+
+There should be an abstract Feature class representing a feature
+(robot or ball) and methods for determining different things regarding
+the features (e.g. is_next_to(), distance_from(), etc). Basically,
+each feature is described by a position on the field and a vector
+describing orientation and speed.
 
 The Strategy system should operate on a loop, with each iteration
 	instantiate a State from vision output
 	query the State for information and generate appropriate goals
-	dispatch goals to some other component to convert into sendable commands
+	dispatch goals to some other component to convert into
+	sendable commands
 
 By operating each separate component in its own process such that
-	Vision acts as a server, providing the most recently processed data at any time
+	Vision acts as a server, providing the most recently processed
+	data at any time
 	Strategy requests data from vision, and pushes commands to Communication
-	Communication listens for commands from Strategy (and as a server for information from the robot)
-We can avoid worrying about specific timings and communication is one-way and simple.
+	Communication listens for commands from Strategy (and as a
+	server for information from the robot)
+
+We can avoid worrying about specific timings and communication is
+one-way and simple.
