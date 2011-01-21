@@ -21,3 +21,6 @@ def CVtoPygameImage(self, frame):
     cv.CvtColor(frame, rgb, cv.CV_BGR2RGB)
     pg_img = pygame.image.frombuffer(rgb.tostring(), cv.GetSize(rgb), "RGB")
     return pg_img
+
+def clamp(_min, val, _max):
+    return min(_max, max(_min, val))

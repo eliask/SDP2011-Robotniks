@@ -3,6 +3,7 @@ import pygame
 from random import *
 from math import *
 from world import World
+from .common.utils import *
 
 RobotDim = (54, 36)
 BallDim  = (12, 12)
@@ -73,14 +74,17 @@ class Robot(Entity):
         self.image = pygame.transform.rotate(self.base_image, angle)
 
     def update(self):
-        dx = randint(-4,4)
-        dy = randint(-4,4)
-        self.rect.move_ip((dx, dy))
+        self.v[0] += randint(-4,4)
+        self.v[1] += randint(-4,4)
+        self.v[0] = clamp(-8, self.v[0], 8)
+        self.v[1] = clamp(-8, self.v[1], 8)
+        self.rect.move_ip(self.v)
         if not World.Pitch.contains(self.rect):
             # A hack--if we would leave the area somehow, we will
             # completely reverse the would be move.
-            self.rect.move_ip((-dx, -dy))
+            self.rect.move_ip(-self.v[0], -self.v[1])
 
-        dw = randint(-4,4)
+        self.w += randint(-4,4)
+        self.w = clamp(-8, self.w, 8)
         # TODO: also rotate the 'rect' somehow
-        self.turn(self.angle + dw)
+        self.turn(self.angle + self.w)
