@@ -2,6 +2,23 @@ from utils import *
 from math import *
 
 class Interpreter:
+    """Get as much out of a a single state as we can.
+
+    The Interpreter acts as a stateless sanity-checker and derived
+    feature computer for entities.
+
+    The Interpreter does the following:
+    * The orientation of the robots is computed using the coloured Ts
+      or the direction markers on top of them.
+    * Robot (sub-) feature coordinates are converted from relative to
+      absolute coordinates, to make further processing easier.
+    * The entities 'yellow' and 'blue' are created from the list of
+      robots, corresponding to the apprent robots where that possess
+      the coloured Ts
+    * If we can deduce but not recognise the side of an apparent
+      robot, we do so, and if we can eliminate apparent robots by
+      knowing the sides of two, we do so too.
+    """
 
     def interpret(self, ents):
         "Currently, add robot orientation for all robots, if possible"
@@ -51,6 +68,13 @@ class Interpreter:
             return atan2(dy, dx)
         return None
 
+    def convertAngle(self, angle):
+        "Convert from atan2 output to [0,2pi)"
+        if angle >= 0:
+            return angle
+        else:
+            return -pi-angle
+
     def convertRobotCoordinates(self, robot):
         if robot['T']:
             self.convertCoordinates(robot, robot['T'])
@@ -70,4 +94,3 @@ class Interpreter:
         sub['rect'].y = R.y + r.y
         sub['box'].center.x = R.x + c.x
         sub['box'].center.y = R.y + c.y
-

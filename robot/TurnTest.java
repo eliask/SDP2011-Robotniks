@@ -110,23 +110,40 @@ public class TurnTest {
 	}
 	
 	public static void CentralSpin(int ByDegrees){
-		//For the left 
+		
+		LCD.clearDisplay();
+		LCD.drawInt(steeringangle_right, 0 , 1);
+		Button.waitForPress();
+		
+		//For the left (rotate wheels to 135Deg)
 		if ((steeringangle_left % 360) > 315){
-			motor_left.rotate((int) rotConstant * (135 + (360 - (steeringangle_left % 360))));
+			motor_left.rotate((int) (rotConstant * (135 + (360 - (steeringangle_left % 360)))));
 		} else if((steeringangle_left % 360) < 135){
-			motor_left.rotate((int) rotConstant * (135 - (steeringangle_left % 360)));
+			motor_left.rotate((int) (rotConstant * (135 - (steeringangle_left % 360))));
 		} else if ((steeringangle_left % 360) >= 135 && ((steeringangle_left % 360) <= 315)) {
-			motor_left.rotate((int) rotConstant * -1 * ((steeringangle_left %360) - 135));
+			motor_left.rotate((int) (rotConstant * -1 * ((steeringangle_left %360) - 135)));
 		}
 		
-		//For the right
+		LCD.clearDisplay();
+		LCD.drawInt(steeringangle_right, 0 , 1);
+		Button.waitForPress();
 		
+		//For the right (rotate wheels to 315Deg)
 		if ((steeringangle_right % 360) > 315){
-			motor_right.rotate((int) rotConstant * -1 *((steeringangle_right % 360)-315));
+			motor_right.rotate((int) (rotConstant * -1 *((steeringangle_right % 360)-315)));
+			LCD.clearDisplay();
+			LCD.drawInt(((int) -1 *((steeringangle_right % 360)-315)), 0 , 1);
+			Button.waitForPress();
 		} else if((steeringangle_right % 360) < 135){
-			motor_right.rotate((int) rotConstant * -1 *(45 +( steeringangle_right % 360)));
+			motor_right.rotate((int) (rotConstant * -1 *(45 +( steeringangle_right % 360))));
+			LCD.clearDisplay();
+			LCD.drawInt(((int) (rotConstant * -1 *(45 +( steeringangle_right % 360)))), 0 , 1);
+			Button.waitForPress();
 		} else if ((steeringangle_right % 360) >= 135 && ((steeringangle_right % 360) <= 315)) {
-			motor_right.rotate((int) rotConstant * (180 - ((steeringangle_right % 360) - 45)));
+			motor_right.rotate((int) (rotConstant * (180 - ((steeringangle_right % 360) - 45))));
+			LCD.clearDisplay();
+			LCD.drawInt(((int)  (180 - ((steeringangle_right % 360) - 45))), 0 , 1);
+			Button.waitForPress();
 		}
 		
 		// ** insert drive code **
