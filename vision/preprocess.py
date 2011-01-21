@@ -50,7 +50,6 @@ class Preprocessor:
         re-initialised each time preprocess is run.
         """
         cv.cvCvtColor(frame, self.Igray, cv.CV_BGR2GRAY)
-        print frame.height, self.bg.height
         cv.cvSub(frame, self.bg, self.Imask)
 
         self.Igray = threshold.foreground(self.Imask)
