@@ -51,7 +51,6 @@ class World:
         self.updateBall()
         self.updateRobots()
         self.updateVelocities()
-        self.updateTrajectories()
 
     def updateWorld(self):
         """Add missing entities or delete contradictory ones
@@ -91,9 +90,6 @@ class World:
             self.ents['ball'] = self.ents['balls'][0]
 
     def updateRobots(self):
-        pass
-
-    def updateTrajectories(self):
         pass
 
     def updateVelocities(self):
