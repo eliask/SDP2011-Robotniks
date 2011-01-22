@@ -89,7 +89,7 @@ class FeatureExtraction:
         """
         if blue and yellow:
             ents['robots'] = [blue, yellow]
-        elif len(ents['robots']) == 2:
+        elif len(ents['robots']) == 2 and len(neither) > 0:
             if yellow and not blue:
                 neither[0]['side'] = 'blue'
             elif blue and not yellow:
