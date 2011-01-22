@@ -1,6 +1,7 @@
 from pygame.locals import *
+import common.world
 
-class World:
+class World(common.world.World):
 
     image_names = {
         'bg'     : 'vision/media/calibrated-background-cropped.png',
@@ -22,5 +23,17 @@ class World:
     RightStartPos = ( RightGoalArea.right - 130,
                       RightGoalArea.top + RightGoalArea.height/2 )
 
+    Friction = 0.03
+
     def __init__(self):
+        common.world.World.__init__(self)
         self.ents = {}
+
+    def updatePredictions(self):
+        pass
+
+    def updateAttributes():
+        self.convertMeasurements()
+
+    def updateWorld():
+        pass

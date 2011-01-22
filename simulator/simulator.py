@@ -7,9 +7,11 @@ from math import *
 from random import *
 import tempfile
 from world import World
-from entities import *
+from robot import *
+from ball import *
 from .common.utils import *
 from .vision.vision import Vision
+from input import Input
 
 class Simulator:
 
@@ -26,15 +28,21 @@ class Simulator:
             self.vision = Vision(simulator=self)
             self.visionFile = tempfile.mktemp(suffix='.bmp')
         self.world = World()
+        self.overlay = pygame.Surface(World.Resolution)
 
     def drawEnts(self):
         self.screen.blit(self.images['bg'], (0,0))
         self.sprites.draw(self.screen)
-        if not self.headless:
-            pygame.display.flip()
         if self.vision:
             pygame.image.save(self.screen, self.visionFile)
             self.vision.processFrame()
+        # Update overlay after we've passed the "raw image" to vision
+        self.screen.blit(self.overlay, (0,0))
+        # Make the overlay "blank" again. Should be completely
+        # transparent but I don't know how to do that
+        self.overlay.fill( (130,130,130,255))
+        if not self.headless:
+            pygame.display.flip()
 
     def initDisplay(self):
         if self.headless:
@@ -43,6 +51,8 @@ class Simulator:
             pygame.display.set_mode(World.Resolution)
             pygame.display.set_caption('SDP 9 Simulator')
             self.screen = pygame.display.get_surface()
+            self.overlay.convert_alpha()
+            self.overlay.set_alpha(100)
 
     def makeObjects(self):
         colours = ('blue', 'yellow')
@@ -52,8 +62,8 @@ class Simulator:
             col2, col1 = colours
 
         self.makeBall(World.Pitch.center)
-        self.makeRobot(World.LeftStartPos, col1, 90)
-        self.makeRobot(World.RightStartPos, col2, 270)
+        self.makeRobot(World.LeftStartPos, col1, 0)
+        self.makeRobot(World.RightStartPos, col2, pi)
         self.sprites = pygame.sprite.RenderPlain(self.objects)
 
     def run(self):
@@ -62,40 +72,35 @@ class Simulator:
         self.initDisplay()
         self.loadImages()
         self.makeObjects()
+        self.initInput()
         self.drawEnts()
 
         while True:
-            # Currently this just freezes everything.
-            #  Maybe we could do manual control of our simulated robot
-            # to get a sense of how it should be programmed.
-            #input(pygame.event.get())
-
+            self.handleInput()
             self.clock.tick(25)
-            self.sprites.update()
             self.drawEnts()
+            self.sprites.update()
 
-    def input(self, events):
-        for event in events:
+    def initInput(self):
+        self.input = Input(self.robots[0], self.robots[1])
+
+    def handleInput(self):
+        for event in pygame.event.get():
             if event.type == QUIT:
                 sys.exit(0)
             else:
                 print event
+                self.input.robotInput(event)
 
     def makeRobot(self, pos, colour, angle):
-        ent = Robot(pos, self.images[colour], angle, self)
-        ent.rect = Rect( (pos[0] - RobotDim[0]/2,
-                          pos[1] - RobotDim[1]/2),
-                        RobotDim )
+        ent = Robot(self, pos, self.images[colour], angle)
         ent.side = colour
         self.world.ents[colour] = ent
         self.robots.append(ent)
         self.addEnt(ent)
 
     def makeBall(self, pos):
-        ent = Ball(pos, self.images['ball'], self)
-        ent.rect = Rect( (pos[0] - BallDim[0]/2,
-                          pos[1] - BallDim[1]/2),
-                        BallDim )
+        ent = Ball(self, pos, self.images['ball'])
         ent.v = [1, 7]
         self.world.ents['ball'] = ent
         self.addEnt(ent)
