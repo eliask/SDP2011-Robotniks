@@ -38,8 +38,7 @@ public class MainCtrl {
 	private static DataInputStream inputStream;
 
 	public static void main(String[] args) throws InterruptedException{
-		connect();
-		collectMessage();
+	    executionMenu();
 	}
 	
         //Aims to establish a conection over Bluetooth
@@ -84,7 +83,9 @@ public class MainCtrl {
 	    stopSpin();
 	} else if ((message >= 5)&&(message <=365)){
 	    setRobotDirection(message - 5);
-	}				
+	} else if (message == 366){
+	    kick();
+	}
     }
 
 	// Writes a message to the brick's screen on a particular line if valid
@@ -104,6 +105,19 @@ public class MainCtrl {
 	   boolean haschanged = false;
 	   
 	   writeToScreen("Select Execution Mode",0);
+
+	   switch (selectedchoice){
+	   case 0:
+	       writeToScreen("1. Standard Exc.", 1);
+       	       break;
+       	   case 1:
+	       writeToScreen("2. Test +BT", 1);
+       	       break;
+	   case 2:
+       	       writeToScreen("3. Test -BT", 1);
+       	       break;
+	   }
+	   
 	   while (enterselected == false){
 	       //enumerates the list item when the right button is pressed
 	       if (button_right.isPressed()){
@@ -151,12 +165,21 @@ public class MainCtrl {
 	   //executes the relevant routines based on selection
 	   switch (selectedchoice){
 	   case 0:
+	       writeToScreen("1. Standard Exc.", 0);
+	       writeToScreen("",1);
+	       execMode = 0;
 	       executeStandard();
 	       break;
 	   case 1:
+	       writeToScreen("2. Test +BT", 0);
+	       writeToScreen("",1);
+	       execMode = 1;
 	       executeTestPlusBT();
 	       break;
 	   case 2:
+	       writeToScreen("3. Test -BT", 1);
+	       writeToScreen("",1);
+	       execMode = 2;
 	       executeTestMinBT();
 	       break;
 	   }
@@ -179,15 +202,234 @@ public class MainCtrl {
 
        // Test execution without Bluetooth
        public static void executeTestMinBT(){
-	   
+	   //Tests the drive and stop commands
+	     
+	     //Drive forward for ten seconds then stop
+	     writeToScreen("Drive Test 1.",1);
+	     writeToScreen("Fwd10,Stp",2);
+	     button_enter.waitForPress();
+	     drive();
+	     try {
+		 Thread.sleep(10000);
+	     } catch (InterruptedException e){
+		 writeToScreen("Interrupted!",7);
+	     }
+	     stop();
+	     writeToScreen("Done!",2);
+	     button_enter.waitForPress();
+
+	     //Drive forward 5sec, stop 2sec, forward 5sec, stop
+	     writeToScreen("Drive Test 2.",1);
+	     writeToScreen("Fwd5,Stp,Fwd5,Stp",2);
+	     button_enter.waitForPress();
+	     drive();
+	     try{
+		 Thread.sleep(5000);
+	     } catch (InterruptedException e){
+		 writeToScreen("Interrupted!",7);
+	     }
+	     stop();
+	     try{
+		 Thread.sleep(2000);
+	     } catch (InterruptedException e){
+		 writeToScreen("Interrupted!",7);
+	     }
+	     drive();
+	     try {
+		 Thread.sleep(2000);
+	     } catch (InterruptedException e){
+		 writeToScreen("Interrupted!",7);
+	     }
+	     stop();
+	     writeToScreen("Done!",2);
+	     button_enter.waitForPress();
+
+	     //Drive forwards 2sec, drive forwards 2sec, stop
+	     writeToScreen("Drive Test 3.",1);
+	     writeToScreen("Fwd2,Fwd2,Stp",2);
+	     button_enter.waitForPress();
+	     drive();
+	     try {
+		 Thread.sleep(2000);
+	     } catch (InterruptedException e){
+		 writeToScreen("Interrupted!",7);
+	     }
+	     drive();
+	     try{
+		 Thread.sleep(2000);
+	     } catch (InterruptedException e){
+		 writeToScreen("Interrupted!",7);
+	     }
+	     stop();
+	     writeToScreen("Done!",2);
+	     button_enter.waitForPress();
+
+	     //Drive forwards 2sec, stop, stop
+	     writeToScreen("Drive Test 4.",1);
+	     writeToScreen("Fwd2,Stp,Stp",2);
+	     button_enter.waitForPress();
+	     drive();
+	     try{
+		 Thread.sleep(2000);
+	     } catch (InterruptedException e){
+		 writeToScreen("Interrupted!",7);
+	     }
+	     stop();
+	     stop();
+	     writeToScreen("Done!",2);
+	     button_enter.waitForPress();
+
+	  //Tests startSpin and stopSpin
+
+	     //startSpin, drive 5s, stop, stopSpin
+	     writeToScreen("Spin Test 1.", 1);
+	     writeToScreen("Stas,Fwd5,Stp,Stps",2); 
+	     button_enter.waitForPress();
+	     startSpin();
+	     drive();
+	     try{
+		 Thread.sleep(5000);
+	     } catch (InterruptedException e){
+		 writeToScreen("Interrupted!",7);
+	     }
+	     stop();
+	     stopSpin();
+	     writeToScreen("Done!",2);
+	     button_enter.waitForPress();
+
+	     //startSpin, stopSpin
+	     writeToScreen("Spin Test 2.",1);
+	     writeToScreen("Stas,Stps",2);
+	     button_enter.waitForPress();
+	     startSpin();
+	     try{
+		 Thread.sleep(1000);
+	     } catch (InterruptedException e){
+		 writeToScreen("Interrupted!",7);
+	     }
+	     stopSpin();
+	     writeToScreen("Done!",2);
+	     button_enter.waitForPress();
+	     
+	  //Tests setRobotDirection
+
+	     //The Square test: setRobotDirection 90Deg, forward 3s, stop, setRobotDirection 180Deg,forward 3s, stop, setRobotDirection 270Deg, forward 3s, stop, setRobotDirection 0Deg, forward3s, stop  
+
+	     writeToScreen("SRDir Test 1.",1);
+	     writeToScreen("The 3s Sqr Tst",2);
+	     button_enter.waitForPress();
+	     setRobotDirection(90);
+	     drive();
+	     try{
+		 Thread.sleep(3000);
+	     } catch (InterruptedException e){
+		 writeToScreen("Interrupted!",7);
+	     }
+	     stop();
+	     setRobotDirection(180);
+	     drive();
+	     try{
+		 Thread.sleep(3000);
+	     } catch (InterruptedException e){
+		 writeToScreen("Interrupted!",7);
+	     }
+	     stop();
+	     setRobotDirection(270);
+	     drive();
+	     try{
+		 Thread.sleep(3000);
+	     } catch (InterruptedException e){
+		 writeToScreen("Interrupted!",7);
+	     }
+	     stop();
+	     setRobotDirection(0);
+	     drive();
+	     try{
+		 Thread.sleep(3000);
+	     } catch (InterruptedException e){
+		 writeToScreen("Interrupted!",7);
+	     }
+	     stop();
+	     writeToScreen("Done!",2);
+	     button_enter.waitForPress();
+
+	     //The Diamond Test: setRobotDirection 315Deg, forward 3sec, stop, setRobotDirection 45Deg, forward 3sec, stop, setRobotDirection 135Deg, forward 3sec, stop, setRobotDirection 225, forward 3, stop, reset
+	     writeToScreen("SDir Test 2.",1);
+	     writeToScreen("The Diamd Tst",2);
+	     button_enter.waitForPress();
+	     setRobotDirection(315);
+	     drive();
+	     try{
+		 Thread.sleep(3000);
+	     } catch (InterruptedException e){
+		 writeToScreen("Interrupted!",7);
+	     }
+	     stop();
+	     setRobotDirection(45);
+	     drive();
+	     try{
+		 Thread.sleep(3000);
+	     } catch (InterruptedException e){
+		 writeToScreen("Interrupted!",7);
+	     }
+	     stop();
+	     setRobotDirection(135);
+	     drive();
+	     try{
+		 Thread.sleep(3000);
+	     } catch (InterruptedException e){
+		 writeToScreen("Interrupted!",7);
+	     }
+	     stop();
+	     setRobotDirection(225);
+	     drive();
+	     try{
+		 Thread.sleep(3000);
+	     } catch (InterruptedException e){
+		 writeToScreen("Interrupted!",7);
+	     }
+	     stop();
+	     reset();
+	     writeToScreen("Done",2);
+	     button_enter.waitForPress();
+
+	   //Tests the Kicker
+	     //Standard kick
+	     writeToScreen("Kick Test 1.",1);
+	     writeToScreen("Std Kick",2);
+	     button_enter.waitForPress();
+	     kick();
+	     writeToScreen("Done!",2);
+	     button_enter.waitForPress();
+
+	     //Moving Kick: reset(), forward 2s + kick()
+	     writeToScreen("Kick Test 2.",1);
+	     writeToScreen("Mving Kick",2);
+	     button_enter.waitForPress();
+	     reset();
+	     drive();
+	     kick();
+	     try{
+		 Thread.sleep(2000);
+	     } catch (InterruptedException e){
+		 writeToScreen("Interrupted!",7);
+	     }
+	     stop();
+	     writeToScreen("Done!",2);
+	     button_enter.waitForPress();
+	     
        }
 
 	// Activate kicker
-	public static void kicker() throws InterruptedException{
+	public static void kick(){
 	        writeToScreen("Kick", 7);
 		motor_kick.setSpeed(800);
 		motor_kick.forward();
-		Thread.sleep(417);
+		try{
+		    Thread.sleep(417);
+		} catch (InterruptedException e){
+		    writeToScreen("Interrupted!",7);
+		}
 		motor_kick.stop();
 		//Button.waitForPress();
 	}
@@ -274,12 +516,16 @@ public class MainCtrl {
 	    motor_left.rotate((int)(rotConstant * -1 * (steeringangle_left % 360)));
 	}
 
+	steeringangle_left = 0;
+
 	//rotates the right wheels back to 0 deg
 	if ((steeringangle_right % 360) > 180){
 	    motor_right.rotate((int)(rotConstant * (180 - ((steeringangle_right % 360) - 180))));
 	} else if ((steeringangle_right % 360) <= 180){
 	    motor_right.rotate((int)(rotConstant * -1 * (steeringangle_right % 360)));
 	}
+
+	steeringangle_right = 0;
 
     }
 }
