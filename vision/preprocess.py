@@ -42,7 +42,7 @@ class Preprocessor:
         using an image of the background.
         """
         if not self.standardised:
-            frame = standardise(frame)
+            frame = self.standardise(frame)
         return frame, self.remove_background(frame)
 
     def crop(self, frame):
