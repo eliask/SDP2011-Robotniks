@@ -7,7 +7,7 @@
             * @author The leJOS Tutorial
             * @version 1.0 
             */
-            public class motorcomms {        
+            public class motorcommsRCX {        
 
                 ////////////////////////////////////////////
                 // public methods
@@ -35,13 +35,13 @@
 		    boolean flag1 = false;
 		    while (loopctl > 0){
 			LCD.showNumber(Sensor.S1.readValue());
-			if(Sensor.S1.readValue() < 82){
+			if(Sensor.S1.readValue() < 81){
 			    Motor.A.stop();
 			    Motor.C.stop();
 			    if (flag1 == true){
 				flag1 = false;
 			    }
-			} else if (Sensor.S1.readValue() >= 82){
+			} else if (Sensor.S1.readValue() >= 81){
 			    if (flag1 == false){
 				Motor.A.forward();
 				Motor.C.forward();
