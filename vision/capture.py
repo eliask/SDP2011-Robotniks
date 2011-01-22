@@ -5,8 +5,13 @@ class CaptureFailure(Exception): pass
 class Capture:
 
     def __init__(self, size, filename=None):
-        if filename:
-            self.capture = highgui.cvCreateFileCapture(filename)
+        self.size = size
+        self.filename = filename
+        self.initCapture()
+
+    def initCapture(self):
+        if self.filename:
+            self.capture = highgui.cvCreateFileCapture(self.filename)
         else:
             # First assume the camera is a v4L2 one
             self.capture = highgui.cvCreateCameraCapture(highgui.CV_CAP_V4L2)
@@ -19,10 +24,10 @@ class Capture:
 
         highgui.cvSetCaptureProperty(self.capture,
                                      highgui.CV_CAP_PROP_FRAME_WIDTH,
-                                     size.width)
+                                     self.size.width)
         highgui.cvSetCaptureProperty(self.capture,
                                      highgui.CV_CAP_PROP_FRAME_HEIGHT,
-                                     size.width)
+                                     self.size.width)
 
     def __del__(self):
         highgui.cvReleaseCapture(self.capture)

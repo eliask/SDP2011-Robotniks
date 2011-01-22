@@ -26,7 +26,13 @@ class Preprocessor:
         self.bg = self.crop(self.undistort(self.bg))
         # highgui.cvSaveImage("calibrated-background.png", self.bg)
 
-        self.skipCrop = simulator
+        self.standardised = simulator is not None
+
+    def standardise(self, frame):
+        "Crop and undistort an image, i.e. convert to standard format"
+        undistorted = self.undistort(frame)
+        cropped = self.crop(undistorted)
+        return cropped
 
     def preprocess(self, frame):
         """Preprocess a frame
@@ -35,12 +41,9 @@ class Preprocessor:
         prior camera calibration data and then removes the background
         using an image of the background.
         """
-        if self.skipCrop:
-            cropped = frame
-        else:
-            undistorted = self.undistort(frame)
-            cropped     = self.crop(undistorted)
-        return cropped, self.remove_background(cropped)
+        if not self.standardised:
+            frame = standardise(frame)
+        return frame, self.remove_background(frame)
 
     def crop(self, frame):
         sub_region = cv.cvGetSubRect(frame, self.cropRect)

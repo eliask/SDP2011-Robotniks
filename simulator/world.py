@@ -3,7 +3,6 @@ from pygame.locals import *
 class World:
 
     image_names = {
-        'bg'     : 'vision/media/calibrated-background-cropped.png',
         'blue'   : 'simulator/blue_robot.png',
         'yellow' : 'simulator/yellow_robot.png',
         'ball'   : 'simulator/ball.png',

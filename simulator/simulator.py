@@ -10,6 +10,7 @@ from world import World
 from entities import *
 from .common.utils import *
 from .vision.vision import Vision
+from pitch import *
 
 class Simulator:
 
@@ -18,9 +19,11 @@ class Simulator:
     images={}
     headless=False
     vision=None
+    pitch=None
     quit=False
 
-    def __init__(self, vision=False, headless=False):
+    def __init__(self, pitch=None, vision=False, headless=False):
+        self.pitch = pitch
         self.headless = headless
         if vision:
             self.vision = Vision(simulator=self)
@@ -28,10 +31,15 @@ class Simulator:
         self.world = World()
 
     def drawEnts(self):
-        self.screen.blit(self.images['bg'], (0,0))
+        if self.pitch:
+            bg = self.pitch.get()
+            self.screen.blit(bg, (0,0))
+
         self.sprites.draw(self.screen)
+
         if not self.headless:
             pygame.display.flip()
+
         if self.vision:
             pygame.image.save(self.screen, self.visionFile)
             self.vision.processFrame()
