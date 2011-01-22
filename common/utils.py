@@ -21,12 +21,6 @@ def enum(*sequential, **named):
     enums = dict(zip(sequential, range(len(sequential))), **named)
     return type('Enum', (), enums)
 
-def CVtoPygameImage(self, frame):
-    rgb = cv.CreateMat(frame.height, frame.width, cv.CV_8UC3)
-    cv.CvtColor(frame, rgb, cv.CV_BGR2RGB)
-    pg_img = pygame.image.frombuffer(rgb.tostring(), cv.GetSize(rgb), "RGB")
-    return pg_img
-
 def inRange(x, y, z):
     return x < y < z or x > y > z
 
