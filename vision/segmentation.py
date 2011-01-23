@@ -1,5 +1,5 @@
 from opencv import cv
-from utils import *
+from .common.utils import *
 
 _red = cv.cvScalar(0, 0, 255, 0);
 _green = cv.cvScalar(0, 255, 0, 0);

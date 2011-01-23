@@ -1,4 +1,4 @@
-from utils import *
+from .common.utils import *
 from math import *
 
 class Interpreter:
