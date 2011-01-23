@@ -28,7 +28,7 @@ class Interface(BT):
             angle = angle - 180
 
         msg = 6 + angle
-        assert 6 < msg < 365
+        assert 6 <= msg <= 365
         self.sendMessage(msg)
 
     def kick(self):
