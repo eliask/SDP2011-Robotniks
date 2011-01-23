@@ -9,14 +9,21 @@ public class Server {
 		try{
 			ServerSocket ss = new ServerSocket(6879);
 			while(true){
-				Socket s = ss.accept();
-				InputStream is = s.getInputStream();
-				int x;
-				char z;
-				while((x = is.read()) != -1){
-					z = (char) x;
-					System.out.println(z);
-					pcb.sendMessage(Integer.parseInt(new Character(z).toString()));
+				Socket socket = ss.accept();
+				InputStream is = socket.getInputStream();
+				String num = "";
+				int i;
+				char c;
+				while((i = is.read()) != -1){
+					c = (char) i;
+					if (c == '\n') {
+						int z = Integer.parseInt(num);
+						pcb.sendMessage(num);
+						System.out.println(z);
+						num = "";
+					} else {
+						num += new Character(c).toString();
+					}
 				}
 				is.close();
 			}
