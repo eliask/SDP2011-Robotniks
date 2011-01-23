@@ -15,14 +15,17 @@ def usage():
     print "  -b, --black     The pitch will be solid black"
     print "  -z, --crazy     The background won't be redrawn"
     print "  -1, --once      Don't loop a video or don't try restarting camera"
+    print "  -s, --strategy  Run the strategy module"
     print "  -h, --help      Print this message"
 
 def main():
     try:
         opts, args = \
-            getopt.getopt( sys.argv[1:], "HVcv:i:bz1h",
+            getopt.getopt( sys.argv[1:], "HVcv:i:bz1hs",
                            [ "headless", "vision", "camera", "video",
-                             "image", "black", "crazy", "once", "help" ] )
+                             "image", "black", "crazy", "once", "help",
+                             "strategy",
+                             ] )
     except getopt.GetoptError, err:
         # print help information and exit:
         print str(err)
@@ -38,6 +41,7 @@ def main():
     once = False
     headless = False
     vision = False
+    strategy = False
 
     for opt, arg in opts:
         if opt in ("-H", "--headless"):
@@ -56,6 +60,8 @@ def main():
             inputs['crazy'] = True
         elif opt in ("-1", "--once"):
             once = True
+        elif opt in ("-s", "--strategy"):
+            strategy = True
         elif opt in ("-h", "--help"):
             usage()
             sys.exit()
@@ -65,7 +71,9 @@ def main():
     pitch = selectPitch(inputs, once)
     sim = Simulator( pitch=pitch,
                      vision=vision,
-                     headless=headless )
+                     headless=headless,
+                     strategy=strategy,
+                     )
     sim.run()
 
 def selectPitch(inputs, once):
