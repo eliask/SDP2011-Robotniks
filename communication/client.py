@@ -28,7 +28,18 @@ class Client:
 		self.sendMessage(5)
 
 	def setRobotDirection(self, angle):
-		self.sendMessage(angle + 6)
+                "Turn the specified angle in radians"
+
+                # The robot takes in a clockwise integer angle in degrees
+                angle = int(round(degrees(angle))) % 360
+                if angle < 180:
+                        angle = angle + 180
+                else:
+                        angle = angle - 180
+
+                msg = 6 + angle
+                assert 6 <= msg <= 365
+                self.sendMessage(msg)
 
 	def kick(self):
 		self.sendMessage(366)
