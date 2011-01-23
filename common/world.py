@@ -1,5 +1,6 @@
 from utils import *
 import time
+from math import *
 
 class World:
 
@@ -63,7 +64,16 @@ class World:
         If, on the other hand, we see things suddenly teleporting
         somewhere else, we probably
         """
-        pass
+        try:
+            for name in ('blue', 'yellow'):
+                e1 = self.states[-1][name]
+                e2 = self.states[-2][name]
+
+                print e2['orient'] - e1['orient']
+                if abs(e2['orient'] - e1['orient']) > pi/5:
+                    print >>self.log, e1, e2
+
+        except (IndexError, TypeError): pass
 
     def predictBall(self):
         pass
