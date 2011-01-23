@@ -16,7 +16,7 @@ public class Server {
 				while((x = is.read()) != -1){
 					z = (char) x;
 					System.out.println(z);
-					pcb.sendMessage(Integer.parseInt(new String(z)));
+					pcb.sendMessage(Integer.parseInt(new Character(z).toString()));
 				}
 				is.close();
 			}
