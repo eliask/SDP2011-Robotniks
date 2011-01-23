@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<history>
+   <processor signature="gcc noversion nomachine-Wall -std=gnu99 -fPIC -c -fPIC -I. -I../../../../../../../usr/lib/jvm/java-6-openjdk/include -I../../../../../../../usr/lib/jvm/java-6-openjdk/include/linux">
+      <target file="main_jlibnxt.o" lastModified="12da1233c08">
+         <source file="main_jlibnxt.c" lastModified="1237bc266c8"/>
+      </target>
+   </processor>
+   <processor signature="gcc -shared -L/home/kitson/Dev/SDP_D/lejos_nxj/src/libnxt -lusb">
+      <target file="libjlibnxt.so" lastModified="12da1233ff0">
+         <source file="main_jlibnxt.o" lastModified="12da1233c08"/>
+      </target>
+   </processor>
+</history>
