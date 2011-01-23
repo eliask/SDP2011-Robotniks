@@ -28,7 +28,7 @@ class Client:
 		self.sendMessage(5)
 
 	def setRobotDirection(self, angle):
-		self.sendMessage(angle - 6)
+		self.sendMessage(angle + 6)
 
 	def kick(self):
 		self.sendMessage(366)
@@ -39,5 +39,3 @@ class Client:
 	def spinLeftShort(self):
 		self.sendMessage(368)
 
-
-	
