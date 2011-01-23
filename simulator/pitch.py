@@ -1,6 +1,6 @@
 from world import World
 from vision.preprocess import Preprocessor
-from vision.capture import Capture
+from vision.capture import *
 from vision.vision import Vision
 import os, tempfile
 from .common.utils import *
@@ -21,7 +21,7 @@ class OpenCVPitch(Capture):
         # re-initialise the capture.
         try:
             frame = self.getFrame()
-        except Capture.CaptureFailure:
+        except CaptureFailure:
             if self.once:
                 raise
             self.initCapture()
