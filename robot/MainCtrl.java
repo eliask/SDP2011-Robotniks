@@ -11,6 +11,9 @@ public class MainCtrl {
         //Defines the execution mode variable used for turning relivant test functions on/off
         private static int execMode = 0;
 
+        //Deifines a boolean to determine wheather the movement motors are currently running
+        private static boolean moving = false;
+
         //Defines the variables used for determining the position of each wheel
         private static int steeringangle_left = 0;
 	private static int steeringangle_right = 0;
@@ -71,20 +74,35 @@ public class MainCtrl {
 
     //Parses integer messages
     public static void parseMessage(int message){
-	if (message == 0){
+	switch(message){
+	case 0:
 	    reset();
-	} else if (message == 1){
+	    break;
+	case 1:
 	    drive();
-        } else if (message == 2){
+	    break;
+	case 2:
 	    stop();
-	} else if (message == 3){
-	    startSpin();
-	} else if (message == 4){
-	    stopSpin();
-	} else if ((message >= 5)&&(message <=365)){
-	    setRobotDirection(message - 5);
-	} else if (message == 366){
+	    break;
+	case 3:
+	    startSpinRight();
+	    break;
+	case 5:
+	    startSpinLeft();
+	    break;
+	case 366:
 	    kick();
+	    break;
+	case 367:
+	    spinRightShort();
+	    break;
+	case 368:
+	    spinLeftShort();
+	    break;
+	default:
+	     if ((message >= 6)&&(message <=365)){
+		 setRobotDirection(message - 6);
+	     }
 	}
     }
 
@@ -283,9 +301,9 @@ public class MainCtrl {
 
 	     //startSpin, drive 5s, stop, stopSpin
 	     writeToScreen("Spin Test 1.", 1);
-	     writeToScreen("Stas,Fwd5,Stp,Stps",2); 
+	     writeToScreen("StasR,Fwd5,Stp,Stps",2); 
 	     button_enter.waitForPress();
-	     startSpin();
+	     startSpinRight();
 	     drive();
 	     try{
 		 Thread.sleep(5000);
@@ -297,17 +315,64 @@ public class MainCtrl {
 	     writeToScreen("Done!",2);
 	     button_enter.waitForPress();
 
-	     //startSpin, stopSpin
-	     writeToScreen("Spin Test 2.",1);
-	     writeToScreen("Stas,Stps",2);
+	     //startSpin, drive 5s, stop, stopSpin
+	     writeToScreen("Spin Test 2.", 1);
+	     writeToScreen("StasL,Fwd5,Stp,Stps",2); 
 	     button_enter.waitForPress();
-	     startSpin();
+	     startSpinLeft();
+	     drive();
+	     try{
+		 Thread.sleep(5000);
+	     } catch (InterruptedException e){
+		 writeToScreen("Interrupted!",7);
+	     }
+	     stop();
+	     stopSpin();
+	     writeToScreen("Done!",2);
+	     button_enter.waitForPress();
+
+
+	     //startSpin, stopSpin
+	     writeToScreen("Spin Test 3.",1);
+	     writeToScreen("StasR,Stps",2);
+	     button_enter.waitForPress();
+	     startSpinRight();
 	     try{
 		 Thread.sleep(1000);
 	     } catch (InterruptedException e){
 		 writeToScreen("Interrupted!",7);
 	     }
 	     stopSpin();
+	     writeToScreen("Done!",2);
+	     button_enter.waitForPress();
+
+	     //startSpin, stopSpin
+	     writeToScreen("Spin Test 4.",1);
+	     writeToScreen("StasL,Stps",2);
+	     button_enter.waitForPress();
+	     startSpinLeft();
+	     try{
+		 Thread.sleep(1000);
+	     } catch (InterruptedException e){
+		 writeToScreen("Interrupted!",7);
+	     }
+	     stopSpin();
+	     writeToScreen("Done!",2);
+	     button_enter.waitForPress();
+
+	     //spinLeftShort
+	     writeToScreen("Spin Test 5.",1);
+	     writeToScreen("spinLeftShort",2);
+	     button_enter.waitForPress();
+	     spinLeftShort();
+	     writeToScreen("Done!",2);
+	     button_enter.waitForPress();
+
+	     //spinRightShort
+	     writeToScreen("Spin Test 5.",1);
+	     writeToScreen("spinRightShort",2);
+	     button_enter.waitForPress();
+	     spinRightShort();
 	     writeToScreen("Done!",2);
 	     button_enter.waitForPress();
 	     
@@ -436,7 +501,16 @@ public class MainCtrl {
 
        //Sets the robot's direction to the input direction in degrees
 	public static void setRobotDirection(int DirectionDEGs){
-		// For the left motor
+		
+	       boolean hasmoved = false;
+
+	        //Halts the movement motors if they are already running
+	        if (moving == true){
+	            stop();
+		    hasmoved = true;
+	        }
+
+	       // For the left motor
 		if (DirectionDEGs > steeringangle_left){
 			motor_left.rotate((int)(rotConstant * (DirectionDEGs - steeringangle_left)),false);
 			steeringangle_left = DirectionDEGs;
@@ -453,19 +527,24 @@ public class MainCtrl {
 			motor_right.rotate((int)(-1*(steeringangle_right - DirectionDEGs)*rotConstant),false);
 			steeringangle_right = DirectionDEGs;
 		}
+
+		//Restarts the movement motors if the robot was moving prior to executing the command
+		if (hasmoved == true){
+		    drive();
+		}
 	}
 
-    //Defines the function to set the robot to spin around it's own centre
-    public static void startSpin(){
+    //Defines the function to set the robot to spin around it's own centre in the right direction
+    public static void startSpinRight(){
 		
-	        // Test Code to display the steering angles prior to rotation
-	           //LCD.clearDisplay();
-	           //LCD.drawString("Right Wheel Angle:",0 ,0);
-		   //LCD.drawInt(steeringangle_right,0 ,1);
-	           //LCD.drawString("Left Wheel Angle:",0 ,2);
-	           //LCD.drawInt(steeringangle_left, 0, 3);
-		   //Button.waitForPress();
-		
+	        boolean hasmoved = false;
+
+	        //Halts the movement motors if they are already running
+	        if (moving == true){
+	            stop();
+		    hasmoved = true;
+	        }
+
 		//For the left (rotate wheels to 135Deg)
 		if ((steeringangle_left % 360) > 315){
 			motor_left.rotate((int) (rotConstant * (135 + (360 - (steeringangle_left % 360)))));
@@ -488,22 +567,84 @@ public class MainCtrl {
 		
 		steeringangle_right = 315;
 
+		//Restarts the movement motors if the robot was moving prior to executing the command
+		if (hasmoved == true){
+		    drive();
+		}
+
+	}
+
+    //Defines the function to set the robot to spin around it's own centre in the right direction
+    public static void startSpinLeft(){
+		
+	        boolean hasmoved = false;
+
+	        //Halts the movement motors if they are already running
+	        if (moving == true){
+	            stop();
+		    hasmoved = true;
+	        }
+
+		//For the left (rotate wheels to 315Deg)
+		if ((steeringangle_left % 360) > 315){
+			motor_left.rotate((int) (rotConstant * -1 *((steeringangle_left % 360)-315)));
+		} else if((steeringangle_left % 360) < 135){
+			motor_left.rotate((int) (rotConstant * -1 *(45 +( steeringangle_left % 360))));
+		} else if ((steeringangle_left % 360) >= 135 && ((steeringangle_left % 360) <= 315)) {
+			motor_left.rotate((int) (rotConstant * (180 - ((steeringangle_left % 360) - 45))));
+		}
+		
+		steeringangle_left = 315;
+
+     		//For the right (rotate wheels to 135Deg)
+		if ((steeringangle_right % 360) > 315){
+			motor_right.rotate((int) (rotConstant * (135 + (360 - (steeringangle_right % 360)))));
+		} else if((steeringangle_right % 360) < 135){
+			motor_right.rotate((int) (rotConstant * (135 - (steeringangle_right % 360))));
+		} else if ((steeringangle_right % 360) >= 135 && ((steeringangle_right % 360) <= 315)) {
+			motor_right.rotate((int) (rotConstant * -1 * ((steeringangle_right %360) - 135)));
+		}
+		
+		steeringangle_right = 135;
+
+		//Restarts the movement motors if the robot was moving prior to executing the command
+		if (hasmoved == true){
+		    drive();
+		}
+
 	}
 
     //Defines the function used to stop the robot spinning round it's own centre
     public static void stopSpin(){
+	
+	 boolean hasmoved = false;
+
+	 //Halts the movement motors if they are already running
+         if (moving == true){
+            stop();
+       	    hasmoved = true;
+         }
+	
+	//Puts the wheels back to 0Deg
 	reset();
+
+	//Restarts the movement motors if the robot was moving prior to executing the command
+	if (hasmoved == true){
+       	    drive();
+	}
     }
 
     //Communicates with the light sensor on the RCX to start the drive motors
     public static void drive(){
 	port_comlight.setPowerType(port_comlight.POWER_RCX9V);
 	port_comlight.activate();
+	moving = true;
     }
 
     //Communicates with the light sensor on the RCX to stop the drive motors
     public static void stop(){
 	port_comlight.passivate();
+	moving = false;
     }
 
     //Resets both wheels to 0 deg
@@ -527,6 +668,32 @@ public class MainCtrl {
 
 	steeringangle_right = 0;
 
+    }
+
+    //Makes the robot make a slight spin right
+    public static void spinRightShort(){
+	startSpinRight();
+	drive();
+	try{
+	    Thread.sleep(800);
+	} catch (InterruptedException e){
+	    writeToScreen("Msg Col Interupt",7);
+	}
+	stop();
+	stopSpin();
+    }
+
+    //Makes the robot make a slight spin left
+    public static void spinLeftShort(){
+	startSpinLeft();
+	drive();
+	try{
+	    Thread.sleep(800);
+	} catch (InterruptedException e){
+	    writeToScreen("Msg Col Interupt",7);
+	}
+	stop();
+	stopSpin();
     }
 }
 
