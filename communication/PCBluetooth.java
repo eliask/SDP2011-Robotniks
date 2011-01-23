@@ -24,7 +24,7 @@ public class PCBluetooth {
 	}
 
 	// Tries to connect to robot and set up an output stream
-	private static void openConnection() {
+       public static void openConnection() {
 		// Set up bluetooth
 		try {
 			communicator = NXTCommFactory.createNXTComm(NXTCommFactory.BLUETOOTH);
