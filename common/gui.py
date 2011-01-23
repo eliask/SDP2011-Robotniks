@@ -1,6 +1,7 @@
 from opencv import cv, highgui
 from utils import *
 from math import *
+import time
 
 class GUI:
 
@@ -16,9 +17,10 @@ class GUI:
         highgui.cvDestroyAllWindows()
 
     def update(self, frame, ents):
-        self.drawEntities(frame, ents)
-        highgui.cvShowImage(self.WindowName, frame)
+        self.frame = frame
+        self.drawEntities(ents)
         self.processInput()
+        highgui.cvShowImage(self.WindowName, frame)
 
     def drawRotBox(self, ent, color=cv.CV_RGB(255,128,0), label="UNNAMED"):
         if not ent:
@@ -41,8 +43,7 @@ class GUI:
                      cv.cvPoint(int(R.x + R.width), int(R.y + R.height)),
                      color, 2, 8, 0)
 
-    def drawEntities(self, frame, ents):
-        self.frame = frame
+    def drawEntities(self, ents):
         self.drawRotBox(ents['balls'], color=cv.CV_RGB(255,0,255), label='BALL')
 
         if ents['yellow']:
