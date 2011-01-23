@@ -1,5 +1,5 @@
 from opencv import cv, highgui
-from utils import *
+from .common.utils import *
 import threshold
 import segmentation
 
