@@ -22,6 +22,7 @@ class World:
 
     def __init__(self):
         self.time = time.time()
+        self.log = open('anomalities.txt', 'a')
 
     def update(self, time, ents):
         self.time = time

@@ -5,6 +5,8 @@ class Preprocessor:
 
     cropRect = (0, 79, 768, 424)
 
+    bgLearnRate = 0 #.15
+
     bgsub_kernel = \
         cv.cvCreateStructuringElementEx(5,5, #size
                                         2,2, #X,Y offsets
@@ -43,15 +45,25 @@ class Preprocessor:
         """
         if not self.standardised:
             frame = self.standardise(frame)
-        return frame, self.remove_background(frame)
+
+        self.continuousLearnBackground(frame)
+        return frame, threshold.robots(frame)
 
     def crop(self, frame):
         sub_region = cv.cvGetSubRect(frame, self.cropRect)
         cv.cvCopy(sub_region, self.Icrop)
         return self.Icrop
 
+    def preprocessBG(self, frame):
+        ballmask = threshold.ball(frame)
+
+    def continuousLearnBackground(self, frame):
+        if self.bgLearnRate == 0: return
+        cv.cvAddWeighted(frame, self.bgLearnRate, self.bg,
+                         1.0 - self.bgLearnRate, 0, self.bg)
+
     def remove_background(self, frame):
-        """Remove background, leaving foreground objects and some noise.
+        """Remove background, leaving robots and some noise.
 
         It is not safe to modify the returned image, as it will be
         re-initialised each time preprocess is run.
@@ -59,7 +71,7 @@ class Preprocessor:
         cv.cvCvtColor(frame, self.Igray, cv.CV_BGR2GRAY)
         cv.cvSub(frame, self.bg, self.Imask)
 
-        self.Igray = threshold.foreground(self.Imask)
+        self.Igray = threshold.robots(self.Imask)
         cv.cvCvtColor(self.Igray, self.Imask, cv.CV_GRAY2BGR)
 
         #Enlarge the mask a bit to have fewer missing parts due to noise
