@@ -16,5 +16,6 @@ elif args == 3:
     v = Vision(world, filename)
 else:
     print "Usage: vision.py <colour> [filename]"
+    sys.exit(2)
 
 v.run()
