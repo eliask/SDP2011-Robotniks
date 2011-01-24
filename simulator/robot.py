@@ -21,7 +21,7 @@ class Robot(Entity):
 
     def reset(self):
         "Puts the robot's wheels in their default setting of 0 Deg"
-        pass
+	self.movementDir = 0
 
     def drive(self):
         "Drive the motors forwards"
@@ -51,15 +51,16 @@ class Robot(Entity):
 
     def turn(self):
         "Turn counter-clockwise"
-        self.ang_v = 2
+        self.ang_v = radians(2)
     def turnR(self):
         "Turn clockwise"
-        self.ang_v = -2
+        self.ang_v = radians(-2)
     def stopTurn(self):
         self.ang_v = 0
         self.ang_accel = 0
     def updateDirection(self):
         self.movementDir += self.ang_v
+	print(self.movementDir)
 
     def startSpin(self):
         pass
@@ -128,7 +129,7 @@ class Robot(Entity):
         # subsequent collision detection to be accurate. If the
         # rotation and the collision detection can be made to work
         # some other way, this assertion can be removed.
-        print self.rect.center, self.pos
+        #print self.rect.center, self.pos
         assert self.rect.center == (floor(self.pos[0]), floor(self.pos[1]))
 
         self.savePos()

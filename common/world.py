@@ -33,8 +33,6 @@ class World:
         self.updateStates()
         self.updateWorld()
 
-    def convertEnt
-
     def getSelf(self):
         # TODO: resolve the actual self from user input somehow
         return self.ents['blue']

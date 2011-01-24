@@ -16,6 +16,7 @@ class Input:
             K_z : ( p1.startSpin, lambda:None ),
             K_x : ( p1.stopSpin, lambda:None ),
             K_e : ( p1.kick,   lambda:None ),
+	    K_r : ( p1.reset, lambda:None ),
 
             K_u : ( p2.drive,  p2.stopDrive ),
             K_j : ( p2.driveR, p2.stopDrive ),

@@ -5,7 +5,7 @@ from pygame.locals import *
 import pygame
 from math import *
 from random import *
-import tempfile
+import tempfile, sys
 from world import World
 from robot import *
 from ball import *
@@ -14,6 +14,7 @@ from .vision.vision import Vision
 from input import Input
 from .strategy.strategy import Strategy
 from pitch import *
+
 
 class Simulator:
 
