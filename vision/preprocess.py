@@ -45,7 +45,6 @@ class Preprocessor:
         """
         if not self.standardised:
             frame = self.standardise(frame)
-
         self.continuousLearnBackground(frame)
         return frame, threshold.robots(frame)
 
@@ -109,7 +108,8 @@ class Preprocessor:
         return out
 
     def undistort(self, frame):
-        cv.cvUndistort2(frame, self.Idistort, self.Intrinsic, self.Distortion)
+        cv.cvUndistort2(frame, self.Idistort,
+                        self.Intrinsic, self.Distortion)
         return self.Idistort
 
     def initMatrices(self):

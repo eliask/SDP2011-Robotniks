@@ -11,8 +11,10 @@ class Capture:
 
     def initCapture(self):
         if self.filename:
+            print "Capture from file:", self.filename
             self.capture = highgui.cvCreateFileCapture(self.filename)
         else:
+            print "Capture from camera"
             # First assume the camera is a v4L2 one
             self.capture = highgui.cvCreateCameraCapture(highgui.CV_CAP_V4L2)
             if not self.capture:
@@ -41,4 +43,6 @@ class Capture:
         if frame is None:
             raise CaptureFailure
 
+        assert frame.width == self.size.width
+        assert frame.height == self.size.height
         return frame

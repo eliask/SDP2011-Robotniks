@@ -6,17 +6,17 @@ from features import FeatureExtraction
 from interpret import Interpreter
 from common.world import World
 from common.gui import GUI
-import sys, random, time, math
+import random, time, math
 import debug
 
 class Vision():
     rawSize = cv.cvSize(768, 576)
 
-    def __init__(self, args=sys.argv, simulator=None):
+    def __init__(self, filename=None, simulator=None):
         if simulator:
             self.capture = SimCapture(simulator)
         else:
-            self.capture = Capture(self.rawSize, args[-1])
+            self.capture = Capture(self.rawSize, filename)
 
         self.pre = Preprocessor(self.rawSize, simulator)
         self.featureEx = FeatureExtraction(self.pre.cropSize)
@@ -52,8 +52,3 @@ class Vision():
         print "Avg. processing time / frame: %.2f ms" % (avg * 1000)
         print "Standard deviation: %.2f ms" % \
             ( 1000*math.sqrt(sum(map(lambda x:(x-avg)**2, times)) / N) )
-
-if __name__ == "__main__":
-    v = Vision(sys.argv)
-    v.run()
-
