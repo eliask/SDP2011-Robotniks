@@ -3,12 +3,12 @@ import socket
 class Client:
 
 	def __init__(self):
-		self.client_socket = \
-                    socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		self.client_socket.connect(("localhost", 6879))
+		self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.socket.connect(("localhost", 6879))
+                self.socket.settimeout(0.0)
 
 	def sendMessage(self, x):
-		self.client_socket.send('%d\n' % x)
+		self.socket.send('%d\n' % x)
 
 	def reset(self):
 		self.sendMessage(0)

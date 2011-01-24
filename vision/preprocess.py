@@ -5,7 +5,7 @@ class Preprocessor:
 
     cropRect = (0, 79, 768, 424)
 
-    bgLearnRate = 0 #.15
+    bgLearnRate = 0.15
 
     bgsub_kernel = \
         cv.cvCreateStructuringElementEx(5,5, #size
@@ -47,7 +47,14 @@ class Preprocessor:
             frame = self.standardise(frame)
 
         self.continuousLearnBackground(frame)
-        return frame, threshold.robots(frame)
+        # t = threshold.blueT(frame)
+        # t = threshold.ball(frame)
+        # t = threshold.yellowT(frame)
+        #t = threshold.dirmarker(frame)
+        t = threshold.robots(frame)
+        cv.cvCvtColor(t, self.Imask, cv.CV_GRAY2BGR)
+        #return frame, t # self.Imask
+        return frame, t, self.remove_background(self.Imask)
 
     def crop(self, frame):
         sub_region = cv.cvGetSubRect(frame, self.cropRect)

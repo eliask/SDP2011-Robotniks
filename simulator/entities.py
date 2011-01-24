@@ -66,12 +66,12 @@ class Ball(Entity):
 class Robot(Entity):
     def __init__(self, pos, image, angle, sim):
         Entity.__init__(self, pos, image, sim)
-        self.angle = angle
+        self.orient = angle
         self.w = 0
         self.turn(angle)
 
     def turn(self, angle):
-        self.angle = angle
+        self.orient = angle
         self.image = pygame.transform.rotate(self.base_image, angle)
 
     def savePos(self):
@@ -99,7 +99,7 @@ class Robot(Entity):
         self.w += randint(-4,4)
         self.w = clamp(-8, self.w, 8)
         # TODO: also rotate the 'rect' somehow
-        self.turn(self.angle + self.w)
+        self.turn(self.orient + self.w)
 
     def collideRobot(self):
         other = [ robot for robot in self.sim.robots
@@ -187,5 +187,5 @@ class Robot(Entity):
         pX, pY = ent.pos
         W, H   = RobotDim
         corners = [ (pX, pY), (pX+W, pY), (pX+W, pY+H), (pX, pY+H) ]
-        return rotatePoints(corners, ent.rect.center, ent.angle)
+        return rotatePoints(corners, ent.rect.center, ent.orient)
 

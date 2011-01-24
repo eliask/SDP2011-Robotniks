@@ -23,3 +23,21 @@ class World:
 
     def __init__(self):
         self.ents = {}
+
+    def getSelf(self):
+        # TODO: resolve the actual self from user input somehow
+        return self.ents['blue']
+
+    def getOpponent(self):
+        return self.ents['yellow']
+
+    def ballPos(self):
+        return self.ents['ball'].pos
+        return ball.pos
+
+    def myPos(self):
+        return self.getSelf().pos
+
+    def opponentPos(self):
+        return self.getOpponent().pos
+
