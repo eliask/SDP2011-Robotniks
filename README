@@ -1,0 +1,3 @@
+Before running any code, import the environment variables using:
+$ . env.sh
+
