@@ -8,11 +8,11 @@ import sys
 args = len(sys.argv)
 if args == 2:
     _, colour = sys.argv
-    w = World(colour)
+    world = World(colour)
     v = Vision(world)
 elif args == 3:
     _, colour, filename = sys.argv
-    w = World(colour)
+    world = World(colour)
     v = Vision(world, filename)
 else:
     print "Usage: vision.py <colour> [filename]"
