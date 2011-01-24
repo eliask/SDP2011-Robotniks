@@ -10,10 +10,13 @@ public class BluetoothTester {
 
 	private static BTConnection connection;
 	private static DataInputStream inputStream;
+	private static boolean keepConnOpen;
 
 	public static void main(String[] args) throws InterruptedException{
+		keepConnOpen = true;
 		connect();
 		collectMessage();
+		close();
 	}
 	
 	public static void connect(){
@@ -26,15 +29,15 @@ public class BluetoothTester {
 	}
 
 	private static void collectMessage() throws InterruptedException{
-		while(true){
+		while(keepConnOpen){
 			try {
 				// Parse if there are any messages
 				if(inputStream.available()>0){
 					writeToScreen("Got message");
 					int message = inputStream.readInt();
 					// Do specific action
-					if (message == 1){
-						kicker();
+					if (message == 0){
+						keepConnOpen = false;
 					}
 					writeToScreen("Done");	
 				}
@@ -51,13 +54,15 @@ public class BluetoothTester {
 		LCD.refresh();
 	}
 	
-	// Activate kicker
-	public static void kicker() throws InterruptedException{
-		writeToScreen("Kick");
-		Motor.A.forward();
-		Motor.A.setSpeed(800);
-		Thread.sleep(417);
-		Motor.A.stop();
-		Button.waitForPress();
+	// Closes connection
+	public static void close(){
+		try {
+			inputStream.close();
+			writeToScreen("Closing");
+		} catch (IOException e) {
+			writeToScreen("Could not close");
+		}
+		connection.close();
 	}
+	
 }
