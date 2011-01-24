@@ -3,7 +3,7 @@ import threshold
 
 class Preprocessor:
 
-    cropRect = (0, 79, 768, 424)
+    cropRect = (0, 64, 640, 330)
 
     bgLearnRate = 0 #.15
 
@@ -17,15 +17,16 @@ class Preprocessor:
         self.cropSize = cv.cvSize(self.cropRect[2], self.cropRect[3])
 
         self.initMatrices()
-        self.bg = highgui.cvLoadImage('vision/background.png')
 
         self.Idistort  = cv.cvCreateImage(self.rawSize, cv.IPL_DEPTH_8U, 3)
         self.Icrop     = cv.cvCreateImage(self.cropSize, cv.IPL_DEPTH_8U, 3)
         self.Igray     = cv.cvCreateImage(self.cropSize, cv.IPL_DEPTH_8U, 1)
         self.Imask     = cv.cvCreateImage(self.cropSize, cv.IPL_DEPTH_8U, 3)
         self.Iobjects  = cv.cvCreateImage(self.cropSize, cv.IPL_DEPTH_8U, 3)
+        self.bg        = cv.cvCreateImage(self.cropSize, cv.IPL_DEPTH_8U, 3)
 
-        self.bg = self.crop(self.undistort(self.bg))
+        #self.bg = highgui.cvLoadImage('vision/background.png')
+        #self.bg = self.crop(self.undistort(self.bg))
         # highgui.cvSaveImage("calibrated-background.png", self.bg)
 
         self.standardised = simulator is not None

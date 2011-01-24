@@ -1,6 +1,7 @@
 import socket
+import interface
 
-class Client:
+class RealRobotInterface(interface.RobotInterface):
 
 	def __init__(self):
 		self.client_socket = \

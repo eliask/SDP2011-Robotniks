@@ -2,9 +2,9 @@ from opencv import highgui
 
 class SimCapture:
 
-    def __init__(self, vision):
-        self.vision = vision
+    def __init__(self, simulator):
+        self.simulator = simulator
 
     def getFrame(self):
-        return highgui.cvLoadImage(self.vision.visionFile)
+        return highgui.cvLoadImage(self.simulator.visionFile)
 

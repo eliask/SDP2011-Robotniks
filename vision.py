@@ -1,9 +1,20 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from vision.vision import *
+from common.world import *
 import sys
 
-if len(sys.argv) > 1:
-    print sys.argv
-    v = Vision(sys.argv[-1])
+args = len(sys.argv)
+if args == 2:
+    _, colour = sys.argv
+    w = World(colour)
+    v = Vision(world)
+elif args == 3:
+    _, colour, filename = sys.argv
+    w = World(colour)
+    v = Vision(world, filename)
 else:
-    v = Vision()
+    print "Usage: vision.py <colour> [filename]"
+
 v.run()

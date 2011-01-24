@@ -1,38 +1,47 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from pygame.locals import *
-import pygame
-from math import *
-from random import *
-import tempfile
-from world import World
-from entities import *
 from .common.utils import *
-from .vision.vision import Vision
 from .strategy.strategy import Strategy
+from .vision.vision import Vision
+from entities import *
+from math import *
 from pitch import *
+from pygame.locals import *
+from random import *
+from world import *
+import common.world
+import pygame
+import sys, tempfile
+import communication.client
 
-class Simulator:
+class Simulator(object):
 
     objects=[]
     robots=[]
     images={}
+
+    # Options and arguments
     headless=False
     vision=None
     pitch=None
-    strategy=None
-    quit=False
+    ai=[]
+    robot1=None
+    robot2=None
 
-    def __init__(self, pitch=None, vision=False, headless=False, strategy=False):
-        self.pitch = pitch
-        self.headless = headless
-        if vision:
-            self.vision = Vision(simulator=self)
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            self.__setattr__(k, v)
+            print k,v
+
+    def initVision(self):
+        if self.vision:
+            world = self.world
+            if not self.real_world:
+                world = common.world.World(self.colour)
+            self.vision = Vision(simulator=self, world=world)
             self.visionFile = tempfile.mktemp(suffix='.bmp')
-        self.world = World()
-        if strategy:
-            self.strategy = Strategy(self.world)
+            self.world = self.vision.world
 
     def drawEnts(self):
         if self.pitch:
@@ -48,7 +57,7 @@ class Simulator:
             pygame.image.save(self.screen, self.visionFile)
             self.vision.processFrame()
 
-    def initDisplay(self):
+    def initScreen(self):
         if self.headless:
             self.screen = pygame.Surface(World.Resolution)
         else:
@@ -63,30 +72,49 @@ class Simulator:
         else:
             col2, col1 = colours
 
-        self.makeBall(World.Pitch.center)
-        self.makeRobot(World.LeftStartPos, col1, 90)
-        self.makeRobot(World.RightStartPos, col2, 270)
+        self.makeRobot(World.LeftStartPos, col1, 90, self.robot1[0])
+        self.makeRobot(World.RightStartPos, col2, 270, self.robot2[0])
+
+        # Only make a real ball when there are two simulated robots
+        if len(self.robots) == 2:
+            self.makeBall(World.Pitch.center)
+
         self.sprites = pygame.sprite.RenderPlain(self.objects)
+
+    def initAI(self):
+        ai1, real1 = self.robot1
+        ai2, real2 = self.robot2
+
+        if ai1 and real1:
+            self.ai.append( ai1(self.world, RealRobotInterface() ) )
+            del self.robots[0]
+        elif ai1:
+            self.ai.append( ai1(self.world, self.robots[0]) )
+
+        elif ai2 and real2:
+            # TODO: reverse sides here
+            self.ai.append( ai2(self.world, RealRobotInterface() ) )
+            del self.robots[1]
+        elif ai2:
+            self.ai.append( ai2(self.world, self.robots[1]) )
 
     def run(self):
         pygame.init()
         self.clock = pygame.time.Clock()
-        self.initDisplay()
+        self.initVision()
+        self.initScreen()
         self.loadImages()
         self.makeObjects()
+        self.world.assignSides()
+        self.initAI()
         self.drawEnts()
 
         while True:
-            # Currently this just freezes everything.
-            #  Maybe we could do manual control of our simulated robot
-            # to get a sense of how it should be programmed.
-            #input(pygame.event.get())
-
             self.clock.tick(25)
+            self.input(pygame.event.get())
             self.sprites.update()
             self.drawEnts()
-            if self.strategy:
-                self.strategy.run()
+            map( lambda x: x.run(), self.ai )
 
     def input(self, events):
         for event in events:
@@ -95,18 +123,19 @@ class Simulator:
             else:
                 print event
 
-    def makeRobot(self, pos, colour, angle):
-        ent = Robot(pos, self.images[colour], angle, self)
+    def makeRobot(self, pos, colour, angle, ai):
+        ent = Robot(self, pos, self.images[colour], angle)
         ent.rect = Rect( (pos[0] - RobotDim[0]/2,
                           pos[1] - RobotDim[1]/2),
                         RobotDim )
         ent.side = colour
+
         self.world.ents[colour] = ent
         self.robots.append(ent)
         self.addEnt(ent)
 
     def makeBall(self, pos):
-        ent = Ball(pos, self.images['ball'], self)
+        ent = Ball(self, pos, self.images['ball'])
         ent.rect = Rect( (pos[0] - BallDim[0]/2,
                           pos[1] - BallDim[1]/2),
                         BallDim )

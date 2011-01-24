@@ -10,9 +10,9 @@ import random, time, math
 import debug
 
 class Vision():
-    rawSize = cv.cvSize(768, 576)
+    rawSize = cv.cvSize(640, 480)
 
-    def __init__(self, filename=None, simulator=None):
+    def __init__(self, world, filename=None, simulator=None):
         if simulator:
             self.capture = SimCapture(simulator)
         else:
@@ -21,11 +21,14 @@ class Vision():
         self.pre = Preprocessor(self.rawSize, simulator)
         self.featureEx = FeatureExtraction(self.pre.cropSize)
         self.interpreter = Interpreter()
-        self.world = World()
+        self.world = world
         self.UI = GUI()
 
         self.times=[]
         self.N=0
+
+        # import threshold
+        # debug.thresholdValues(threshold.Tball)
 
     def processFrame(self):
         print "Frame:", self.N

@@ -5,13 +5,14 @@ from random import *
 from math import *
 from world import World
 from .common.utils import *
+from .communication.interface import RobotInterface
 
 RobotDim = (54, 36)
 BallDim  = (12, 12)
 Friction = 0.03
 
 class Entity(pygame.sprite.Sprite):
-    def __init__(self, pos, image, sim):
+    def __init__(self, sim, pos, image):
         pygame.sprite.Sprite.__init__(self)
         self.pos = pos
         self.image = image
@@ -20,8 +21,8 @@ class Entity(pygame.sprite.Sprite):
         self.v = [0.0, 0.0]
 
 class Ball(Entity):
-    def __init__(self, pos, image, sim):
-        Entity.__init__(self, pos, image, sim)
+    def __init__(self, sim, pos, image):
+        Entity.__init__(self, sim, pos, image)
 
     def update(self):
         self.reflectWall()
@@ -63,12 +64,25 @@ class Ball(Entity):
             self.v[0] = self.v[0] - Friction * self.v[0] / q
             self.v[1] = self.v[1] - Friction * self.v[1] / q
 
-class Robot(Entity):
-    def __init__(self, pos, image, angle, sim):
-        Entity.__init__(self, pos, image, sim)
+class Robot(Entity, RobotInterface):
+    def __init__(self, sim, pos, image, angle):
+        Entity.__init__(self, sim, pos, image)
         self.angle = angle
         self.w = 0
         self.turn(angle)
+        self.orientation = 0
+
+    # Placeholders until Yannick finishes the interface/input changes
+    def reset(self): pass
+    def drive(self): pass
+    def stop(self): pass
+    def startSpinRight(self): pass
+    def startSpinLeft(self): pass
+    def stopSpin(self): pass
+    def setRobotDirection(self, angle): pass
+    def kick(self): print "KICK"
+    def spinRightShort(self): pass
+    def spinLeftShort(self): pass
 
     def turn(self, angle):
         self.angle = angle
