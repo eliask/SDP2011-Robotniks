@@ -56,14 +56,20 @@ public class MainCtrl {
 
         //Handles collecting the messages from the server over Bluetooth
 	private static void collectMessage() throws InterruptedException{
-		while(true){
+	    int atend = false;
+	    while(atend = false){
 			try {
 				// Parse if there are any messages
 				if(inputStream.available()>0){
 				        writeToScreen("Got message",7);
 					int message = inputStream.readInt();
 					// Do specific action
-					parseMessage(message);
+					if (message != 10000){
+					    parseMessage(message);
+					} else {
+					    //if the message is 10000 close connection
+					    atend = true;
+					}
 					writeToScreen("Done",7);	
 				}
 			} catch (IOException e) {
