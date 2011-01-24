@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<history>
+   <processor signature="gcc noversion nomachine-Wall -std=gnu99 -g -ggdb -c -Os -fPIC -I. -I../../../../../../../usr/lib/jvm/java-6-openjdk/include -I../../../../../../../usr/lib/jvm/java-6-openjdk/include/linux">
+      <target file="jbluez.o" lastModified="12da1233ff0">
+         <source file="jbluez.c" lastModified="1237bc26ab0"/>
+      </target>
+   </processor>
+   <processor signature="gcc -shared -L/home/kitson/Dev/SDP_D/lejos_nxj/src/jbluez -lbluetooth">
+      <target file="libjbluez.so" lastModified="12da1233ff0">
+         <source file="jbluez.o" lastModified="12da1233ff0"/>
+      </target>
+   </processor>
+</history>

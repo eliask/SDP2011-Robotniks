@@ -1,5 +1,6 @@
 from utils import *
 import time
+from math import *
 
 class World:
 
@@ -22,6 +23,7 @@ class World:
 
     def __init__(self):
         self.time = time.time()
+        self.log = open('anomalities.txt', 'a')
 
     def update(self, time, ents):
         self.time = time
@@ -30,6 +32,25 @@ class World:
         self.updateAttributes()
         self.updateStates()
         self.updateWorld()
+
+    def convertEnt
+
+    def getSelf(self):
+        # TODO: resolve the actual self from user input somehow
+        return self.ents['blue']
+
+    def getOpponent(self):
+        return self.ents['yellow']
+
+    def ballPos(self):
+        return self.ents['ball'].pos
+        return ball.pos
+
+    def myPos(self):
+        return self.getSelf().pos
+
+    def opponentPos(self):
+        return self.getOpponent().pos
 
     def updateStates(self):
         self.ents['time'] = self.time
@@ -62,7 +83,16 @@ class World:
         If, on the other hand, we see things suddenly teleporting
         somewhere else, we probably
         """
-        pass
+        try:
+            for name in ('blue', 'yellow'):
+                e1 = self.states[-1][name]
+                e2 = self.states[-2][name]
+
+                print e2['orient'] - e1['orient']
+                if abs(e2['orient'] - e1['orient']) > pi/5:
+                    print >>self.log, e1, e2
+
+        except (IndexError, TypeError): pass
 
     def predictBall(self):
         pass

@@ -4,7 +4,6 @@ import common.world
 class World(common.world.World):
 
     image_names = {
-        'bg'     : 'vision/media/calibrated-background-cropped.png',
         'blue'   : 'simulator/blue_robot.png',
         'yellow' : 'simulator/yellow_robot.png',
         'ball'   : 'simulator/ball.png',
@@ -37,3 +36,20 @@ class World(common.world.World):
 
     def updateWorld():
         pass
+    def getSelf(self):
+        # TODO: resolve the actual self from user input somehow
+        return self.ents['blue']
+
+    def getOpponent(self):
+        return self.ents['yellow']
+
+    def ballPos(self):
+        return self.ents['ball'].pos
+        return ball.pos
+
+    def myPos(self):
+        return self.getSelf().pos
+
+    def opponentPos(self):
+        return self.getOpponent().pos
+

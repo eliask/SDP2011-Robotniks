@@ -12,6 +12,8 @@ from ball import *
 from .common.utils import *
 from .vision.vision import Vision
 from input import Input
+from .strategy.strategy import Strategy
+from pitch import *
 
 class Simulator:
 
@@ -20,19 +22,31 @@ class Simulator:
     images={}
     headless=False
     vision=None
+    pitch=None
+    strategy=None
     quit=False
 
-    def __init__(self, vision=False, headless=False):
+    def __init__(self, pitch=None, vision=False, headless=False, strategy=False):
+        self.pitch = pitch
         self.headless = headless
         if vision:
             self.vision = Vision(simulator=self)
             self.visionFile = tempfile.mktemp(suffix='.bmp')
         self.world = World()
         self.overlay = pygame.Surface(World.Resolution)
+        if strategy:
+            self.strategy = Strategy(self.world)
 
     def drawEnts(self):
-        self.screen.blit(self.images['bg'], (0,0))
+        if self.pitch:
+            bg = self.pitch.get()
+            self.screen.blit(bg, (0,0))
+
         self.sprites.draw(self.screen)
+
+        if not self.headless:
+            pygame.display.flip()
+
         if self.vision:
             pygame.image.save(self.screen, self.visionFile)
             self.vision.processFrame()
@@ -80,6 +94,8 @@ class Simulator:
             self.clock.tick(25)
             self.drawEnts()
             self.sprites.update()
+            if self.strategy:
+                self.strategy.run()
 
     def initInput(self):
         self.input = Input(self.robots[0], self.robots[1])

@@ -1,5 +1,5 @@
 from opencv import cv, highgui
-from utils import *
+from .common.utils import *
 import threshold
 import segmentation
 
@@ -10,33 +10,46 @@ class FeatureExtraction:
     # width is defined as the longer dimension
     Sizes = { 'balls'     : (3,  25,  3, 25),
               'T'         : (35, 55, 25, 35),
-              'robots'    : (50, 80, 35, 60),
-              'dirmarker' : (3,  12, 3,  12),
+              'robots'    : (50, 80, 20, 60),
+              'dirmarker' : (5,  12, 5,  12),
             }
 
     def __init__(self, size):
-        self.gray = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
+        self.gray16 = cv.cvCreateImage(size, cv.IPL_DEPTH_16S, 1)
+        self.gray8 = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
+        self.Itmp = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 3)
 
-    def features(self, Iobjects):
+    def features(self, frame, robotMask):
         """Extract relevant features from objects
-        :: CvMat -> dict( label -> [ dict() ] )
+        :: CvMat -> CvMat -> dict( label -> [ dict() ] )
 
         Returns a dictionary containing the positions of robots and ball.
         Both types contain 'box' and 'rect', which refer to their
         bounding boxes and their bounding rectangles, respectively.
-        
+
         Performs size-checking on all entities but doesn't eliminate
         all multiplicity.
         """
-        cv.cvCvtColor(Iobjects, self.gray, cv.CV_BGR2GRAY)
-        objects = self.segment(self.gray)
-
+        cv.cvCvtColor(frame, self.gray8, cv.CV_BGR2GRAY)
+        cv.cvAnd(self.gray8, robotMask, self.gray8)
+        robots = self.segment(self.gray8)
         ents = {}
-        ents['robots'] = [ obj for obj in objects if self.sizeMatch(obj, 'robots') ]
-        self.detectBall(Iobjects, ents)
-        self.detectRobots(Iobjects, ents)
+        ents['robots'] = [ obj for obj in robots
+                           if self.sizeMatch(obj, 'robots') ]
+
+        self.detectBall(frame, ents)
+        self.detectRobots(frame, ents)
+
+        if not ents['yellow'] or not ents['blue']:
+            try: print "Anomaly:", self.getSize(ents['blue'])
+            except: pass
+            try: print "Anomaly:", self.getSize(ents['yellow'])
+            except: pass
 
         return ents
+
+    def segment(self, thresholded):
+        return segmentation.find_connected_components(thresholded)
 
     def detectBall(self, frame, ents):
         ents['balls'] = []
@@ -96,7 +109,7 @@ class FeatureExtraction:
                 neither[0]['side'] = 'yellow'
 
     def detectYellow(self, sub):
-        yellow = self.segment(threshold.yellowTAndBall(sub))
+        yellow = self.segment(threshold.yellowT(sub))
         for Y in yellow:
             #print "Y:", Y['box'].size.width, Y['box'].size.height
             if self.sizeMatch(Y, 'T'):
@@ -119,11 +132,9 @@ class FeatureExtraction:
                 dirmarker = d
         return dirmarker
 
-    def segment(self, thresholded):
-        return segmentation.find_connected_components(thresholded)
-
     def sizeMatch(self, obj, name):
         width, height = self.getSize(obj)
+
         if  self.Sizes[name][0] < width  < self.Sizes[name][1] \
         and self.Sizes[name][2] < height < self.Sizes[name][3]:
             return True
