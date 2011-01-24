@@ -10,6 +10,7 @@ from world import World
 from entities import *
 from .common.utils import *
 from .vision.vision import Vision
+from .strategy.strategy import Strategy
 from pitch import *
 
 class Simulator:
@@ -20,15 +21,18 @@ class Simulator:
     headless=False
     vision=None
     pitch=None
+    strategy=None
     quit=False
 
-    def __init__(self, pitch=None, vision=False, headless=False):
+    def __init__(self, pitch=None, vision=False, headless=False, strategy=False):
         self.pitch = pitch
         self.headless = headless
         if vision:
             self.vision = Vision(simulator=self)
             self.visionFile = tempfile.mktemp(suffix='.bmp')
         self.world = World()
+        if strategy:
+            self.strategy = Strategy(self.world)
 
     def drawEnts(self):
         if self.pitch:
@@ -81,6 +85,8 @@ class Simulator:
             self.clock.tick(25)
             self.sprites.update()
             self.drawEnts()
+            if self.strategy:
+                self.strategy.run()
 
     def input(self, events):
         for event in events:
