@@ -26,8 +26,6 @@ class Vision():
 
         self.times=[]
         self.N=0
-        import threshold
-        debug.thresholdValues(threshold.Tdirmarker)
 
     def processFrame(self):
         print "Frame:", self.N
@@ -35,12 +33,12 @@ class Vision():
         startTime = time.time()
         frame = self.capture.getFrame()
         print "preprocess"
-        frame, robotMask, processed = self.pre.preprocess(frame)
+        frame, robotMask = self.pre.preprocess(frame)
         print "features"
         ents = self.featureEx.features(frame, robotMask)
         self.interpreter.interpret(ents)
         self.world.update(startTime, ents)
-        self.UI.update(processed, ents)
+        self.UI.update(frame, ents)
 
         endTime = time.time()
         self.times.append( (endTime - startTime) )

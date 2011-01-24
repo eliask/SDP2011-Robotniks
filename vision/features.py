@@ -40,12 +40,6 @@ class FeatureExtraction:
         self.detectBall(frame, ents)
         self.detectRobots(frame, ents)
 
-        if not ents['yellow'] or not ents['blue']:
-            try: print "Anomaly:", self.getSize(ents['blue'])
-            except: pass
-            try: print "Anomaly:", self.getSize(ents['yellow'])
-            except: pass
-
         return ents
 
     def segment(self, thresholded):
@@ -134,7 +128,6 @@ class FeatureExtraction:
 
     def sizeMatch(self, obj, name):
         width, height = self.getSize(obj)
-
         if  self.Sizes[name][0] < width  < self.Sizes[name][1] \
         and self.Sizes[name][2] < height < self.Sizes[name][3]:
             return True

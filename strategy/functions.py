@@ -1,5 +1,5 @@
+from math import *
 from .common.utils import *
-from .common.world import *
 
 def getKickingPosition():
     """Get kicking position and orientation.
