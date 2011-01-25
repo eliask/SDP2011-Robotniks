@@ -3,8 +3,11 @@
 
 from .common.utils import *
 from .strategy.strategy import Strategy
+<<<<<<< HEAD
 from .vision.vision import Vision
 from ball import *
+=======
+>>>>>>> master
 from entities import *
 from input import Input
 from math import *
@@ -18,6 +21,11 @@ import communication.client
 import pygame
 import sys, tempfile
 
+
+try:
+    from .vision.vision import Vision
+except ImportError:
+    pass
 
 class Simulator(object):
 

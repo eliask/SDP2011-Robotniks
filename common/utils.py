@@ -1,4 +1,8 @@
-from opencv import cv, highgui
+try:
+    from opencv import cv, highgui
+except ImportError:
+    pass
+
 import pygame
 import tempfile
 from math import *
