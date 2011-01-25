@@ -95,6 +95,8 @@ def main():
     if strategy2:
         ai2 = strategies[strategy2]
 
+    assert colour, "Need to set robot colour"
+
     assert not (real1 or real2) or vision, \
         "Using real robots requires vision"
 
