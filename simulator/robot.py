@@ -20,8 +20,12 @@ class Robot(Entity):
         self.movementDir = 0
 
     def reset(self):
-        "Puts the robot's wheels in their default setting of 0 Deg"
-	self.movementDir = 0
+        """Puts the robot's wheels in their default setting of 0 Deg
+
+        The direction is relative to the robot's orientation.
+        """
+        # TODO: make this take time, like acceleration
+	self.movementDir = self.orientation
 
     def drive(self):
         "Drive the motors forwards"
