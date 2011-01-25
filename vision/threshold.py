@@ -1,106 +1,129 @@
 from opencv import cv
 
-colorspaceConv = \
-    { 'bgr' : lambda x: x,
-      'hsv' : lambda x: cv.cvCvtColor(x, x, cv.CV_BGR2HSV),
-    }
+class Base(object):
+    colorspaceConv = \
+        { 'bgr' : lambda x: x,
+          'hsv' : lambda x: cv.cvCvtColor(x, x, cv.CV_BGR2HSV),
+          }
 
-# Thresholds for all entities
-# Format: color space, minima, maxima (per channel)
+    @classmethod
+    def foreground(frame):
+        return self.threshold(frame, self.Tforeground, op=cv.cvOr)
 
-Tyellow = ( 'hsv', (18,  140, 120), (50,  255, 255) )
+    @classmethod
+    def robots(frame):
+        """Returns a mask that mostly covers the robots.
 
-# Both work with false positive regions
-Tdirmarker  = ( 'hsv', [10,   0,   80 ], [ 90,  90, 145] )
-Tdirmarker  = ( 'bgr', [70,   90,  70 ], [115, 150, 130] )
+        Very few false positives.
+        """
+        return self.threshold(frame, self.Trobots, op=cv.cvOr)
 
-# Identifies the outlines of the robots
-Tbackplate  = ( 'bgr', [100, 200,  80 ], [180, 255, 140] )
-#Tball       = ( 'bgr', [0,   0,   140], [110, 110, 255] )
-#Tblue       = ( 'hsv', [80,  70,  90 ], [140, 255, 255] )
-Trobots = ( 'bgr', [255,  200,  255], [255, 255, 255] )
+    @classmethod
+    def ball(frame):
+        """Return the mask for the ball.
 
-#Primary pithc:
-Tball       = ( 'bgr', [40,   60,   160], [110, 110, 255] )
-Tblue       = ( 'bgr', [150,  130,  85 ], [210, 185, 180] )
-Tblue2      = ( 'bgr', [150,  185,  90 ], [255, 255, 160] )
-Tblue      = ( 'bgr', [170,  140,  105 ], [225, 210, 125] )
-Tyellow     = ( 'bgr', [50,  165,  180 ], [165, 255, 255] )
+        Very good detection rate from full background and extremely few
+        false positives.
+        """
+        return self.threshold(frame, self.Tball, magic=True)
 
-# Effectively return only foreground objects (+ a little noise)
-Trobots = ( 'bgr', [255,  185,  255], [255, 255, 255] )
-Tdirmarker  = ( 'bgr', [75,   110,  75 ], [110, 160, 110] ) #w/magic
-Tforeground = ( 'bgr', [35,  20,  20], [255, 255, 255] )
+    @classmethod
+    def blueT(frame):
+        """Return the mask for the blue T.
 
-def foreground(frame):
-    return threshold(frame, Tforeground, op=cv.cvOr)
+        Very good detection rate from full background and extremely few
+        false positives.
+        """
+        return self.threshold(frame, self.Tblue, magic=True)
 
-def robots(frame):
-    """Returns a mask that mostly covers the robots.
+    @classmethod
+    def yellowT(frame):
+        """Outputs a mask containing the yellow T.
 
-    Very few false positives.
-    """
-    return threshold(frame, Trobots, op=cv.cvOr)
+        The dimensions of the T are roughly 32 x 42 pixels.
+        """
+        return self.threshold(frame, self.Tyellow, magic=True)
 
-def ball(frame):
-    """Return the mask for the ball.
+    @classmethod
+    def dirmarker(frame):
+        return self.threshold(frame, self.Tdirmarker, magic=True)
 
-    Very good detection rate from full background and extremely few
-    false positives.
-    """
-    return threshold(frame, Tball, magic=True)
+    @classmethod
+    def backplate(frame):
+        return self.threshold(frame, self.Tbackplate)
 
-def blueT(frame):
-    """Return the mask for the blue T.
+    @classmethod
+    def threshold(frame, record, op=cv.cvAnd, magic=False):
+        """Threshold a frame using a record of min/max thresholds
 
-    Very good detection rate from full background and extremely few
-    false positives.
-    """
-    return threshold(frame, Tblue, magic=True)
+        Output is a new image.
+        """
+        colorspace, min, max = record
 
-def yellowT(frame):
-    """Outputs a mask containing the yellow T.
+        tmp = cv.cvCloneImage(frame)
+        if magic:
+            cv.cvSmooth(tmp, tmp, cv.CV_GAUSSIAN, 11)
+        # Work in the correct colorspace
+        self.colorspaceConv[colorspace](tmp)
 
-    The dimensions of the T are roughly 32 x 42 pixels.
-    """
-    return threshold(frame, Tyellow, magic=True)
+        num_chans = len(min)
+        size = cv.cvGetSize(frame)
+        chan = [ cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
+                 for _ in range(num_chans) ]
+        cv.cvSplit(tmp, chan[0], chan[1], chan[2], None)
 
-def dirmarker(frame):
-    return threshold(frame, Tdirmarker, magic=True)
+        minS = map(cv.cvScalar, min)
+        maxS = map(cv.cvScalar, max)
+        for i in range(num_chans):
+            cv.cvInRangeS(chan[i], minS[i], maxS[i], chan[i])
 
-def backplate(frame):
-    return threshold(frame, Tbackplate)
+        out = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
+        op(chan[0], chan[1], out)
+        op(out, chan[2], out)
 
-def threshold(frame, record, op=cv.cvAnd, magic=False):
-    """Threshold a frame using a record of min/max thresholds
+        # cv.cvReleaseImage(tmp)
+        # #TODO: Why does this cause a segfault?
+        # map(cv.cvReleaseImage, chan)
 
-    Output is a new image.
-    """
-    colorspace, min, max = record
+        return out
 
-    tmp = cv.cvCloneImage(frame)
-    if magic:
-        cv.cvSmooth(tmp, tmp, cv.CV_GAUSSIAN, 11)
-    # Work in the correct colorspace
-    colorspaceConv[colorspace](tmp)
+class RandomRaw(Base):
+    # Thresholds for all entities
+    # Format: color space, minima, maxima (per channel)
 
-    num_chans = len(min)
-    size = cv.cvGetSize(frame)
-    chan = [ cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
-             for _ in range(num_chans) ]
-    cv.cvSplit(tmp, chan[0], chan[1], chan[2], None)
+    Tyellow = ( 'hsv', (18,  140, 120), (50,  255, 255) )
 
-    minS = map(cv.cvScalar, min)
-    maxS = map(cv.cvScalar, max)
-    for i in range(num_chans):
-        cv.cvInRangeS(chan[i], minS[i], maxS[i], chan[i])
+    # Both work with false positive regions
+    Tdirmarker  = ( 'hsv', [10,   0,   80 ], [ 90,  90, 145] )
+    Tdirmarker  = ( 'bgr', [70,   90,  70 ], [115, 150, 130] )
 
-    out = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
-    op(chan[0], chan[1], out)
-    op(out, chan[2], out)
+    # Identifies the outlines of the robots
+    Tbackplate  = ( 'bgr', [100, 200,  80 ], [180, 255, 140] )
+    #Tball       = ( 'bgr', [0,   0,   140], [110, 110, 255] )
+    #Tblue       = ( 'hsv', [80,  70,  90 ], [140, 255, 255] )
+    Trobots = ( 'bgr', [255,  200,  255], [255, 255, 255] )
 
-    # cv.cvReleaseImage(tmp)
-    # #TODO: Why does this cause a segfault?
-    # map(cv.cvReleaseImage, chan)
+def PrimaryRaw(Base):
+    #Primary pitch:
+    Tball       = ( 'bgr', [40,   60,   160], [110, 110, 255] )
+    Tblue       = ( 'bgr', [150,  130,  85 ], [210, 185, 180] )
+    Tblue2      = ( 'bgr', [150,  185,  90 ], [255, 255, 160] )
+    Tblue       = ( 'bgr', [170,  140,  105 ], [225, 210, 125] )
+    Tyellow     = ( 'bgr', [50,  165,  180 ], [165, 255, 255] )
 
-    return out
+    # Effectively return only foreground objects (+ a little noise)
+    Trobots = ( 'bgr', [255,  185,  255], [255, 255, 255] )
+    Tdirmarker  = ( 'bgr', [75,   110,  75 ], [110, 160, 110] ) #w/magic
+    Tforeground = ( 'bgr', [35,  20,  20], [255, 255, 255] )
+
+def PrimaryRelative(Base):
+    Tball       = ( 'bgr', [40,   60,   160], [110, 110, 255] )
+    Tblue       = ( 'bgr', [150,  130,  85 ], [210, 185, 180] )
+    Tblue2      = ( 'bgr', [150,  185,  90 ], [255, 255, 160] )
+    Tblue       = ( 'bgr', [170,  140,  105 ], [225, 210, 125] )
+    Tyellow     = ( 'bgr', [50,  165,  180 ], [165, 255, 255] )
+
+    # Effectively return only foreground objects (+ a little noise)
+    Trobots = ( 'bgr', [255,  185,  255], [255, 255, 255] )
+    Tdirmarker  = ( 'bgr', [75,   110,  75 ], [110, 160, 110] ) #w/magic
+    Tforeground = ( 'bgr', [35,  20,  20], [255, 255, 255] )

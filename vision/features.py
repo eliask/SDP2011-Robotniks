@@ -19,6 +19,9 @@ class FeatureExtraction:
         self.gray8 = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
         self.Itmp = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 3)
 
+    def bg_sub_features(self, bgsub):
+        self.threshold = threshold.PrimaryRelative()
+
     def features(self, Iobjects):
         """Extract relevant features from objects
         :: CvMat -> CvMat -> dict( label -> [ dict() ] )
@@ -30,6 +33,8 @@ class FeatureExtraction:
         Performs size-checking on all entities but doesn't eliminate
         all multiplicity.
         """
+        self.threshold = threshold.PrimaryRaw()
+
         cv.cvCvtColor(Iobjects, self.gray8, cv.CV_BGR2GRAY)
         objects = self.segment(self.gray8)
         # cv.cvCvtColor(frame, self.gray8, cv.CV_BGR2GRAY)
@@ -49,7 +54,7 @@ class FeatureExtraction:
 
     def detectBall(self, frame, ents):
         ents['balls'] = []
-        for ball_cand in self.segment(threshold.ball(frame)):
+        for ball_cand in self.segment(self.threshold.ball(frame)):
             R = ball_cand['rect']
             if self.sizeMatch(ball_cand, 'balls'):
                 ents['balls'].append(ball_cand)
@@ -107,7 +112,7 @@ class FeatureExtraction:
                 neither[0]['side'] = 'yellow'
 
     def detectYellow(self, sub):
-        yellow = self.segment(threshold.yellowT(sub))
+        yellow = self.segment(self.threshold.yellowT(sub))
         for Y in yellow:
             #print "Y:", Y['box'].size.width, Y['box'].size.height
             if self.sizeMatch(Y, 'T'):
@@ -115,7 +120,7 @@ class FeatureExtraction:
         return None
 
     def detectBlue(self, sub):
-        blue = self.segment(threshold.blueT(sub))
+        blue = self.segment(self.threshold.blueT(sub))
         for B in blue:
             #print "B:", B['box'].size.width, B['box'].size.height
             if self.sizeMatch(B, 'T'):
@@ -124,7 +129,7 @@ class FeatureExtraction:
 
     def detectDirMarker(self, sub):
         dirmarker = None
-        dirs = self.segment(threshold.dirmarker(sub))
+        dirs = self.segment(self.threshold.dirmarker(sub))
         for d in dirs:
             if self.sizeMatch(d, 'dirmarker'):
                 dirmarker = d
