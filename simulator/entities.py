@@ -97,7 +97,7 @@ class Robot(Entity, RobotInterface):
 
     def update(self):
         self.savePos()
-        self.collideRobot()
+        #self.collideRobot()
 
         self.v[0] += randint(-4,4)
         self.v[1] += randint(-4,4)

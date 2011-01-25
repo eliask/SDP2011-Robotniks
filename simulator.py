@@ -58,7 +58,7 @@ def main():
             headless = True
         elif opt in ("-V", "--vision"):
             vision = True
-        elif opt in ("-c", "--camera"):
+        elif opt in ("-C", "--camera"):
             inputs['camera'] = True
         elif opt in ("-v", "--video"):
             inputs['video'] = arg
@@ -97,8 +97,8 @@ def main():
 
     assert colour, "Need to set robot colour"
 
-    assert not (real1 or real2) or vision, \
-        "Using real robots requires vision"
+    # assert not (real1 or real2) or vision, \
+    #    "Using real robots requires vision"
 
     if real1 or real2:
         world = common.world.World(colour)

@@ -10,7 +10,7 @@ class FeatureExtraction:
     # width is defined as the longer dimension
     Sizes = { 'balls'     : (3,  25,  3, 25),
               'T'         : (35, 55, 25, 35),
-              'robots'    : (50, 80, 20, 60),
+              'robots'    : (38, 80, 20, 60),
               'dirmarker' : (5,  12, 5,  12),
             }
 
@@ -19,7 +19,7 @@ class FeatureExtraction:
         self.gray8 = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
         self.Itmp = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 3)
 
-    def features(self, frame, robotMask):
+    def features(self, Iobjects):
         """Extract relevant features from objects
         :: CvMat -> CvMat -> dict( label -> [ dict() ] )
 
@@ -30,15 +30,17 @@ class FeatureExtraction:
         Performs size-checking on all entities but doesn't eliminate
         all multiplicity.
         """
-        cv.cvCvtColor(frame, self.gray8, cv.CV_BGR2GRAY)
-        cv.cvAnd(self.gray8, robotMask, self.gray8)
-        robots = self.segment(self.gray8)
+        cv.cvCvtColor(Iobjects, self.gray8, cv.CV_BGR2GRAY)
+        objects = self.segment(self.gray8)
+        # cv.cvCvtColor(frame, self.gray8, cv.CV_BGR2GRAY)
+        # cv.cvAnd(self.gray8, robotMask, self.gray8)
+        # robots = self.segment(self.gray8)
         ents = {}
-        ents['robots'] = [ obj for obj in robots
+        ents['robots'] = [ obj for obj in objects
                            if self.sizeMatch(obj, 'robots') ]
 
-        self.detectBall(frame, ents)
-        self.detectRobots(frame, ents)
+        self.detectBall(Iobjects, ents)
+        self.detectRobots(Iobjects, ents)
 
         return ents
 
@@ -76,7 +78,9 @@ class FeatureExtraction:
                 else:
                     neither.append(robot_cand)
 
-        self.eliminateRobots(ents, blue, yellow, neither)
+        # TODO: extrapolate robots based on Ts
+
+        #self.eliminateRobots(ents, blue, yellow, neither)
         self.assignPlayers(ents)
 
     def assignPlayers(self, ents):
@@ -128,6 +132,8 @@ class FeatureExtraction:
 
     def sizeMatch(self, obj, name):
         width, height = self.getSize(obj)
+        if width > 30 or height > 30:
+            print width, height
         if  self.Sizes[name][0] < width  < self.Sizes[name][1] \
         and self.Sizes[name][2] < height < self.Sizes[name][3]:
             return True

@@ -4,7 +4,6 @@
 from .common.utils import *
 from .strategy.strategy import Strategy
 from ball import *
-from entities import *
 from input import Input
 from math import *
 from pitch import *
@@ -13,15 +12,15 @@ from random import *
 from robot import *
 from world import *
 import common.world
-import communication.client
 import pygame
 import sys, tempfile
-
 
 try:
     from .vision.vision import Vision
 except ImportError:
     pass
+
+from communication.client import *
 
 class Simulator(object):
 
