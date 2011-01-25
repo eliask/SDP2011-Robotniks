@@ -15,32 +15,33 @@ public class Server {
             ServerSocket ss = new ServerSocket(6879);
             while(true){
                 Socket socket = ss.accept();
-		try{
-	                InputStream is = socket.getInputStream();
-        	        String num = "";
-        	        int i;
-        	        char c;
-        	        while((i = is.read()) != -1){
-        	            c = (char) i;
-                	    if (c == '\n') {
-               		         int z = Integer.parseInt(num);
-                	        if (!loopback){
-					try{
-                	            		pcb.sendMessage(z);
-					}catch(IOException e){
-						System.err.println("failed to send message. ignoring...");
-					}
-				}
-                	        System.out.println(z);
-                	        num = "";
-               		     } else {
-                	        num += new Character(c).toString();
-                	    }
-                	}
-        	        is.close();
-		}catch(IOException e){
-			System.err.println("Client connection lost... waiting for new connection.");
-		}
+                try{
+                    InputStream is = socket.getInputStream();
+                    String num = "";
+                    int i;
+                    char c;
+                    while((i = is.read()) != -1){
+                        c = (char) i;
+                        if (c == '\n') {
+                            int z = Integer.parseInt(num);
+                            if (!loopback){
+                                try{
+                                    pcb.sendMessage(z);
+                                }catch(IOException e){
+                                    System.err.println("failed to send message. ignoring...");
+                                }
+                            }
+                            // Make the output align with PCBluetooth
+                            System.out.println("Server:      " + z);
+                            num = "";
+                        } else {
+                            num += new Character(c).toString();
+                        }
+                    }
+                    is.close();
+                }catch(IOException e){
+                    System.err.println("Client connection lost... waiting for new connection.");
+                }
 
             }
         }catch(IOException e){

@@ -12,17 +12,17 @@ class RealRobotInterface(interface.RobotInterface):
 		self.client_socket.send('%d\n' % x)
 
 	def reset(self):
-		self.sendMessage(0)
+		self.sendMessage(100)
 	def drive(self):
-		self.sendMessage(1)
+		self.sendMessage(101)
 	def stop(self):
-		self.sendMessage(2)
+		self.sendMessage(102)
 	def startSpinRight(self):
-		self.sendMessage(3)
+		self.sendMessage(103)
 	def startSpinLeft(self):
-		self.sendMessage(4)
+		self.sendMessage(104)
 	def stopSpin(self):
-		self.sendMessage(5)
+		self.sendMessage(105)
 	def setRobotDirection(self, angle):
                 "Turn the specified angle in radians"
 
@@ -38,9 +38,9 @@ class RealRobotInterface(interface.RobotInterface):
                 self.sendMessage(msg)
 
 	def kick(self):
-		self.sendMessage(366)
+		self.sendMessage(466)
 	def spinRightShort(self):
-		self.sendMessage(367)
+		self.sendMessage(467)
 	def spinLeftShort(self):
-		self.sendMessage(368)
+		self.sendMessage(468)
 
