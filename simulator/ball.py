@@ -5,7 +5,6 @@ from world import World
 from entity import Entity
 
 class Ball(Entity):
-
     def update(self):
         self.reflectWall()
         self.collideRobots()
