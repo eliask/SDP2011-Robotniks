@@ -95,8 +95,8 @@ def main():
     if strategy2:
         ai2 = strategies[strategy2]
 
-    assert not (real1 or real2) or vision, \
-        "Using real robots requires vision"
+    # assert not (real1 or real2) or vision, \
+    #     "Using real robots requires vision"
 
     if real1 or real2:
         world = common.world.World(colour)

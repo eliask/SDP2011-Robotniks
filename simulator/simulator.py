@@ -13,7 +13,7 @@ from world import *
 import common.world
 import pygame
 import sys, tempfile
-import communication.client
+from communication.client import *
 
 class Simulator(object):
 
