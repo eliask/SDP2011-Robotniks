@@ -3,7 +3,6 @@
 
 from .common.utils import *
 from .strategy.strategy import Strategy
-from .vision.vision import Vision
 from entities import *
 from math import *
 from pitch import *
@@ -14,6 +13,11 @@ import common.world
 import pygame
 import sys, tempfile
 import communication.client
+
+try:
+    from .vision.vision import Vision
+except ImportError:
+    pass
 
 class Simulator(object):
 
