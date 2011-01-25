@@ -2,7 +2,9 @@ from utils import *
 import time
 from math import *
 
-class World:
+class Robot: pass
+
+class World(object):
 
     # Lengths are in millimetres
     PitchWidth   = 1215
@@ -21,8 +23,17 @@ class World:
     # The entities we are interested in
     entityNames = ('ball', 'blue', 'yellow')
 
-    def __init__(self):
+    def __init__(self, ourColour = None):
         self.time = time.time()
+        self.openLog()
+
+        self.ourColour = ourColour
+        assert ourColour in ('blue', 'yellow'), \
+            "Legal robot colour is required"
+
+        self.ents = {}
+
+    def openLog(self):
         self.log = open('anomalities.txt', 'a')
 
     def update(self, time, ents):
@@ -33,22 +44,26 @@ class World:
         self.updateStates()
         self.updateWorld()
 
+    def __getPos(self, ent):
+        x,y = centerPos(ent)
+        return (x,y)
+
+    def __getRobot(self, ent):
+        robot = Robot()
+        robot.pos = self.__getPos(ent)
+        robot.velocity = ent['velocity']
+        robot.orientation = ent['orient']
+        #robot.direction = ent['direction']
+
     def getSelf(self):
-        # TODO: resolve the actual self from user input somehow
-        return self.ents['blue']
-
+        return self.__getRobot( self.us )
     def getOpponent(self):
-        return self.ents['yellow']
+        return self.__getRobot( self.them )
 
-    def ballPos(self):
-        return self.ents['ball'].pos
-        return ball.pos
-
-    def myPos(self):
-        return self.getSelf().pos
-
-    def opponentPos(self):
-        return self.getOpponent().pos
+    def getBall(self):
+        ball = Ball()
+        ball.pos = self.__getPos( self.ents['ball'] )
+        ball.velocity = self.ents['ball']['velocity']
 
     def updateStates(self):
         self.ents['time'] = self.time
@@ -66,10 +81,18 @@ class World:
         self.predictRobots()
 
     def updateAttributes(self):
+        self.assignSides()
         self.convertMeasurements()
         self.updateBall()
         self.updateRobots()
         self.updateVelocities()
+
+    def assignSides(self):
+        self.us = self.ents[self.ourColour]
+        if self.ourColour == 'blue':
+            self.them = self.ents['yellow']
+        else:
+            self.them = self.ents['blue']
 
     def updateWorld(self):
         """Add missing entities or delete contradictory ones
@@ -128,20 +151,19 @@ class World:
             # We assume we haven't got the start signal in the first
             # couple of frames
             if len(self.states) < self.vHorizon:
-                self.ents[name]['velocity'] = (0, 0)
+                self.ents[name]['velocity'] = np.array([0, 0])
                 continue
 
             # TODO: fix the hack
-            self.ents[name]['velocity'] = (0, 0)
+            self.ents[name]['velocity'] = np.array([0, 0])
 
             # Do this until we have object interpolation working
             # Or maybe check self.states[*][name] != None after all...
             try:
                 avgV = self.averageVelocities(name, self.states[self.vHorizon:-2])
-                x0, y0 = centerPos(self.states[-3][name])
-                x1, y1 = centerPos(self.states[-1][name])
-                newV = ( (x1-x0)*self.vWeight + avgV[0]*(1-self.vWeight),
-                         (y1-y0)*self.vWeight + avgV[1]*(1-self.vWeight) )
+                v0 = centerPos(self.states[-3][name])
+                v1 = centerPos(self.states[-1][name])
+                newV = (v1-v0)*self.vWeight + avgV*(1-self.vWeight)
                 self.ents[name]['velocity'] = newV
             except TypeError:
                 pass
@@ -149,12 +171,18 @@ class World:
 
     def averageVelocities(self, name, states):
         if len(states) == 0:
-            return (0, 0)
+            return np.array([0, 0])
 
         V0 = []; V1 = []
         for state in states:
             v0, v1 = state[name]['velocity']
             V0.append(v0)
             V1.append(v1)
-        return ( sum(V0)/len(V0), sum(V1)/len(V1) )
+        return np.array( sum(V0)/len(V0), sum(V1)/len(V1) )
 
+class ReversedWorld(World):
+    "See us as the other robot - useful if we have two AIs"
+    def getSelf(self):
+        return super(ReversedWorld, self).getOpponent()
+    def getOpponent(self):
+        return super(ReversedWorld, self).getSelf()

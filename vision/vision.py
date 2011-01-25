@@ -6,28 +6,29 @@ from features import FeatureExtraction
 from interpret import Interpreter
 from common.world import World
 from common.gui import GUI
-import sys, random, time, math
+import random, time, math
 import debug
 
 class Vision():
-    rawSize = cv.cvSize(768, 576)
+    rawSize = cv.cvSize(640, 480)
 
-    def __init__(self, args=sys.argv, simulator=None):
+    def __init__(self, world, filename=None, simulator=None):
         if simulator:
             self.capture = SimCapture(simulator)
         else:
-            self.capture = Capture(self.rawSize, args[-1])
+            self.capture = Capture(self.rawSize, filename)
 
         self.pre = Preprocessor(self.rawSize, simulator)
         self.featureEx = FeatureExtraction(self.pre.cropSize)
         self.interpreter = Interpreter()
-        self.world = World()
+        self.world = world
         self.UI = GUI()
 
         self.times=[]
         self.N=0
-        import threshold
-        debug.thresholdValues(threshold.Tdirmarker)
+
+        # import threshold
+        # debug.thresholdValues(threshold.Tball)
 
     def processFrame(self):
         print "Frame:", self.N
@@ -35,12 +36,12 @@ class Vision():
         startTime = time.time()
         frame = self.capture.getFrame()
         print "preprocess"
-        frame, robotMask, processed = self.pre.preprocess(frame)
+        frame, robotMask = self.pre.preprocess(frame)
         print "features"
         ents = self.featureEx.features(frame, robotMask)
         self.interpreter.interpret(ents)
         self.world.update(startTime, ents)
-        self.UI.update(processed, ents)
+        self.UI.update(frame, ents)
 
         endTime = time.time()
         self.times.append( (endTime - startTime) )
@@ -54,8 +55,3 @@ class Vision():
         print "Avg. processing time / frame: %.2f ms" % (avg * 1000)
         print "Standard deviation: %.2f ms" % \
             ( 1000*math.sqrt(sum(map(lambda x:(x-avg)**2, times)) / N) )
-
-if __name__ == "__main__":
-    v = Vision(sys.argv)
-    v.run()
-

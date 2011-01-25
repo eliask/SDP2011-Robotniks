@@ -1,0 +1,8 @@
+Most of the code uses or runs on Python 2.6, OpenCV 2.0 (with SWIG
+bindings) and Pygame (v1.9 included).
+
+Before running any code, import the environment variables using:
+$ . env.sh
+
+When running the simulator, check out the options it takes by executing:
+$ ./simulator.py --help

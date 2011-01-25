@@ -1,56 +1,20 @@
-from .communication.client import Client
-from .common.utils import *
-from .common.world import *
-from math import *
+from .communication.interface import *
 
-class Strategy(Client):
+class Strategy(RobotInterface):
+    """The base strategy class.
 
-    def __init__(self, world):
-        Client.__init__(self)
+    This class exists to allow the easy implementation of different
+    strategies. Not to be used directly.
+    """
+
+    def __init__(self, world, interface):
         self.world = world
 
+        # Make our commands point to the interface
+        commands = [ method for method in RobotInterface.__dict__.keys()
+                     if method[:2] != '__' ]
+        for attr in commands:
+            self.__setattr__(attr, interface.__getattribute__(attr))
+
     def run(self):
-        "Run strategy off of the current state of the World."
-        self.getSelf() # Find out which robot is me
-        pos = self.getBallPos()
-
-        if self.moveTo(pos): # are we there yet?
-            self.kick()
-
-    def getSelf(self):
-        # TODO: resolve the actual self from user input somehow
-        self.me = self.world.ents['blue']
-
-    def getBallPos(self):
-        ball = self.world.ents['ball']
-        return ball.pos
-
-    def getPos(self):
-        return self.me.pos
-
-    def moveTo(self, pos):
-        if not self.turnTo(pos):
-            return False
-
-        epsilon = 15
-        if dist(pos, self.getPos()) < epsilon:
-            return True
-        else:
-            return False
-
-    def turnTo(self, pos):
-        myPos = self.getPos()
-        orient = self.me.orient
-        dx, dy = pos[0] - myPos[0], pos[1] - myPos[1]
-        angleToTarget = atan2(dy, dx)
-
-        epsilon = radians(6)
-        deltaAngle = angleToTarget - orient
-
-        if abs(deltaAngle) < epsilon:
-            return True
-        else:
-            # TODO: work out the 'closer' direction
-            self.startSpinLeft()
-            return False
-
+        return NotImplemented

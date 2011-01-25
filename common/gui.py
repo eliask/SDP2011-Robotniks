@@ -18,11 +18,9 @@ class GUI:
 
     def update(self, frame, ents):
         self.frame = frame
-        import vision.threshold
-        t = vision.threshold.dirmarker(frame)
-        highgui.cvShowImage(self.WindowName, t)
         self.drawEntities(ents)
         self.processInput()
+        highgui.cvShowImage(self.WindowName, frame)
 
     def drawRotBox(self, ent, color=cv.CV_RGB(255,128,0), label="UNNAMED"):
         if not ent:
@@ -30,9 +28,8 @@ class GUI:
             return
         if type(ent) == list and len(ent) > 0:
             ent = ent[0]
-
+        #print ent
         x,y = centerPos(ent)
-        print x,y
         radius = ent['box'].size.width
         cv.cvCircle(self.frame, Point(x, y), cv.cvRound(min(15,radius)), color)
 

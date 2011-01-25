@@ -9,9 +9,9 @@ class World(common.world.World):
         'ball'   : 'simulator/ball.png',
         }
 
-    Resolution = (768, 424)
+    Resolution = (640, 330)
 
-    Pitch = Rect(6, 28, 754, 378)
+    Pitch = Rect(6, 28, 620, 300)
     # This looks reasonable enough, but if the goal was centered exactly,
     # it would start from y~=126 and end at y~=308 (assuming the same size)
     LeftGoalArea= Rect(0, 132, 6, 181)
@@ -25,7 +25,7 @@ class World(common.world.World):
     Friction = 0.03
 
     def __init__(self):
-        common.world.World.__init__(self)
+        common.world.World.__init__(self, ourColour)
         self.ents = {}
 
     def updatePredictions(self):
@@ -43,13 +43,16 @@ class World(common.world.World):
     def getOpponent(self):
         return self.ents['yellow']
 
-    def ballPos(self):
-        return self.ents['ball'].pos
-        return ball.pos
+    def openLog(self):
+        pass # No anomalies to record
 
+    def getSelf(self):
+        return self.us
+    def getOpponent(self):
+        return self.them
+    def getBall(self):
+        return self.ents['ball']
     def myPos(self):
         return self.getSelf().pos
-
     def opponentPos(self):
         return self.getOpponent().pos
-

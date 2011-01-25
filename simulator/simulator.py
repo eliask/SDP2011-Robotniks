@@ -1,48 +1,56 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from pygame.locals import *
-import pygame
-from math import *
-from random import *
-import tempfile, sys
-from world import World
-from robot import *
-from ball import *
 from .common.utils import *
-from .vision.vision import Vision
-from input import Input
 from .strategy.strategy import Strategy
+from .vision.vision import Vision
+from ball import *
+from entities import *
+from input import Input
+from math import *
 from pitch import *
+from pygame.locals import *
+from random import *
+from robot import *
+from world import *
+import common.world
+import communication.client
+import pygame
+import sys, tempfile
 
 
-class Simulator:
+class Simulator(object):
 
     objects=[]
     robots=[]
     images={}
+
+    # Options and arguments
     headless=False
     vision=None
     pitch=None
-    strategy=None
-    quit=False
+    ai=[]
+    robot1=None
+    robot2=None
 
-    def __init__(self, pitch=None, vision=False, headless=False, strategy=False):
-        self.pitch = pitch
-        self.headless = headless
-        if vision:
-            self.vision = Vision(simulator=self)
+    def __init__(self, **kwargs):
+        for k, v in kwargs.items():
+            self.__setattr__(k, v)
+            print k,v
+
+    def initVision(self):
+        if self.vision:
+            world = self.world
+            if not self.real_world:
+                # Vision must always use the real World
+                world = common.world.World(self.colour)
+            self.vision = Vision(simulator=self, world=world)
             self.visionFile = tempfile.mktemp(suffix='.bmp')
-        self.world = World()
-        self.overlay = pygame.Surface(World.Resolution)
-        if strategy:
-            self.strategy = Strategy(self.world)
 
     def drawEnts(self):
         if self.pitch:
             bg = self.pitch.get()
             self.screen.blit(bg, (0,0))
-
         self.sprites.draw(self.screen)
 
         if not self.headless:
@@ -59,13 +67,14 @@ class Simulator:
         if not self.headless:
             pygame.display.flip()
 
-    def initDisplay(self):
+    def initScreen(self):
         if self.headless:
             self.screen = pygame.Surface(World.Resolution)
         else:
             pygame.display.set_mode(World.Resolution)
             pygame.display.set_caption('SDP 9 Simulator')
             self.screen = pygame.display.get_surface()
+            self.overlay = pygame.Surface(World.Resolution)
             self.overlay.convert_alpha()
             self.overlay.set_alpha(100)
 
@@ -76,17 +85,44 @@ class Simulator:
         else:
             col2, col1 = colours
 
-        self.makeBall(World.Pitch.center)
-        self.makeRobot(World.LeftStartPos, col1, 0)
-        self.makeRobot(World.RightStartPos, col2, pi)
+        self.makeRobot(World.LeftStartPos, col1, 90, self.robot1[0])
+        self.makeRobot(World.RightStartPos, col2, 270, self.robot2[0])
+
+        # Only make a real ball when there are two simulated robots
+        if len(self.robots) == 2:
+            self.makeBall(World.Pitch.center)
+
         self.sprites = pygame.sprite.RenderPlain(self.objects)
+
+    def initAI(self):
+        ai1, real1 = self.robot1
+        ai2, real2 = self.robot2
+
+        if ai1 and real1:
+            self.ai.append( ai1(self.world, RealRobotInterface() ) )
+            del self.robots[0]
+        elif ai1:
+            self.ai.append( ai1(self.world, self.robots[0]) )
+
+        elif ai2 and real2:
+            # TODO: reverse sides here
+            self.ai.append( ai2(self.world, RealRobotInterface() ) )
+            del self.robots[1]
+        elif ai2:
+            self.ai.append( ai2(self.world, self.robots[1]) )
+
+    def runAI(self):
+        map( lambda x: x.run(), self.ai )
 
     def run(self):
         pygame.init()
         self.clock = pygame.time.Clock()
-        self.initDisplay()
+        self.initVision()
+        self.initScreen()
         self.loadImages()
         self.makeObjects()
+        self.world.assignSides()
+        self.initAI()
         self.initInput()
         self.drawEnts()
 
@@ -95,8 +131,7 @@ class Simulator:
             self.clock.tick(25)
             self.drawEnts()
             self.sprites.update()
-            if self.strategy:
-                self.strategy.run()
+            self.runAI()
 
     def initInput(self):
         self.input = Input(self.robots[0], self.robots[1])
@@ -109,9 +144,10 @@ class Simulator:
                 print event
                 self.input.robotInput(event)
 
-    def makeRobot(self, pos, colour, angle):
+    def makeRobot(self, pos, colour, angle, ai):
         ent = Robot(self, pos, self.images[colour], angle)
         ent.side = colour
+
         self.world.ents[colour] = ent
         self.robots.append(ent)
         self.addEnt(ent)

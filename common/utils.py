@@ -27,11 +27,6 @@ def inRange(x, y, z):
 def clamp(_min, val, _max):
     return min(_max, max(_min, val))
 
-def dist(pos1, pos2):
-    # TODO: make all positions numpy arrays so we can do this:
-    # return sqrt( sum((pos2-pos1)**2) )
-    return sqrt( (pos2[0]-pos[1])**2 + (pos2[1]-pos1[1])**2 )
-
 def rotatePoints(points, center, angle):
     "Rotate points around center by an angle"
 
