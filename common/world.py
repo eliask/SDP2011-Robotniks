@@ -2,7 +2,8 @@ from utils import *
 import time
 from math import *
 
-from entities import Robot
+#from entities import Robot
+class Robot:pass
 
 class World(object):
 

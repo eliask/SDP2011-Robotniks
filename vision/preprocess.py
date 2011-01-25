@@ -3,7 +3,7 @@ import threshold
 
 class Preprocessor:
 
-    cropRect = (0, 64, 640, 330)
+    cropRect = (0, 84, 640, 300)
 
     bgLearnRate = 0 #.15
 
@@ -25,14 +25,17 @@ class Preprocessor:
         self.Iobjects  = cv.cvCreateImage(self.cropSize, cv.IPL_DEPTH_8U, 3)
         self.bg        = cv.cvCreateImage(self.cropSize, cv.IPL_DEPTH_8U, 3)
 
-        #self.bg = highgui.cvLoadImage('vision/background.png')
-        #self.bg = self.crop(self.undistort(self.bg))
+        self.bg = highgui.cvLoadImage('prim-pitch-bg.png')
+        self.bg = cv.cvClone(self.crop(self.undistort(self.bg)))
         # highgui.cvSaveImage("calibrated-background.png", self.bg)
 
         self.standardised = simulator is not None
 
     def standardise(self, frame):
-        "Crop and undistort an image, i.e. convert to standard format"
+        """Crop and undistort an image, i.e. convert to standard format
+
+        Returns an internal buffer.
+        """
         undistorted = self.undistort(frame)
         cropped = self.crop(undistorted)
         return cropped
@@ -47,7 +50,8 @@ class Preprocessor:
         if not self.standardised:
             frame = self.standardise(frame)
         self.continuousLearnBackground(frame)
-        return frame, threshold.robots(frame)
+        bgsub = self.remove_background(frame)
+        return bgsub, threshold.robots(bgsub)
 
     def crop(self, frame):
         sub_region = cv.cvGetSubRect(frame, self.cropRect)
@@ -71,7 +75,7 @@ class Preprocessor:
         cv.cvCvtColor(frame, self.Igray, cv.CV_BGR2GRAY)
         cv.cvSub(frame, self.bg, self.Imask)
 
-        self.Igray = threshold.robots(self.Imask)
+        self.Igray = threshold.foreground(self.Imask)
         cv.cvCvtColor(self.Igray, self.Imask, cv.CV_GRAY2BGR)
 
         #Enlarge the mask a bit to have fewer missing parts due to noise

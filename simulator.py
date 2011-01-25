@@ -12,7 +12,7 @@ def usage():
     print "Usage: simulator.py <options>"
     print "  -H, --headless  Run without graphical output from simulator"
     print "  -V, --vision    Output simulated image to vision"
-    print "  -c, --camera    Use an actual camera for the pitch"
+    print "  -C, --camera    Use an actual camera for the pitch"
     print "  -v, --video     Use a specified video"
     print "  -i, --image     Use a specified image"
     print "  -b, --black     The pitch will be solid black"
@@ -28,7 +28,7 @@ def usage():
 def main():
     try:
         opts, args = \
-            getopt.getopt( sys.argv[1:], "HVcv:i:bz1hls:t:rc:",
+            getopt.getopt( sys.argv[1:], "HVCv:i:bz1hls:t:rc:",
                            [ "headless", "vision", "camera", "video",
                              "image", "black", "crazy", "once", "help",
                              "list-strategies", "strategy1", "strategy2",
@@ -58,7 +58,7 @@ def main():
             headless = True
         elif opt in ("-V", "--vision"):
             vision = True
-        elif opt in ("-c", "--camera"):
+        elif opt in ("-C", "--camera"):
             inputs['camera'] = True
         elif opt in ("-v", "--video"):
             inputs['video'] = arg

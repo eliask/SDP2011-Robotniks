@@ -16,11 +16,24 @@ Tdirmarker  = ( 'bgr', [70,   90,  70 ], [115, 150, 130] )
 
 # Identifies the outlines of the robots
 Tbackplate  = ( 'bgr', [100, 200,  80 ], [180, 255, 140] )
-Tball       = ( 'bgr', [0,   0,   140], [110, 110, 255] )
-Tblue       = ( 'hsv', [80,  70,  90 ], [140, 255, 255] )
+#Tball       = ( 'bgr', [0,   0,   140], [110, 110, 255] )
+#Tblue       = ( 'hsv', [80,  70,  90 ], [140, 255, 255] )
+Trobots = ( 'bgr', [255,  200,  255], [255, 255, 255] )
+
+#Primary pithc:
+Tball       = ( 'bgr', [40,   60,   160], [110, 110, 255] )
+Tblue       = ( 'bgr', [150,  130,  85 ], [210, 185, 180] )
+Tblue2      = ( 'bgr', [150,  185,  90 ], [255, 255, 160] )
+Tblue      = ( 'bgr', [170,  140,  105 ], [225, 210, 125] )
+Tyellow     = ( 'bgr', [50,  165,  180 ], [165, 255, 255] )
 
 # Effectively return only foreground objects (+ a little noise)
-Trobots = ( 'bgr', [255,  200,  255], [255, 255, 255] )
+Trobots = ( 'bgr', [255,  185,  255], [255, 255, 255] )
+Tdirmarker  = ( 'bgr', [75,   110,  75 ], [110, 160, 110] ) #w/magic
+Tforeground = ( 'bgr', [35,  20,  20], [255, 255, 255] )
+
+def foreground(frame):
+    return threshold(frame, Tforeground, op=cv.cvOr)
 
 def robots(frame):
     """Returns a mask that mostly covers the robots.
@@ -53,7 +66,7 @@ def yellowT(frame):
     return threshold(frame, Tyellow, magic=True)
 
 def dirmarker(frame):
-    return threshold(frame, Tdirmarker)
+    return threshold(frame, Tdirmarker, magic=True)
 
 def backplate(frame):
     return threshold(frame, Tbackplate)

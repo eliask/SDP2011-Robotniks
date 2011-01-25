@@ -20,6 +20,8 @@ class GUI:
         self.frame = frame
         self.drawEntities(ents)
         self.processInput()
+        import vision.threshold
+        frame = vision.threshold.blueT(frame)
         highgui.cvShowImage(self.WindowName, frame)
 
     def drawRotBox(self, ent, color=cv.CV_RGB(255,128,0), label="UNNAMED"):
