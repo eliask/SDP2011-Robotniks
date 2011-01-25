@@ -24,7 +24,7 @@ class World(common.world.World):
 
     Friction = 0.03
 
-    def __init__(self):
+    def __init__(self, ourColour):
         common.world.World.__init__(self, ourColour)
         self.ents = {}
 
