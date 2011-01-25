@@ -9,6 +9,7 @@ from entity import Entity
 class Robot(Entity):
 
     maxSpeed = 6
+    size = (59, 38)
 
     def __init__(self, sim, pos, image, orientation):
         Entity.__init__(self, sim, pos, image)
@@ -18,6 +19,7 @@ class Robot(Entity):
         self.accel = 0
         self.rotate(orientation)
         self.movementDir = 0
+	self.ori = 0
 
     def reset(self):
         """Puts the robot's wheels in their default setting of 0 Deg
@@ -64,12 +66,20 @@ class Robot(Entity):
         self.ang_accel = 0
     def updateDirection(self):
         self.movementDir += self.ang_v
-	print(self.movementDir)
+	#print(self.movementDir)
 
-    def startSpin(self):
-        pass
+    def startSpinLeft(self):
+	self.ori += radians(5)
+
+    def startSpinRight(self):
+	self.ori -= radians(5)
+	
     def stopSpin(self):
-        pass
+	self.ori = 0
+
+    def updateOrientation(self):
+	self.orientation += self.ori
+	self.rotate(self.orientation)
     def kick(self):
         pass
 
@@ -140,6 +150,7 @@ class Robot(Entity):
         self.updateVelocity()
         self.updateDirection()
         self.collideRobot()
+	self.updateOrientation()
 
         pygame.draw.circle(self.sim.overlay, (0,0,140,255), self.pos, 20)
 
@@ -175,16 +186,15 @@ class Robot(Entity):
 
         selfCorners  = self.boundingBoxCorners(self)
         otherCorners = self.boundingBoxCorners(other)
-
         selfLines  = self.getLines(selfCorners)
         otherLines = self.getLines(otherCorners)
+
         pygame.draw.lines(self.sim.overlay, (255,0,0,255), True,
                             selfCorners, 5)
-        # pygame.draw.aalines(self.sim.screen, (240,248,255,255), True,
-        #                     [c[0] for c in selfLines], 5)
         pygame.display.update()
 
         collisions = []
+	# Foreach robot corner check if it colides with other robot boundary line
         for i in selfLines:
             for j in otherLines:
                 point = self.intersectLines(i, j)
@@ -201,6 +211,7 @@ class Robot(Entity):
 
         For now, we simply undo the last movement
         """
+	print "Collision!"
         self.undoMove()
 
     def collideBox(self, lines, point):
@@ -258,7 +269,9 @@ class Robot(Entity):
         return lines
 
     def boundingBoxCorners(self, ent):
-        pX, pY = self.rect.topleft
-        W, H   = self.rect.size
-        corners = [ (pX, pY), (pX+W, pY), (pX+W, pY+H), (pX, pY+H) ]
-        return rotatePoints(corners, ent.pos, ent.orientation)
+        W, H   = self.size
+	pX, pY = ent.pos
+	pX -= W / 2 
+	pY -= H / 2 
+	corners = [ (pX, pY), (pX+W, pY), (pX+W, pY+H), (pX, pY+H) ]
+	return rotatePoints(corners, ent.pos, -ent.orientation)

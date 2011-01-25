@@ -13,7 +13,6 @@ class Input:
             K_s : ( p1.driveR, p1.stopDrive ),
             K_a : ( p1.turn,   p1.stopTurn ),
             K_d : ( p1.turnR,  p1.stopTurn ),
-            K_z : ( p1.startSpin, lambda:None ),
             K_x : ( p1.stopSpin, lambda:None ),
             K_e : ( p1.kick,   lambda:None ),
 	    K_r : ( p1.reset, lambda:None ),
@@ -22,9 +21,10 @@ class Input:
             K_j : ( p2.driveR, p2.stopDrive ),
             K_h : ( p2.turn,   p2.stopTurn ),
             K_l : ( p2.turnR,  p2.stopTurn ),
-            K_m : ( p2.startSpin, lambda:None ),
             K_n : ( p2.stopSpin, lambda:None ),
             K_y : ( p2.kick,   lambda:None ),
+	    K_q : ( p1.startSpinLeft,   p1.stopSpin ),
+	    K_e : ( p1.startSpinRight,   p1.stopSpin ),
             }
 
         self.rawKeymap = {

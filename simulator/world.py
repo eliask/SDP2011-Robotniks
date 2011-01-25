@@ -9,7 +9,7 @@ class World(common.world.World):
         'ball'   : 'simulator/ball.png',
         }
 
-    Resolution = (640, 330)
+    Resolution = (768, 424)
 
     Pitch = Rect(6, 28, 620, 300)
     # This looks reasonable enough, but if the goal was centered exactly,
@@ -24,7 +24,7 @@ class World(common.world.World):
 
     Friction = 0.03
 
-    def __init__(self):
+    def __init__(self, ourColour):
         common.world.World.__init__(self, ourColour)
         self.ents = {}
 

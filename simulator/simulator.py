@@ -3,12 +3,8 @@
 
 from .common.utils import *
 from .strategy.strategy import Strategy
-<<<<<<< HEAD
 from .vision.vision import Vision
 from ball import *
-=======
->>>>>>> master
-from entities import *
 from input import Input
 from math import *
 from pitch import *
