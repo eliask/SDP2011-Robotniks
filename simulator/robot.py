@@ -64,7 +64,6 @@ class Robot(Entity):
         self.ang_accel = 0
     def updateDirection(self):
         self.movementDir += self.ang_v
-	print(self.movementDir)
 
     def startSpin(self):
         pass
@@ -141,7 +140,8 @@ class Robot(Entity):
         self.updateDirection()
         self.collideRobot()
 
-        pygame.draw.circle(self.sim.overlay, (0,0,140,255), self.pos, 20)
+        pygame.draw.circle(self.sim.overlay, (0,0,140,255),
+                           map(int, self.pos), 20)
 
         #self.randomMove()
         if not World.Pitch.contains(self.rect):
