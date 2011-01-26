@@ -24,6 +24,7 @@ class World(object):
     entityNames = ('ball', 'blue', 'yellow')
 
     def __init__(self, ourColour = None):
+        self.name = "Real World"
         self.time = time.time()
         self.openLog()
 
@@ -45,7 +46,7 @@ class World(object):
         self.updateWorld()
 
     def __getPos(self, ent):
-        x,y = centerPos(ent)
+        x,y = entCenter(ent)
         return (x,y)
 
     def __getRobot(self, ent):
@@ -109,7 +110,7 @@ class World(object):
                 e1 = self.states[-1][name]
                 e2 = self.states[-2][name]
 
-                print e2['orient'] - e1['orient']
+                #print e2['orient'] - e1['orient']
                 if abs(e2['orient'] - e1['orient']) > pi/5:
                     print >>self.log, e1, e2
 
@@ -161,8 +162,8 @@ class World(object):
             # Or maybe check self.states[*][name] != None after all...
             try:
                 avgV = self.averageVelocities(name, self.states[self.vHorizon:-2])
-                v0 = centerPos(self.states[-3][name])
-                v1 = centerPos(self.states[-1][name])
+                v0 = entCenter(self.states[-3][name])
+                v1 = entCenter(self.states[-1][name])
                 newV = (v1-v0)*self.vWeight + avgV*(1-self.vWeight)
                 self.ents[name]['velocity'] = newV
             except TypeError:

@@ -5,19 +5,24 @@ from random import *
 from .common.utils import *
 from world import World
 from entity import Entity
+import logging
 
 class Robot(Entity):
 
     maxSpeed = 6
 
     def __init__(self, sim, pos, image, orientation):
-        Entity.__init__(self, sim, pos, image)
         self.orientation = orientation
+        self.accel = 0
+
         self.ang_v = 0
         self.ang_accel = 0
-        self.accel = 0
-        self.rotate(orientation)
+
         self.movementDir = 0
+        self.turning_speed = 0 # The speed at which the wheels turn
+
+        Entity.__init__(self, sim, pos, image)
+        self.rotate()
 
     def reset(self):
         """Puts the robot's wheels in their default setting of 0 Deg
@@ -30,17 +35,26 @@ class Robot(Entity):
     def drive(self):
         "Drive the motors forwards"
         self.accel = 1
+        logging.debug("Robot drives forwards")
     def driveR(self):
         "Drive the motors backwards"
         # The physical robot doesn't do this yet
         #return NotImplemented
         self.accel = -1
-    def stopDrive(self):
+        logging.debug("Robot drives backwards")
+    def stop(self):
         "Stop movement motors"
         self.v[0]=0; self.v[1]=0
         self.accel = 0
+        logging.debug("Robot stops driving")
+    def spinLeftShort(self):
+        logging.debug("Robot does a left spin burst")
+    def spinRightShort(self):
+        logging.debug("Robot does a right spin burst")
+    def tick(self):
+        pass
 
-    def setDirection(self, angle):
+    def setRobotDirection(self, angle):
         """
         Sends commands to the robot to steer its wheels to the
         direction to permit linear travel in degrees from 0 - 360 Deg.
@@ -49,65 +63,31 @@ class Robot(Entity):
         robot when facing forward. (I.E 90 Deg = Right, 180 Deg =
         Back, 270 Deg = Left)
         """
+        logging.debug( "Robot sets wheel direction to %.2f deg",
+                       degrees(angle) )
         if angle == 0:
             return
         return NotImplemented
 
-    def turn(self):
+    def startSpinLeft(self):
         "Turn counter-clockwise"
         self.ang_v = radians(2)
-    def turnR(self):
+        logging.debug("Robot spins left")
+    def startSpinRight(self):
         "Turn clockwise"
         self.ang_v = radians(-2)
-    def stopTurn(self):
+        logging.debug("Robot spins right")
+    def stopSpin(self):
         self.ang_v = 0
         self.ang_accel = 0
+        logging.debug("Robot stops spinning")
     def updateDirection(self):
-        self.movementDir += self.ang_v
+        self.movementDir += self.turning_speed
 
-    def startSpin(self):
-        pass
-    def stopSpin(self):
-        pass
     def kick(self):
-        pass
+        logging.info("Robot uses kick!  It's super effective!")
 
-    def stopAll(self):
-        self.stopMove1()
-        self.stopMove2()
-        self.stopRot1()
-        self.stopRot2()
-
-    def move1(self):
-        pass
-    def move1R(self):
-        pass
-    def stopMove1(self):
-        pass
-
-    def move2(self):
-        pass
-    def move2R(self):
-        pass
-    def stopMove2(self):
-        pass
-
-    def stopRot1(self):
-        pass
-    def rot1(self):
-        pass
-    def rot1R(self):
-        pass
-
-    def stopRot2(self):
-        pass
-    def rot2(self):
-        pass
-    def rot2R(self):
-        pass
-
-    def rotate(self, orientation):
-        self.orientation = orientation
+    def rotate(self):
         rot_img = pygame.transform.rotate(self.base_image,
                                           degrees(self.orientation))
         img_rect = rot_img.get_rect()
@@ -123,6 +103,11 @@ class Robot(Entity):
     def undoMove(self):
         self.rect = self.prevRect
         self.pos  = self.prevPos
+
+    def move(self):
+        Entity.move(self)
+        self.orientation += self.ang_v
+        self.rotate()
 
     def update(self):
         self.move()
@@ -167,7 +152,8 @@ class Robot(Entity):
         self.ang_v += radians(randint(-4,4))
         self.ang_v = radians(clamp(-8, self.ang_v, 8))
         # TODO: also rotate the 'rect' somehow
-        self.rotate(self.orientation + self.ang_v)
+        self.orientation += self.ang_v
+        self.rotate()
 
     def collideRobot(self):
         other = [ robot for robot in self.sim.robots
@@ -182,7 +168,6 @@ class Robot(Entity):
                             selfCorners, 5)
         # pygame.draw.aalines(self.sim.screen, (240,248,255,255), True,
         #                     [c[0] for c in selfLines], 5)
-        pygame.display.update()
 
         collisions = []
         for i in selfLines:
@@ -197,9 +182,12 @@ class Robot(Entity):
             self.repulseRobot(collisions)
 
     def repulseRobot(self, points):
-        """Apply force to the robot to move it away from the collision point(s)
+        """Apply force to the robot to move it away from the collision
+        point(s)
 
-        For now, we simply undo the last movement
+        For now, we simply undo the last movement. Ideally we would
+        move to the normal of the line that contains the two
+        intersecting lines of the robot's rectangle shape.
         """
         self.undoMove()
 

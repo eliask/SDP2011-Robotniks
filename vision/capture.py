@@ -1,4 +1,5 @@
 from opencv import cv, highgui
+import logging
 
 class CaptureFailure(Exception): pass
 
@@ -11,10 +12,10 @@ class Capture:
 
     def initCapture(self):
         if self.filename:
-            print "Capture from file:", self.filename
+            logging.info("Capturing from file: %s" % self.filename)
             self.capture = highgui.cvCreateFileCapture(self.filename)
         else:
-            print "Capture from camera"
+            logging.info("Capturing from camera")
             # First assume the camera is a v4L2 one
             self.capture = highgui.cvCreateCameraCapture(highgui.CV_CAP_V4L2)
             if not self.capture:
@@ -46,3 +47,11 @@ class Capture:
         assert frame.width == self.size.width
         assert frame.height == self.size.height
         return frame
+
+
+# GL_CAPS = "video/x-raw-rgb,width=%d,pixel-aspect-ratio=1/1,red_mask=(int)0xff0000,green_mask=(int)0x00ff00,blue_mask=(int)0x0000ff" % size[0]
+# pipeline = gst.parse_launch("%s ! ffmpegcolorspace ! appsink name=camera_sink emit-signals=True caps=%s" % ("v4l2src", GL_CAPS))
+# camera_sink = pipeline.get_by_name('camera_sink')
+# p = pipeline.set_state(gst.STATE_PLAYING)
+# c = camera_sink.emit('pull-buffer')
+#frame = 

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from .common.utils import *
+from communication.client import *
 from .strategy.strategy import Strategy
 from ball import *
 from input import Input
@@ -13,14 +14,12 @@ from robot import *
 from world import *
 import common.world
 import pygame
-import sys, tempfile
+import sys, tempfile, logging
 
 try:
     from .vision.vision import Vision
 except ImportError:
     pass
-
-from communication.client import *
 
 class Simulator(object):
 
@@ -37,12 +36,14 @@ class Simulator(object):
     robot2=None
 
     def __init__(self, **kwargs):
+        logging.debug("Simulator started with the arguments:")
         for k, v in kwargs.items():
             self.__setattr__(k, v)
-            print k,v
+            logging.debug("\t%s = %s", k, v)
 
     def initVision(self):
         if self.vision:
+            logging.info("Starting simulator vision bridge")
             world = self.world
             if not self.real_world:
                 # Vision must always use the real World
@@ -71,6 +72,7 @@ class Simulator(object):
             pygame.display.flip()
 
     def initScreen(self):
+        logging.debug("Creating simulator screen")
         if self.headless:
             self.screen = pygame.Surface(World.Resolution)
         else:
@@ -82,40 +84,59 @@ class Simulator(object):
             self.overlay.set_alpha(100)
 
     def makeObjects(self):
+        logging.debug("Creating game objects")
+
         colours = ('blue', 'yellow')
         if random() < 0.5:
             col1, col2 = colours
         else:
             col2, col1 = colours
 
-        self.makeRobot(World.LeftStartPos, col1, 90, self.robot1[0])
-        self.makeRobot(World.RightStartPos, col2, 270, self.robot2[0])
+        logging.info("Robot 1 is %s. Robot 2 is %s", col1, col2)
+        self.makeRobot(World.LeftStartPos, col1, 0, self.robot1[0])
+        self.makeRobot(World.RightStartPos, col2, -pi, self.robot2[0])
 
         # Only make a real ball when there are two simulated robots
         if len(self.robots) == 2:
-            self.makeBall(World.Pitch.center)
+            pos = World.Pitch.center
+            logging.info("Creating a ball at %s", pos2string(pos))
+            self.makeBall(pos)
+        else:
+            logging.info("Not making a simulated ball with real robots")
 
         self.sprites = pygame.sprite.RenderPlain(self.objects)
 
     def initAI(self):
+        logging.debug("Initialising AI")
+
         ai1, real1 = self.robot1
         ai2, real2 = self.robot2
 
-        if ai1 and real1:
-            self.ai.append( ai1(self.world, RealRobotInterface() ) )
+        if ai1 and real1 and False:
+            self.ai.append( ai1(self.world, RealRobotInterface()) )
             del self.robots[0]
+            logging.debug("AI 1 started")
         elif ai1:
             self.ai.append( ai1(self.world, self.robots[0]) )
+            logging.debug("AI 1 started")
+        else:
+            logging.debug("No AI 1 present")
 
-        elif ai2 and real2:
+        if ai2 and real2:
             # TODO: reverse sides here
-            self.ai.append( ai2(self.world, RealRobotInterface() ) )
+            self.ai.append( ai2(self.world, RealRobotInterface()) )
+            logging.debug("AI 2 started")
             del self.robots[1]
         elif ai2:
             self.ai.append( ai2(self.world, self.robots[1]) )
+            logging.debug("AI 2 started")
+        else:
+            logging.debug("No AI 2 present")
 
     def runAI(self):
-        map( lambda x: x.run(), self.ai )
+        logging.debug("Running AI players")
+        for ai in self.ai:
+            ai.run()
 
     def run(self):
         pygame.init()
@@ -157,7 +178,7 @@ class Simulator(object):
 
     def makeBall(self, pos):
         ent = Ball(self, pos, self.images['ball'])
-        ent.v = [1, 7]
+        ent.v += [1, 7]
         self.world.ents['ball'] = ent
         self.addEnt(ent)
 
@@ -165,6 +186,7 @@ class Simulator(object):
         self.objects.append(ent)
 
     def loadImages(self):
+        logging.debug("Loading images")
         for name in World.image_names.keys():
             self.images[name] = pygame.image.load(World.image_names[name])
 

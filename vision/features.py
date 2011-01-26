@@ -2,6 +2,7 @@ from opencv import cv, highgui
 from .common.utils import *
 import threshold
 import segmentation
+import logging
 
 class FeatureExtraction:
 
@@ -9,7 +10,7 @@ class FeatureExtraction:
     # Format : ( min_w, max_w, min_h, max_H)
     # width is defined as the longer dimension
     Sizes = { 'balls'     : (3,  25,  3, 25),
-              'T'         : (35, 55, 25, 35),
+              'T'         : (20, 35, 10, 25),
               'robots'    : (38, 80, 20, 60),
               'dirmarker' : (5,  12, 5,  12),
             }
@@ -19,10 +20,7 @@ class FeatureExtraction:
         self.gray8 = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
         self.Itmp = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 3)
 
-    def bg_sub_features(self, bgsub):
-        self.threshold = threshold.PrimaryRelative()
-
-    def features(self, Iobjects):
+    def features(self, Iobjects, threshold):
         """Extract relevant features from objects
         :: CvMat -> CvMat -> dict( label -> [ dict() ] )
 
@@ -33,19 +31,38 @@ class FeatureExtraction:
         Performs size-checking on all entities but doesn't eliminate
         all multiplicity.
         """
-        self.threshold = threshold.PrimaryRaw()
+        self.threshold = threshold
+
+        assert Iobjects.nChannels == 3, "features must take BGR input"
+        assert imSize(Iobjects) == imSize(self.gray8), \
+            ("Sizes don't match!", size1, size2)
 
         cv.cvCvtColor(Iobjects, self.gray8, cv.CV_BGR2GRAY)
+
+        logging.info("Segmenting the image for objects")
         objects = self.segment(self.gray8)
+
         # cv.cvCvtColor(frame, self.gray8, cv.CV_BGR2GRAY)
         # cv.cvAnd(self.gray8, robotMask, self.gray8)
         # robots = self.segment(self.gray8)
+
         ents = {}
         ents['robots'] = [ obj for obj in objects
                            if self.sizeMatch(obj, 'robots') ]
 
+        logging.debug("Detecting ball in the image")
         self.detectBall(Iobjects, ents)
+        logging.info("Found %d balls." % len(ents['balls']))
+
+        logging.debug("Detecting robots in the image")
         self.detectRobots(Iobjects, ents)
+        logging.info("Found %d robots." % len(ents['robots']))
+
+        for colour in ('blue', 'yellow'):
+            if ents[colour]:
+                logging.debug("Found a %s robot" % colour)
+            else:
+                logging.warn("Could not find a %s robot!" % colour)
 
         return ents
 
@@ -63,27 +80,32 @@ class FeatureExtraction:
         "Detect the potential robots in the image"
         yellow = blue = None
         neither = []
-        for robot_cand in ents['robots']:
-            R = robot_cand['rect']
+        for ent in ents['robots']:
+            R = ent['rect']
             sub = cv.cvGetSubRect(frame, (R.x, R.y, R.width, R.height))
             #print (R.x, R.y, R.width, R.height)
 
-            robot_cand['dirmarker'] = self.detectDirMarker(sub)
+            ent['dirmarker'] = self.detectDirMarker(ent, sub)
 
-            robot_cand['side'] = None
-            robot_cand['T'] = self.detectYellow(sub)
-            if robot_cand['T']:
-                yellow = robot_cand
-                robot_cand['side'] = 'yellow'
+            ent['side'] = None
+            ent['T'] = self.detectYellow(sub)
+            if ent['T']:
+                yellow = ent
+                ent['side'] = 'yellow'
             else:
-                robot_cand['T'] = self.detectBlue(sub)
-                if robot_cand['T']:
-                    blue = robot_cand
-                    robot_cand['side'] = 'blue'
+                ent['T'] = self.detectBlue(sub)
+                if ent['T']:
+                    blue = ent
+                    ent['side'] = 'blue'
                 else:
-                    neither.append(robot_cand)
+                    logging.info( "Robot-size object of size %s at %s"
+                                  "does not have a T marker",
+                                  *entDimPos(ent) )
+                    neither.append(ent)
 
-        # TODO: extrapolate robots based on Ts
+        # TODO: Reconstruct robots based on recognised Ts.
+        # This is a realistic scenario as varying lighting
+        # levels can make the body invisible after thresholding
 
         #self.eliminateRobots(ents, blue, yellow, neither)
         self.assignPlayers(ents)
@@ -114,42 +136,39 @@ class FeatureExtraction:
     def detectYellow(self, sub):
         yellow = self.segment(self.threshold.yellowT(sub))
         for Y in yellow:
-            #print "Y:", Y['box'].size.width, Y['box'].size.height
             if self.sizeMatch(Y, 'T'):
+                logging.info( "found a yellow T of size %s at %s",
+                              *entDimPos(Y) )
                 return Y
         return None
 
     def detectBlue(self, sub):
         blue = self.segment(self.threshold.blueT(sub))
         for B in blue:
-            #print "B:", B['box'].size.width, B['box'].size.height
             if self.sizeMatch(B, 'T'):
+                logging.debug( "found a blue T of size %s at %s",
+                               *entDimPos(B) )
                 return B
         return None
 
-    def detectDirMarker(self, sub):
-        dirmarker = None
+    def detectDirMarker(self, robot, sub):
         dirs = self.segment(self.threshold.dirmarker(sub))
-        for d in dirs:
-            if self.sizeMatch(d, 'dirmarker'):
-                dirmarker = d
-        return dirmarker
+        for D in dirs:
+            if self.sizeMatch(D, 'dirmarker') and inBox(robot, D):
+                logging.debug( "found a direction marker of size %s at %s",
+                               *entDimPos(D) )
+                return D
+        return None
 
     def sizeMatch(self, obj, name):
-        width, height = self.getSize(obj)
-        if width > 30 or height > 30:
-            print width, height
-        if  self.Sizes[name][0] < width  < self.Sizes[name][1] \
-        and self.Sizes[name][2] < height < self.Sizes[name][3]:
-            return True
-        else:
-            return False
+        width, height = entSize(obj)
 
-    def getSize(self, obj):
-        box = obj['box']
-        width = max(box.size.width, box.size.height)
-        height = min(box.size.width, box.size.height)
-        return width, height
+        assert self.Sizes[name][0] <= self.Sizes[name][1] and \
+            self.Sizes[name][2] <= self.Sizes[name][3], \
+            ("Invalid Size entry for", name, self.Sizes[name])
+
+        return self.Sizes[name][0] < width  < self.Sizes[name][1] \
+            and self.Sizes[name][2] < height < self.Sizes[name][3]
 
     hough_params = [30,50]
     def detectCircles(self, rect):

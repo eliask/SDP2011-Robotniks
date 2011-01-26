@@ -7,11 +7,11 @@ class Base(object):
           }
 
     @classmethod
-    def foreground(frame):
+    def foreground(self, frame):
         return self.threshold(frame, self.Tforeground, op=cv.cvOr)
 
     @classmethod
-    def robots(frame):
+    def robots(self, frame):
         """Returns a mask that mostly covers the robots.
 
         Very few false positives.
@@ -19,7 +19,7 @@ class Base(object):
         return self.threshold(frame, self.Trobots, op=cv.cvOr)
 
     @classmethod
-    def ball(frame):
+    def ball(self, frame):
         """Return the mask for the ball.
 
         Very good detection rate from full background and extremely few
@@ -28,7 +28,7 @@ class Base(object):
         return self.threshold(frame, self.Tball, magic=True)
 
     @classmethod
-    def blueT(frame):
+    def blueT(self, frame):
         """Return the mask for the blue T.
 
         Very good detection rate from full background and extremely few
@@ -37,7 +37,7 @@ class Base(object):
         return self.threshold(frame, self.Tblue, magic=True)
 
     @classmethod
-    def yellowT(frame):
+    def yellowT(self, frame):
         """Outputs a mask containing the yellow T.
 
         The dimensions of the T are roughly 32 x 42 pixels.
@@ -45,15 +45,15 @@ class Base(object):
         return self.threshold(frame, self.Tyellow, magic=True)
 
     @classmethod
-    def dirmarker(frame):
+    def dirmarker(self, frame):
         return self.threshold(frame, self.Tdirmarker, magic=True)
 
     @classmethod
-    def backplate(frame):
+    def backplate(self, frame):
         return self.threshold(frame, self.Tbackplate)
 
     @classmethod
-    def threshold(frame, record, op=cv.cvAnd, magic=False):
+    def threshold(self, frame, record, op=cv.cvAnd, magic=False):
         """Threshold a frame using a record of min/max thresholds
 
         Output is a new image.
@@ -87,6 +87,13 @@ class Base(object):
 
         return out
 
+    @classmethod
+    def thresholdGray(self, gray):
+        "A more efficient (?) thresholding for gray stuff"
+        #cv.cvThreshold(gray, ...)
+        pass
+
+
 class RandomRaw(Base):
     # Thresholds for all entities
     # Format: color space, minima, maxima (per channel)
@@ -102,8 +109,9 @@ class RandomRaw(Base):
     #Tball       = ( 'bgr', [0,   0,   140], [110, 110, 255] )
     #Tblue       = ( 'hsv', [80,  70,  90 ], [140, 255, 255] )
     Trobots = ( 'bgr', [255,  200,  255], [255, 255, 255] )
+    Tforeground = ( 'bgr', [35,  20,  20], [255, 255, 255] )
 
-def PrimaryRaw(Base):
+class PrimaryRaw(Base):
     #Primary pitch:
     Tball       = ( 'bgr', [40,   60,   160], [110, 110, 255] )
     Tblue       = ( 'bgr', [150,  130,  85 ], [210, 185, 180] )
@@ -114,16 +122,39 @@ def PrimaryRaw(Base):
     # Effectively return only foreground objects (+ a little noise)
     Trobots = ( 'bgr', [255,  185,  255], [255, 255, 255] )
     Tdirmarker  = ( 'bgr', [75,   110,  75 ], [110, 160, 110] ) #w/magic
-    Tforeground = ( 'bgr', [35,  20,  20], [255, 255, 255] )
 
-def PrimaryRelative(Base):
     Tball       = ( 'bgr', [40,   60,   160], [110, 110, 255] )
-    Tblue       = ( 'bgr', [150,  130,  85 ], [210, 185, 180] )
-    Tblue2      = ( 'bgr', [150,  185,  90 ], [255, 255, 160] )
-    Tblue       = ( 'bgr', [170,  140,  105 ], [225, 210, 125] )
-    Tyellow     = ( 'bgr', [50,  165,  180 ], [165, 255, 255] )
+    Tball       = ( 'bgr', [130,  10,   200], [255, 110, 255] )
+    Tblue       = ( 'bgr', [170,  140,  70 ], [255, 210, 255] )
+    Tyellow     = ( 'bgr', [70,  180,  225 ], [255, 255, 255] )
 
     # Effectively return only foreground objects (+ a little noise)
     Trobots = ( 'bgr', [255,  185,  255], [255, 255, 255] )
     Tdirmarker  = ( 'bgr', [75,   110,  75 ], [110, 160, 110] ) #w/magic
-    Tforeground = ( 'bgr', [35,  20,  20], [255, 255, 255] )
+    Tdirmarker  = ( 'bgr', [75,   100,  85 ], [120, 150, 120] ) #w/magic
+    Tforeground = ( 'bgr', [35,  20,  20 ], [255, 255, 255] )
+    Tforeground = ( 'bgr', [190, 190, 190], [255, 255, 255] )
+    #foreground = [30,45,60]
+
+
+class PrimaryRelative(Base):
+    Tball       = ( 'bgr', [40,   60,   160], [110, 110, 255] )
+    Tball       = ( 'bgr', [130,  10,   200], [255, 110, 255] )
+    Tball       = ( 'bgr', [0,  0,   115], [255, 115, 255] )
+    Tblue       = ( 'bgr', [170,  140,  70 ], [255, 210, 255] )
+    Tyellow     = ( 'bgr', [70,  180,  225 ], [255, 255, 255] )
+
+    # Effectively return only foreground objects (+ a little noise)
+    Trobots = ( 'bgr', [255,  185,  255], [255, 255, 255] )
+    Tdirmarker  = ( 'bgr', [75,   110,  75 ], [110, 160, 110] ) #w/magic
+    Tdirmarker  = ( 'bgr', [75,   100,  85 ], [120, 150, 120] ) #w/magic
+    Tdirmarker  = ( 'bgr', [65,   80,  55 ], [120, 150, 120] ) #w/magic
+    Tforeground = ( 'bgr', [35,  20,  20 ], [255, 255, 255] )
+    #Tforeground = ( 'bgr', [190, 190, 190], [255, 255, 255] )
+    #foreground = [30,45,60]
+
+    
+
+    # @classmethod
+    # def foreground(self, frame):
+    #     return self.threshold(frame, self.Tforeground)

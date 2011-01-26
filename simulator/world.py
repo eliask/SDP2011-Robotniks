@@ -4,18 +4,18 @@ import common.world
 class World(common.world.World):
 
     image_names = {
-        'blue'   : 'simulator/blue_robot.png',
-        'yellow' : 'simulator/yellow_robot.png',
+        'blue'   : 'simulator/blue_robot640.png',
+        'yellow' : 'simulator/yellow_robot640.png',
         'ball'   : 'simulator/ball.png',
         }
 
-    Resolution = (640, 330)
+    Resolution = (640, 400)
 
-    Pitch = Rect(6, 28, 620, 300)
+    Pitch = Rect(6, 20, 600, 380)
     # This looks reasonable enough, but if the goal was centered exactly,
     # it would start from y~=126 and end at y~=308 (assuming the same size)
     LeftGoalArea= Rect(0, 132, 6, 181)
-    RightGoalArea= Rect(760, 132, 9, 181)
+    RightGoalArea= Rect(606, 132, 9, 181)
 
     LeftStartPos  = ( LeftGoalArea.left + 130,
                       LeftGoalArea.top +  LeftGoalArea.height/2 )
@@ -26,6 +26,7 @@ class World(common.world.World):
 
     def __init__(self, ourColour):
         common.world.World.__init__(self, ourColour)
+        self.name = "Simulated World"
         self.ents = {}
 
     def updatePredictions(self):

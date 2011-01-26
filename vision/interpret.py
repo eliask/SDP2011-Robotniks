@@ -53,17 +53,17 @@ class Interpreter:
         return None
 
     def angleT(self, robot):
-        X, Y = centerPos(robot)
+        X, Y = entCenter(robot)
         if robot['T']:
-            tX, tY = centerPos(robot['T'])
+            tX, tY = entCenter(robot['T'])
             dx, dy = tX - X, tY - Y
             return atan2(dy, dx)
         return None
 
     def angleDir(self, robot):
-        X, Y = centerPos(robot)
+        X, Y = entCenter(robot)
         if robot['dirmarker']:
-            dirX, dirY = centerPos(robot['dirmarker'])
+            dirX, dirY = entCenter(robot['dirmarker'])
             dx, dy = X - dirX, Y - dirY
             return atan2(dy, dx)
         return None

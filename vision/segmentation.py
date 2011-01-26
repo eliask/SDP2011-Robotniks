@@ -38,8 +38,9 @@ def find_connected_components(frame):
         candidates.append({ 'box' : minBox, 'rect' : boundingRect })
 
     cv.cvReleaseMemStorage(cstorage)
-    candidates = sorted(candidates, key=lambda x:getArea(x['box']), reverse=True)
-
+    candidates = sorted( candidates,
+                         key=lambda x:getArea(x['box']),
+                         reverse=True )
     return candidates
 
 def get_contours(frame):

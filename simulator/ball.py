@@ -3,6 +3,7 @@ import pygame
 from math import *
 from world import World
 from entity import Entity
+import numpy as np
 
 class Ball(Entity):
     def update(self):
@@ -34,9 +35,8 @@ class Ball(Entity):
         return NotImplemented
 
     def applyFriction(self):
-        q = sqrt(self.v[0]**2 + self.v[1]**2)
+        q = sqrt(sum(self.v**2))
         if q <= World.Friction:
-            self.v = [0.0, 0.0]
+            self.v = np.array((0.0, 0.0))
         else:
-            self.v[0] = self.v[0] - World.Friction * self.v[0] / q
-            self.v[1] = self.v[1] - World.Friction * self.v[1] / q
+            self.v -= World.Friction * self.v / q

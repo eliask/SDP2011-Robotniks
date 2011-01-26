@@ -6,7 +6,7 @@ from features import FeatureExtraction
 from interpret import Interpreter
 from common.world import World
 from common.gui import GUI
-import random, time, math
+import random, time, math, logging
 import debug
 
 class Vision():
@@ -28,22 +28,26 @@ class Vision():
         self.N=0
 
         import threshold
-        debug.thresholdValues(threshold.Tblue)
+        self.threshold = threshold.PrimaryRelative
+        debug.thresholdValues(self.threshold.Tdirmarker)
 
     def processFrame(self):
-        print "Frame:", self.N
-        self.N += 1
         startTime = time.time()
+        logging.debug("Time:", startTime)
+        logging.debug("Frame:", self.N)
+        self.N += 1
+
         frame = self.capture.getFrame()
-        print "preprocess"
-        frame, bgsub = self.pre.preprocess(frame)
-        print "features"
-        #ents = self.featureEx.features(frame)
-        ents = self.featureEx.bg_sub_features(bgsub)
-        print ents
+        logging.debug("Entering preprocessing")
+        standard, bgsub, mask = self.pre.preprocess(frame)
+        logging.debug("Entering feature extraction")
+        ents = self.featureEx.features(bgsub, self.threshold)
+        logging.debug("Detected entities:", ents)
+        logging.debug("Entering interpreter")
         self.interpreter.interpret(ents)
+        logging.debug("Entering interpreter")
         self.world.update(startTime, ents)
-        self.UI.update(frame, ents)
+        self.UI.update(standard, ents)
 
         endTime = time.time()
         self.times.append( (endTime - startTime) )
@@ -52,8 +56,10 @@ class Vision():
         while not self.UI.quit: # and N < 500:
             self.processFrame()
 
-        avg = sum(times)/N
-        print "Runtime/realtime ratio:", avg * 25
-        print "Avg. processing time / frame: %.2f ms" % (avg * 1000)
-        print "Standard deviation: %.2f ms" % \
-            ( 1000*math.sqrt(sum(map(lambda x:(x-avg)**2, times)) / N) )
+    def runtimeInfo(self):
+        avg = 1000*sum(times)/N # in milliseconds
+        variance = sum(map(lambda x:(x-avg)**2, times)) / N
+        stddev = math.sqrt(variance)
+        logging.info( "Runtime/realtime ratio:", avg * 25/1000 )
+        logging.info( "Avg. processing time / frame: %.2f ms", avg )
+        logging.info( "Standard deviation: %.2f ms", stddev )

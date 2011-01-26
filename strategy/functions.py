@@ -21,7 +21,7 @@ def computeGoalKicks():
     targetGoal = Magic
 
     # TODO: also add ball.left/right/etc. rays
-    pos = centerPos(ball)
+    pos = entCenter(ball)
     successes = [ createRay(targetGoal, pos, radians(angle))
                   for angle in range(360) ]
 

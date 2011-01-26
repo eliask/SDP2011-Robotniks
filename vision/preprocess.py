@@ -1,9 +1,10 @@
 from opencv import cv, highgui
 import threshold
+import logging
 
 class Preprocessor:
 
-    cropRect = (0, 84, 640, 300)
+    cropRect = (0, 80, 640, 400)
 
     bgLearnRate = 0 #.15
 
@@ -15,21 +16,30 @@ class Preprocessor:
     def __init__(self, rawSize, simulator=None):
         self.rawSize = rawSize
         self.cropSize = cv.cvSize(self.cropRect[2], self.cropRect[3])
+        logging.info( "Captured image size: (%d, %d)",
+                      (self.rawSize.width, self.rawSize.height) )
+        logging.info( "Cropped image size: (%d, %d)",
+                      (self.cropSize.width, self.cropSize.height) )
 
         self.initMatrices()
 
         self.Idistort  = cv.cvCreateImage(self.rawSize, cv.IPL_DEPTH_8U, 3)
+
         self.Icrop     = cv.cvCreateImage(self.cropSize, cv.IPL_DEPTH_8U, 3)
         self.Igray     = cv.cvCreateImage(self.cropSize, cv.IPL_DEPTH_8U, 1)
         self.Imask     = cv.cvCreateImage(self.cropSize, cv.IPL_DEPTH_8U, 3)
         self.Iobjects  = cv.cvCreateImage(self.cropSize, cv.IPL_DEPTH_8U, 3)
         self.bg        = cv.cvCreateImage(self.cropSize, cv.IPL_DEPTH_8U, 3)
 
+        logging.debug("Loading background image for background subtraction")
         self.bg = highgui.cvLoadImage('prim-pitch-bg.png')
+        logging.debug("Cropping and undistorting the background image")
         self.bg = cv.cvClone(self.crop(self.undistort(self.bg)))
         # highgui.cvSaveImage("calibrated-background.png", self.bg)
 
         self.standardised = simulator is not None
+
+        self.threshold = threshold.PrimaryRelative
 
     def standardise(self, frame):
         """Crop and undistort an image, i.e. convert to standard format
@@ -42,6 +52,7 @@ class Preprocessor:
 
     def preprocess(self, frame):
         """Preprocess a frame
+        :: CvMat -> (CvMat, CvMat, CvMat)
 
         This method preprocesses a frame by undistorting it using
         prior camera calibration data and then removes the background
@@ -51,15 +62,16 @@ class Preprocessor:
             frame = self.standardise(frame)
         self.continuousLearnBackground(frame)
         bgsub = self.remove_background(frame)
-        return bgsub, threshold.robots(bgsub)
+        return frame, bgsub, self.threshold.foreground(bgsub)
 
-    def crop(self, frame):
+    def crop(self, frame): 
+        logging.debug("Cropping a frame")
         sub_region = cv.cvGetSubRect(frame, self.cropRect)
         cv.cvCopy(sub_region, self.Icrop)
         return self.Icrop
 
     def preprocessBG(self, frame):
-        ballmask = threshold.ball(frame)
+        ballmask = self.threshold.ball(frame)
 
     def continuousLearnBackground(self, frame):
         if self.bgLearnRate == 0: return
@@ -72,11 +84,14 @@ class Preprocessor:
         It is not safe to modify the returned image, as it will be
         re-initialised each time preprocess is run.
         """
+        logging.debug("Performing background subtraction")
+
         cv.cvCvtColor(frame, self.Igray, cv.CV_BGR2GRAY)
         cv.cvSub(frame, self.bg, self.Imask)
 
-        self.Igray = threshold.foreground(self.Imask)
+        self.Igray = self.threshold.foreground(self.Imask)
         cv.cvCvtColor(self.Igray, self.Imask, cv.CV_GRAY2BGR)
+        highgui.cvShowImage('asd', self.Imask)
 
         #Enlarge the mask a bit to have fewer missing parts due to noise
         cv.cvDilate(self.Imask, self.Imask)
@@ -89,6 +104,7 @@ class Preprocessor:
 
         #Finally, return the salient bits of the original frame
         cv.cvAnd(self.Imask, frame, self.Iobjects)
+        #return self.Imask
         return self.Iobjects
 
     def hsv_normalise(self, frame):
@@ -113,12 +129,18 @@ class Preprocessor:
         return out
 
     def undistort(self, frame):
+        logging.debug("Undistorting a frame")
+
+        assert frame.width == self.Idistort.width
+        assert frame.height == self.Idistort.height
+
         cv.cvUndistort2(frame, self.Idistort,
                         self.Intrinsic, self.Distortion)
         return self.Idistort
 
     def initMatrices(self):
         "Initialise matrices for camera distortion correction."
+        logging.debug("Initialising camera matrices")
 
         dmatL = [ -3.1740235091903346e-01, -8.6157434640872499e-02,
                    9.2026812110876845e-03, 4.4950266773574115e-03 ]

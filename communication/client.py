@@ -1,14 +1,18 @@
-import socket
 import interface
+import socket
+import logging
 
 class RealRobotInterface(interface.RobotInterface):
 
 	def __init__(self):
+		self.logging.info("Physical robot interface started")
 		self.client_socket = \
                     socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.client_socket.connect(("localhost", 6879))
+		self.logging.info("Connected to robot interface server")
 
 	def sendMessage(self, x):
+		self.logging.debug("Told the robot: %d", x)
 		self.client_socket.send('%d\n' % x)
 
 	def reset(self):
@@ -34,7 +38,7 @@ class RealRobotInterface(interface.RobotInterface):
                         angle = angle - 180
 
                 msg = 6 + angle
-                assert 6 <= msg <= 365
+                assert 6 <= msg <= 465
                 self.sendMessage(msg)
 
 	def kick(self):
