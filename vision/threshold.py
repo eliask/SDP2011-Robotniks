@@ -136,8 +136,6 @@ class PrimaryRaw(Base):
     Tforeground = ( 'bgr', [190, 190, 190], [255, 255, 255] )
     #foreground = [30,45,60]
 
-
-class PrimaryRelative(Base):
     Tball       = ( 'bgr', [40,   60,   160], [110, 110, 255] )
     Tball       = ( 'bgr', [130,  10,   200], [255, 110, 255] )
     Tball       = ( 'bgr', [0,  0,   115], [255, 115, 255] )
@@ -153,8 +151,18 @@ class PrimaryRelative(Base):
     #Tforeground = ( 'bgr', [190, 190, 190], [255, 255, 255] )
     #foreground = [30,45,60]
 
-    
 
-    # @classmethod
-    # def foreground(self, frame):
-    #     return self.threshold(frame, self.Tforeground)
+class AltRaw(Base):
+    Tball       = ( 'bgr', [40,   60,   160], [110, 110, 255] )
+    # ch2,ch3 min. can be ~0:
+    Tblue       = ( 'bgr', [125,  70,  90 ], [255, 190, 255] )
+    Tyellow     = ( 'bgr', [0,  200,  0 ], [255, 255, 255] )
+
+    # Effectively return only foreground objects (+ a little noise)
+    Trobots = ( 'bgr', [255,  185,  255], [255, 255, 255] )
+    Tdirmarker  = ( 'bgr', [75,   110,  75 ], [110, 160, 110] ) #w/magic
+    Tdirmarker  = ( 'bgr', [75,   100,  85 ], [120, 150, 120] ) #w/magic
+    Tdirmarker  = ( 'bgr', [65,   80,  55 ], [120, 150, 120] ) #w/magic
+    Tforeground = ( 'bgr', [2,  17,  46 ], [255, 255, 255] )
+    #Tforeground = ( 'bgr', [190, 190, 190], [255, 255, 255] )
+    #foreground = [30,45,60]

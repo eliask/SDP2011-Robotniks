@@ -10,7 +10,7 @@ class FeatureExtraction:
     # Format : ( min_w, max_w, min_h, max_H)
     # width is defined as the longer dimension
     Sizes = { 'balls'     : (3,  25,  3, 25),
-              'T'         : (20, 35, 10, 25),
+              'T'         : (15, 35, 10, 25),
               'robots'    : (38, 80, 20, 60),
               'dirmarker' : (5,  12, 5,  12),
             }

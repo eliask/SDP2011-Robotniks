@@ -4,7 +4,8 @@ import logging
 
 class Preprocessor:
 
-    cropRect = (0, 80, 640, 400)
+    #cropRect = (0, 80, 640, 400) # Primary pitch
+    cropRect = (0, 45, 640, 400) # Alt. pitch
 
     bgLearnRate = 0 #.15
 
@@ -13,7 +14,7 @@ class Preprocessor:
                                         2,2, #X,Y offsets
                                         cv.CV_SHAPE_RECT)
 
-    def __init__(self, rawSize, simulator=None):
+    def __init__(self, rawSize, threshold, simulator=None):
         self.rawSize = rawSize
         self.cropSize = cv.cvSize(self.cropRect[2], self.cropRect[3])
         logging.info( "Captured image size: (%d, %d)",
@@ -39,7 +40,7 @@ class Preprocessor:
 
         self.standardised = simulator is not None
 
-        self.threshold = threshold.PrimaryRelative
+        self.threshold = threshold
 
     def standardise(self, frame):
         """Crop and undistort an image, i.e. convert to standard format
@@ -64,7 +65,7 @@ class Preprocessor:
         bgsub = self.remove_background(frame)
         return frame, bgsub, self.threshold.foreground(bgsub)
 
-    def crop(self, frame): 
+    def crop(self, frame):
         logging.debug("Cropping a frame")
         sub_region = cv.cvGetSubRect(frame, self.cropRect)
         cv.cvCopy(sub_region, self.Icrop)
