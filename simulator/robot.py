@@ -123,7 +123,7 @@ class Robot(Entity):
         self.savePos()
         self.updateVelocity()
         self.updateDirection()
-        self.collideRobot()
+        #self.collideRobot()
 
         pygame.draw.circle(self.sim.overlay, (0,0,140,255),
                            map(int, self.pos), 20)

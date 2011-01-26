@@ -3,6 +3,8 @@ import time
 from math import *
 
 class Robot: pass
+class Ball:
+    pos=None
 
 class World(object):
 
@@ -47,7 +49,7 @@ class World(object):
 
     def __getPos(self, ent):
         x,y = entCenter(ent)
-        return (x,y)
+        return np.array((x,y))
 
     def __getRobot(self, ent):
         robot = Robot()
@@ -55,6 +57,7 @@ class World(object):
         robot.velocity = ent['velocity']
         robot.orientation = ent['orient']
         #robot.direction = ent['direction']
+        return robot
 
     def getSelf(self):
         return self.__getRobot( self.us )
@@ -65,6 +68,7 @@ class World(object):
         ball = Ball()
         ball.pos = self.__getPos( self.ents['ball'] )
         ball.velocity = self.ents['ball']['velocity']
+        return ball
 
     def updateStates(self):
         self.ents['time'] = self.time

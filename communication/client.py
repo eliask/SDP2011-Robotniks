@@ -1,29 +1,35 @@
 import interface
 import socket
 import logging
+import time
 
 class RealRobotInterface(interface.RobotInterface):
 
 	def __init__(self):
-		self.logging.info("Physical robot interface started")
+		logging.info("Physical robot interface started")
 		self.client_socket = \
                     socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.client_socket.connect(("localhost", 6879))
-		self.logging.info("Connected to robot interface server")
+		logging.info("Connected to robot interface server")
 
 	def sendMessage(self, x):
-		self.logging.debug("Told the robot: %d", x)
+		logging.debug("Told the robot: %d", x)
 		self.client_socket.send('%d\n' % x)
+		time.sleep(0.5)
 
 	def reset(self):
+		#logging.debug("Told the robot: %d", x)
 		self.sendMessage(100)
 	def drive(self):
+		print ("Sent command: drive")
 		self.sendMessage(101)
 	def stop(self):
 		self.sendMessage(102)
 	def startSpinRight(self):
+		print ("Sent command: spin right")
 		self.sendMessage(103)
 	def startSpinLeft(self):
+		print ("Sent command: spin left")
 		self.sendMessage(104)
 	def stopSpin(self):
 		self.sendMessage(105)

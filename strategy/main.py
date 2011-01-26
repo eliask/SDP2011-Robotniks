@@ -12,12 +12,26 @@ class Main(Strategy):
 
     def run(self):
         "Run strategy off of the current state of the World."
-        self.me = self.world.getSelf() # Find out where I am
 
-        if self.moveTo( self.world.getBall().pos ): # are we there yet?
+        #ballPos=np.array(300,200)
+        try:
+            self.me = self.world.getSelf() # Find out where I am
+        except:
+            print "couldn't find self"
+            return
+        try:
+            ballPos = self.world.getBall().pos # are we there yet?
+        except Exception, e:
+            print "couldn't find ball:",e
+            raise
+            return
+
+        if self.moveTo( ballPos ): # are we there yet?
             self.kick()
 
     def moveTo(self, dest):
+        logging.debug("moveTo(%s)", pos2string(dest))
+
         if not self.turnTo(dest):
             self.stop()
             return False
@@ -34,7 +48,10 @@ class Main(Strategy):
             return False
 
     def turnTo(self, dest):
+        logging.debug("turnTo(%s)", pos2string(dest))
+
         orient = self.me.orientation
+
         dx, dy = dest[0] - self.me.pos[0], dest[1] - self.me.pos[1]
         angleToTarget = atan2(dy, dx)
 

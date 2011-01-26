@@ -28,7 +28,7 @@ def usage():
 def main():
     try:
         opts, args = \
-            getopt.getopt( sys.argv[1:], "HVCv:i:bz1hls:t:rc:",
+            getopt.getopt( sys.argv[1:], "HVCv:i:bz1hls:t:STrc:",
                            [ "headless", "vision", "camera", "video",
                              "image", "black", "crazy", "once", "help",
                              "list-strategies", "strategy1", "strategy2",

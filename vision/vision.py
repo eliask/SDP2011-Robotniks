@@ -19,7 +19,7 @@ class Vision():
         else:
             self.capture = Capture(self.rawSize, filename)
 
-        self.threshold = threshold.AltRaw
+        self.threshold = threshold.PrimaryRaw
         self.pre = Preprocessor(self.rawSize, self.threshold, simulator)
         self.featureEx = FeatureExtraction(self.pre.cropSize)
         self.interpreter = Interpreter()
@@ -29,7 +29,7 @@ class Vision():
         self.times=[]
         self.N=0
 
-        debug.thresholdValues(self.threshold.Tforeground)
+        debug.thresholdValues(self.threshold.Tblue)
 
     def processFrame(self):
         startTime = time.time()

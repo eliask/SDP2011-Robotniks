@@ -117,9 +117,10 @@ class Simulator(object):
         ai1, real1 = self.robot1
         ai2, real2 = self.robot2
 
-        if ai1 and real1 and False:
+        if ai1 and real1:
             self.ai.append( ai1(self.world, RealRobotInterface()) )
-            deleteSprite(self.robots[0])
+            #deleteSprite(self.robots[0])
+            del self.robots[0]
             logging.debug("AI 1 started")
         elif ai1:
             self.ai.append( ai1(self.world, self.robots[0]) )
@@ -151,10 +152,10 @@ class Simulator(object):
         self.loadImages()
         self.makeObjects()
         self.world.assignSides()
+        self.initInput()
         self.initAI()
         # By initialising the input after the AI, we can control even
         # AI robots with keyboard
-        self.initInput()
         self.drawEnts()
 
         while True:

@@ -4,28 +4,21 @@ from vision.capture import *
 from vision.vision import Vision
 import os, tempfile
 from .common.utils import *
+import vision.threshold
 
 class OpenCVPitch(Capture):
 
     def __init__(self, filename=None, once=False):
-        Capture.__init__(self, Vision.rawSize, filename)
+        Capture.__init__(self, Vision.rawSize, filename, once)
         self.tmpfile = tempfile.mktemp(suffix='.bmp')
-        self.once = once
-        self.pre = Preprocessor(Vision.rawSize)
+        self.threshold = vision.threshold.PrimaryRaw
+        self.pre = Preprocessor(Vision.rawSize, self.threshold)
 
     def __del__(self):
         os.remove(self.tmpfile)
 
     def get(self):
-        # In case we want a recorded video background to loop, try to
-        # re-initialise the capture.
-        try:
-            frame = self.getFrame()
-        except CaptureFailure:
-            if self.once:
-                raise
-            self.initCapture()
-            frame = self.getFrame()
+        frame = self.getFrame()
 
         # Remove distortions from the raw image
         frame = self.pre.standardise(frame)
