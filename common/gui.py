@@ -22,7 +22,7 @@ class GUI:
         self.drawEntities(ents)
         self.processInput()
         import vision.threshold
-        t = vision.threshold.PrimaryRelative.dirmarker(frame)
+        t = vision.threshold.AltRaw.blueT(frame)
         highgui.cvShowImage('threshold', t)
         highgui.cvShowImage(self.WindowName, frame)
 

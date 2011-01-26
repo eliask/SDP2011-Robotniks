@@ -6,6 +6,7 @@ from features import FeatureExtraction
 from interpret import Interpreter
 from common.world import World
 from common.gui import GUI
+import threshold
 import random, time, math, logging
 import debug
 
@@ -18,7 +19,8 @@ class Vision():
         else:
             self.capture = Capture(self.rawSize, filename)
 
-        self.pre = Preprocessor(self.rawSize, simulator)
+        self.threshold = threshold.AltRaw
+        self.pre = Preprocessor(self.rawSize, self.threshold, simulator)
         self.featureEx = FeatureExtraction(self.pre.cropSize)
         self.interpreter = Interpreter()
         self.world = world
@@ -27,9 +29,7 @@ class Vision():
         self.times=[]
         self.N=0
 
-        import threshold
-        self.threshold = threshold.PrimaryRelative
-        debug.thresholdValues(self.threshold.Tdirmarker)
+        debug.thresholdValues(self.threshold.Tforeground)
 
     def processFrame(self):
         startTime = time.time()

@@ -106,6 +106,11 @@ class Simulator(object):
 
         self.sprites = pygame.sprite.RenderPlain(self.objects)
 
+    def deleteSprite(self, robot):
+        # TODO: just delete the image and reclassify the robot as a
+        # real robot
+        del robot
+
     def initAI(self):
         logging.debug("Initialising AI")
 
@@ -114,7 +119,7 @@ class Simulator(object):
 
         if ai1 and real1 and False:
             self.ai.append( ai1(self.world, RealRobotInterface()) )
-            del self.robots[0]
+            deleteSprite(self.robots[0])
             logging.debug("AI 1 started")
         elif ai1:
             self.ai.append( ai1(self.world, self.robots[0]) )
@@ -126,7 +131,7 @@ class Simulator(object):
             # TODO: reverse sides here
             self.ai.append( ai2(self.world, RealRobotInterface()) )
             logging.debug("AI 2 started")
-            del self.robots[1]
+            deleteSprite(self.robots[0])
         elif ai2:
             self.ai.append( ai2(self.world, self.robots[1]) )
             logging.debug("AI 2 started")
@@ -147,6 +152,8 @@ class Simulator(object):
         self.makeObjects()
         self.world.assignSides()
         self.initAI()
+        # By initialising the input after the AI, we can control even
+        # AI robots with keyboard
         self.initInput()
         self.drawEnts()
 
@@ -165,7 +172,7 @@ class Simulator(object):
             if event.type == QUIT:
                 sys.exit(0)
             else:
-                print event
+                logging.debug("Got input event: %s", event)
                 self.input.robotInput(event)
 
     def makeRobot(self, pos, colour, angle, ai):
