@@ -17,13 +17,15 @@ class GUI:
     def __del__(self):
         highgui.cvDestroyAllWindows()
 
-    def update(self, frame, ents):
+    def update(self, frame, ents, world):
         self.frame = frame
         self.drawEntities(ents)
         self.processInput()
-        import vision.threshold
-        t = vision.threshold.AltRaw.blueT(frame)
-        highgui.cvShowImage('threshold', t)
+
+        if world.pointer:
+            cv.cvCircle(self.frame, Point(world.pointer[0], world.pointer[1]),
+                        cv.cvRound(20), cv.CV_RGB(0,255,255))
+
         highgui.cvShowImage(self.WindowName, frame)
 
     def drawRotBox(self, ent, color=cv.CV_RGB(255,128,0), label="UNNAMED"):

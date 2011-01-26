@@ -29,7 +29,12 @@ class Vision():
         self.times=[]
         self.N=0
 
-        debug.thresholdValues(self.threshold.Tblue)
+        # debug.thresholdValues(self.threshold.Tdirmarker,
+        #                       self.threshold.dirmarker, 'dir')
+        # debug.thresholdValues(self.threshold.Tyellow,
+        #                       self.threshold.yellowT, 'yellow')
+        # debug.thresholdValues(self.threshold.Tblue,
+        #                       self.threshold.blueT, 'blue')
 
     def processFrame(self):
         startTime = time.time()
@@ -47,7 +52,8 @@ class Vision():
         self.interpreter.interpret(ents)
         logging.debug("Entering interpreter")
         self.world.update(startTime, ents)
-        self.UI.update(standard, ents)
+        self.UI.update(standard, ents, self.world)
+        debug.update(standard)
 
         endTime = time.time()
         self.times.append( (endTime - startTime) )

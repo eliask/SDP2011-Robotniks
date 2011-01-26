@@ -44,6 +44,7 @@ class Main(Strategy):
             self.stop()
             return True
         else:
+            self.reset()
             self.drive()
             return False
 
@@ -55,21 +56,26 @@ class Main(Strategy):
         dx, dy = dest[0] - self.me.pos[0], dest[1] - self.me.pos[1]
         angleToTarget = atan2(dy, dx)
 
-        epsilon = radians(10)
+        epsilon = radians(28)
         deltaAngle = angleToTarget - orient
 
         # TODO: predictive turning--move to the direction that
         # minimises intercept time
         closest = getAnglePi(deltaAngle)
         logging.debug("Angle relative to ball: %.3f" % deltaAngle)
+        print ("Angle relative to ball: %.3f" % deltaAngle, closest)
+        self.world.pointer = self.me.pos + \
+            np.array((cos(closest), sin(closest))) * (dest - self.me.pos)
 
         if abs(deltaAngle) < epsilon:
-            self.stopSpin()
+            #self.stopSpin()
             return True
         else:
-            if 0 <= deltaAngle <= pi:
+            if closest <= 0: # 0 <= deltaAngle <= pi:
                 self.startSpinLeft()
             else:
                 self.startSpinRight()
+
+            self.drive()
             return False
 

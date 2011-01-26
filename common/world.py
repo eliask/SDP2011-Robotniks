@@ -42,6 +42,9 @@ class World(object):
     def update(self, time, ents):
         self.time = time
         self.ents = ents
+
+        self.pointer = None
+
         self.updatePredictions()
         self.updateAttributes()
         self.updateStates()

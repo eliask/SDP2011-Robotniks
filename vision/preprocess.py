@@ -92,7 +92,6 @@ class Preprocessor:
 
         self.Igray = self.threshold.foreground(self.Imask)
         cv.cvCvtColor(self.Igray, self.Imask, cv.CV_GRAY2BGR)
-        highgui.cvShowImage('asd', self.Imask)
 
         #Enlarge the mask a bit to have fewer missing parts due to noise
         cv.cvDilate(self.Imask, self.Imask)
