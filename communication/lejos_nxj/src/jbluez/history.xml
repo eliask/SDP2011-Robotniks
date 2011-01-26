@@ -1,13 +1,14 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <history>
-   <processor signature="gcc noversion nomachine-Wall -std=gnu99 -g -ggdb -c -Os -fPIC -I. -I../../../../../../../usr/lib/jvm/java-6-openjdk/include -I../../../../../../../usr/lib/jvm/java-6-openjdk/include/linux">
-      <target file="jbluez.o" lastModified="12da1233ff0">
-         <source file="jbluez.c" lastModified="1237bc26ab0"/>
+   <processor signature="gcc noversion nomachine-Wall -std=gnu99 -g -ggdb -c -Os -fPIC -I../../../bluez-4.86/include -I../../../../../../../../../../../usr/lib/jvm/java-1.6.0-sun-1.6.0.21/include -I../../../../../../../../../../../usr/lib/jvm/java-1.6.0-sun-1.6.0.21/include/linux">
+      <target file="jbluez.o" lastModified="12dc40ab480">
+         <source file="jbluez.c" lastModified="12dc3e70b98"/>
       </target>
    </processor>
-   <processor signature="gcc -shared -L/home/kitson/Dev/SDP_D/lejos_nxj/src/jbluez -lbluetooth">
-      <target file="libjbluez.so" lastModified="12da1233ff0">
-         <source file="jbluez.o" lastModified="12da1233ff0"/>
+   <processor signature="gcc -shared -L/afs/inf.ed.ac.uk/user/s08/s0829961/SDP/sdp9/communication/bluez-4.86/lib -lbluetooth">
+      <target file="libjbluez.so" lastModified="12dc40ab480">
+         <source file="../../../bluez-4.86/lib/libbluetooth.so.3.10.3" lastModified="12dc40165b0"/>
+         <source file="jbluez.o" lastModified="12dc40ab480"/>
       </target>
    </processor>
 </history>
