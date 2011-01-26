@@ -33,7 +33,7 @@ class Preprocessor:
         self.bg        = cv.cvCreateImage(self.cropSize, cv.IPL_DEPTH_8U, 3)
 
         logging.debug("Loading background image for background subtraction")
-        self.bg = highgui.cvLoadImage('prim-pitch-bg.png')
+        self.bg = highgui.cvLoadImage('alt-pitch-bg.png')
         logging.debug("Cropping and undistorting the background image")
         self.bg = cv.cvClone(self.crop(self.undistort(self.bg)))
         # highgui.cvSaveImage("calibrated-background.png", self.bg)
