@@ -1,6 +1,7 @@
 import cv
 import threshold
 import logging
+from common.utils import *
 
 class Preprocessor:
 
@@ -17,8 +18,8 @@ class Preprocessor:
     def __init__(self, rawSize, threshold, simulator=None):
         self.rawSize = rawSize
         self.cropSize = self.cropRect[2:]
-        logging.info( "Captured image size: (%d, %d)", self.rawSize)
-        logging.info( "Cropped image size: (%d, %d)", self.cropSize)
+        logging.info( "Captured image size: %s", dim2string(self.rawSize))
+        logging.info( "Cropped image size: %s", dim2string(self.cropSize))
 
         self.initMatrices()
 
@@ -34,9 +35,9 @@ class Preprocessor:
         self.G         = cv.CreateImage(self.cropSize, cv.IPL_DEPTH_8U, 1)
         self.B         = cv.CreateImage(self.cropSize, cv.IPL_DEPTH_8U, 1)
 
-        logging.debug("Loading background image for background subtraction")
+        logging.debug("Loading the background image")
         self.bg = cv.LoadImage('alt-pitch-bg.png')
-        logging.debug("Cropping and undistorting the background image")
+        logging.debug("Processing the background image:")
         self.bg = cv.CloneImage( self.crop(self.undistort(self.bg)) )
         # cv.SaveImage("calibrated-background.png", self.bg)
 

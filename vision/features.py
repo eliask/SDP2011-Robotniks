@@ -48,17 +48,17 @@ class FeatureExtraction:
 
         logging.debug("Detecting ball in the image")
         self.detectBall(Iobjects, ents)
-        logging.info("Found %d balls." % len(ents['balls']))
+        logging.info("Found %d balls.", len(ents['balls']))
 
         logging.debug("Detecting robots in the image")
         self.detectRobots(Iobjects, ents)
-        logging.info("Found %d robots." % len(ents['robots']))
+        logging.info("Found %d robots.", len(ents['robots']))
 
         for colour in ('blue', 'yellow'):
             if ents[colour]:
-                logging.debug("Found a %s robot" % colour)
+                logging.debug("Found a %s robot", colour)
             else:
-                logging.warn("Could not find a %s robot!" % colour)
+                logging.warn("Could not find a %s robot!", colour)
 
         return ents
 

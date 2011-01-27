@@ -16,6 +16,7 @@ class Vision():
     rawSize = (640, 480)
 
     def __init__(self, world, filename=None, simulator=None):
+        logging.info('Initialising vision')
         if simulator:
             self.capture = SimCapture(simulator)
         else:
@@ -34,12 +35,14 @@ class Vision():
         #debug.thresholdValues(T, self.gui)
         #debug.thresholdValues(self.threshold.Tblue, self.gui)
 
+        logging.debug('Vision initialised')
+
     def processFrame(self):
         startTime = time.time()
-        logging.debug("Time:", startTime)
-        logging.debug("Frame:", self.N)
+        logging.debug("Frame %d at %f", self.N, startTime)
         self.N += 1
 
+        logging.debug("Capturing a frame")
         frame = self.capture.getFrame()
         logging.debug("Entering preprocessing")
         standard, bgsub_vals, bgsub_mask = self.pre.preprocess(frame)
@@ -63,8 +66,10 @@ class Vision():
         self.times.append( (endTime - startTime) )
 
     def run(self):
+        logging.debug("Entering the main loop")
         while not self.gui.quit: # and N < 500:
             self.processFrame()
+        self.runtimeInfo()
 
     def runtimeInfo(self):
         avg = 1000*sum(times)/N # in milliseconds

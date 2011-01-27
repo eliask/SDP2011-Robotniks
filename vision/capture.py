@@ -13,7 +13,7 @@ class Capture:
 
     def initCapture(self):
         if self.filename:
-            logging.info("Capturing from file: %s" % self.filename)
+            logging.info("Capturing from file: %s", self.filename)
             self.capture = cv.CaptureFromFile(self.filename)
         else:
             logging.info("Capturing from camera")
@@ -48,7 +48,9 @@ class Capture:
         try:
             frame = self.__getFrame()
         except CaptureFailure:
+            logging.info("No more frames from the capture device")
             if self.once: raise
+            logging.info("Attempting to re-initialise video capture:")
             self.initCapture()
             frame = self.__getFrame()
         return frame

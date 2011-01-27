@@ -5,6 +5,9 @@ from vision.vision import *
 from common.world import *
 import sys
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 args = len(sys.argv)
 if args == 2:
     _, colour = sys.argv

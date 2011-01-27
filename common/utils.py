@@ -15,11 +15,13 @@ def entDimPos(ent):
     """
     return entDimString(ent), entPosString(ent)
 def entDimString(ent):
-    return pos2string(entSize(ent))
+    return dim2string(entSize(ent))
 def entPosString(ent):
     return pos2string(entCenter(ent))
 def pos2string(pos):
     return "(%d, %d)" % (pos[0], pos[1])
+def dim2string(dim):
+    return "%dx%d" % (dim[0], dim[1])
 
 def entSize(ent):
     """Return entity size
