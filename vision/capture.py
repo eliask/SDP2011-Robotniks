@@ -1,4 +1,4 @@
-from opencv import cv, highgui
+import cv
 import logging
 
 class CaptureFailure(Exception): pass
@@ -14,39 +14,34 @@ class Capture:
     def initCapture(self):
         if self.filename:
             logging.info("Capturing from file: %s" % self.filename)
-            self.capture = highgui.cvCreateFileCapture(self.filename)
+            self.capture = cv.CreateFileCapture(self.filename)
         else:
             logging.info("Capturing from camera")
-            # First assume the camera is a v4L2 one
-            self.capture = highgui.cvCreateCameraCapture(highgui.CV_CAP_V4L2)
-            if not self.capture:
-                # If not, open a window for choosing between all other cameras
-                self.capture = highgui.cvCreateCameraCapture(-1)
+            self.capture = cv.CreateCameraCapture(-1)
 
         if not self.capture:
             raise CaptureFailure, "Could not open video capture stream"
 
-        highgui.cvSetCaptureProperty(self.capture,
-                                     highgui.CV_CAP_PROP_FRAME_WIDTH,
-                                     self.size.width)
-        highgui.cvSetCaptureProperty(self.capture,
-                                     highgui.CV_CAP_PROP_FRAME_HEIGHT,
-                                     self.size.width)
-
-    def __del__(self):
-        highgui.cvReleaseCapture(self.capture)
+        cv.SetCaptureProperty(self.capture,
+                              cv.CV_CAP_PROP_FRAME_WIDTH,
+                              self.size[0])
+        cv.SetCaptureProperty(self.capture,
+                              cv.CV_CAP_PROP_FRAME_HEIGHT,
+                              self.size[1])
 
     def __getFrame(self):
         """Returns a new frame from the video stream in BGR format
 
         Raises an exception if there is an error acquiring a frame.
         """
-        frame = highgui.cvQueryFrame(self.capture)
+        frame = cv.QueryFrame(self.capture)
         if frame is None:
             raise CaptureFailure
 
-        assert frame.width == self.size.width
-        assert frame.height == self.size.height
+        assert frame.width == self.size[0] \
+            and frame.height == self.size[1], \
+            "Video dimensions don't match configured resolution"
+
         return frame
 
     def getFrame(self):

@@ -1,5 +1,5 @@
 try:
-    from opencv import cv, highgui
+    import cv
 except ImportError:
     pass
 
@@ -28,8 +28,7 @@ def entSize(ent):
     dimension ("width x height" if you will)
     """
     box = ent['box']
-    width = max(box.size.width, box.size.height)
-    height = min(box.size.width, box.size.height)
+    width, height = max(box[1]), min(box[1])
     return width, height
 
 epsilon = 1e-3
@@ -39,18 +38,56 @@ def approxZero(num, epsilon=epsilon):
 def entCenter(ent):
     return boxCenter(ent['box'])
 def boxCenter(box):
-    return np.array((box.center.x, box.center.y))
+    return np.array(box[0])
+def entRect(ent):
+    return np.array(ent['rect'])
+def rectPos(rect):
+    return rect[:2]
+def rectSize(rect):
+    return rect[2:]
 
 def robotAngle(robot):
-    return robot['box'].angle
+    return robot['box'][2]
 
 def entDim(ent):
     return boxDim(ent['box'])
 def boxDim(box):
-    return np.array((box.size.width, box.size.height))
+    return np.array(box[1])
+
+def entOrientation(ent):
+    """Return two possible orientations for an entity in radians
+    :: Ent -> [angle, angle]
+
+    We use the fact the all entities of interest point to some
+    direction (or its opposite) by being longer in that direction. If
+    the entity has a square bounding box, we return the empty list.
+    """
+    angle = entAngle(ent)
+    w,h = entDim(ent)
+    if w == h:
+        return [] # or raise Exception?
+    elif w > h:
+        angles = [angle, angle+pi]
+    else:
+        angles = [angle+pi/2, angle-pi/2]
+
+    return angles
+
+def entAngle(ent):
+    "The orientation of the entity's bounding box in (-pi/2, pi)"
+    return boxAngle(ent['box'])
+def boxAngle(box):
+    """The orientation of the bounding box in (-pi/2, pi)
+
+    We negate the sign due to:
+    http://tech.groups.yahoo.com/group/OpenCV/message/54146:
+    * "box.angle" appears to be the angle in degrees through which the
+    points are rotated CLOCKWISE about "box.center"
+    """
+    return radians(-box[2])
 
 def getArea(box):
-    return box.size.width * box.size.height
+    return box[1][0] * box[1][1]
 
 def inBox(parent, child):
     child_pos = entCenter(child)
@@ -90,14 +127,15 @@ def getBoxCorners(box):
     topleft = center - boxDim(box)/2.0
     W,H = boxDim(box)
     unrot = [ topleft, topleft+(W,0), topleft+(W,H), topleft+(0,H) ]
-    rotated = rotatePoints( unrot, center, box.angle )
+    # TODO: verify that the angle is correct
+    rotated = rotatePoints( unrot, center, boxAngle(box) )
     return rotated
 
 def imSize(im):
     return (im.width, im.height)
 
 def Point(x, y):
-    return cv.cvPoint( int(x), int(y) )
+    return cv.Point( int(x), int(y) )
 
 def enum(*sequential, **named):
     enums = dict(zip(sequential, range(len(sequential))), **named)

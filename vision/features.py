@@ -1,4 +1,4 @@
-from opencv import cv, highgui
+import cv
 from .common.utils import *
 import threshold
 import segmentation
@@ -16,9 +16,9 @@ class FeatureExtraction:
             }
 
     def __init__(self, size):
-        self.gray16 = cv.cvCreateImage(size, cv.IPL_DEPTH_16S, 1)
-        self.gray8 = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
-        self.Itmp = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 3)
+        self.gray16 = cv.CreateImage(size, cv.IPL_DEPTH_16S, 1)
+        self.gray8 = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
+        self.Itmp = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
 
     def features(self, Iobjects, threshold):
         """Extract relevant features from objects
@@ -37,14 +37,10 @@ class FeatureExtraction:
         assert imSize(Iobjects) == imSize(self.gray8), \
             ("Sizes don't match!", size1, size2)
 
-        cv.cvCvtColor(Iobjects, self.gray8, cv.CV_BGR2GRAY)
+        cv.CvtColor(Iobjects, self.gray8, cv.CV_BGR2GRAY)
 
         logging.info("Segmenting the image for objects")
         objects = self.segment(self.gray8)
-
-        # cv.cvCvtColor(frame, self.gray8, cv.CV_BGR2GRAY)
-        # cv.cvAnd(self.gray8, robotMask, self.gray8)
-        # robots = self.segment(self.gray8)
 
         ents = {}
         ents['robots'] = [ obj for obj in objects
@@ -81,19 +77,17 @@ class FeatureExtraction:
         yellow = blue = None
         neither = []
         for ent in ents['robots']:
-            R = ent['rect']
-            sub = cv.cvGetSubRect(frame, (R.x, R.y, R.width, R.height))
-            #print (R.x, R.y, R.width, R.height)
+            cv.SetImageROI(frame, ent['rect'])
 
-            ent['dirmarker'] = self.detectDirMarker(ent, sub)
+            ent['dirmarker'] = self.detectDirMarker(ent, frame)
 
             ent['side'] = None
-            ent['T'] = self.detectYellow(sub)
+            ent['T'] = self.detectYellow(frame)
             if ent['T']:
                 yellow = ent
                 ent['side'] = 'yellow'
             else:
-                ent['T'] = self.detectBlue(sub)
+                ent['T'] = self.detectBlue(frame)
                 if ent['T']:
                     blue = ent
                     ent['side'] = 'blue'
@@ -108,6 +102,7 @@ class FeatureExtraction:
         # levels can make the body invisible after thresholding
 
         #self.eliminateRobots(ents, blue, yellow, neither)
+        cv.ResetImageROI(frame)
         self.assignPlayers(ents)
 
     def assignPlayers(self, ents):
@@ -188,16 +183,16 @@ class FeatureExtraction:
         and not try to "account for" the cases where the circles are
         somehow obscured and look smaller to the eye.
         """
-        out = cv.cvCloneImage(rect)
-        cv.cvSmooth(rect, rect, cv.CV_GAUSSIAN, 9, 9)
-        size = cv.cvGetSize(rect)
-        cv.cvCvtColor(rect, gray, cv.CV_BGR2GRAY)
-        storage = cv.cvCreateMemStorage(0)
+        out = cv.CloneImage(rect)
+        cv.Smooth(rect, rect, cv.CV_GAUSSIAN, 9, 9)
+        size = cv.GetSize(rect)
+        cv.CvtColor(rect, gray, cv.CV_BGR2GRAY)
+        storage = cv.CreateMemStorage(0)
 
         print "PARAMS:", params
 
         #Note: circles.total denotes the number of circles
-        circles = cv.cvHoughCircles(self.gray, storage, cv.CV_HOUGH_GRADIENT,
+        circles = cv.HoughCircles(self.gray, storage, cv.CV_HOUGH_GRADIENT,
                                     2, #dp / resolution
                                     10, #circle dist threshold
                                     1+self.hough_params[0], #param1
@@ -210,7 +205,7 @@ class FeatureExtraction:
             # It took a fair amount of trouble to find out how to do this properly!
             x, y, radius = [circle[i] for i in range(3)]
 
-            cv.cvCircle(rect, Point(x, y), cv.cvRound(min(30,radius)), cv.CV_RGB(300,1,1))
+            cv.Circle(rect, Point(x, y), cv.Round(min(30,radius)), cv.CV_RGB(300,1,1))
 
         return rect
 

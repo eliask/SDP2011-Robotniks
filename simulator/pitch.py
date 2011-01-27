@@ -23,7 +23,7 @@ class OpenCVPitch(Capture):
         # Remove distortions from the raw image
         frame = self.pre.standardise(frame)
 
-        highgui.cvSaveImage(self.tmpfile, frame)
+        cv.SaveImage(self.tmpfile, frame)
         return pygame.image.load(self.tmpfile)
 
 class StaticPitch:

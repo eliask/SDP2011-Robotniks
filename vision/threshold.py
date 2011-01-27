@@ -1,14 +1,15 @@
-from opencv import cv
+import cv
 
 class Base(object):
     colorspaceConv = \
         { 'bgr' : lambda x: x,
-          'hsv' : lambda x: cv.cvCvtColor(x, x, cv.CV_BGR2HSV),
+          'hsv' : lambda x: cv.CvtColor(x, x, cv.CV_BGR2HSV),
+          'hls' : lambda x: cv.CvtColor(x, x, cv.CV_BGR2HLS),
           }
 
     @classmethod
     def foreground(self, frame):
-        return self.threshold(frame, self.Tforeground, op=cv.cvOr)
+        return self.threshold(frame, self.Tforeground, op=cv.Or)
 
     @classmethod
     def robots(self, frame):
@@ -16,7 +17,7 @@ class Base(object):
 
         Very few false positives.
         """
-        return self.threshold(frame, self.Trobots, op=cv.cvOr)
+        return self.threshold(frame, self.Trobots, op=cv.Or)
 
     @classmethod
     def ball(self, frame):
@@ -53,44 +54,44 @@ class Base(object):
         return self.threshold(frame, self.Tbackplate)
 
     @classmethod
-    def threshold(self, frame, record, op=cv.cvAnd, magic=False):
+    def threshold(self, frame, record, op=cv.And, magic=False):
         """Threshold a frame using a record of min/max thresholds
 
         Output is a new image.
         """
         colorspace, min, max = record
 
-        tmp = cv.cvCloneImage(frame)
+        tmp = cv.CloneImage(frame)
         if magic:
-            cv.cvSmooth(tmp, tmp, cv.CV_GAUSSIAN, 11)
+            cv.Smooth(tmp, tmp, cv.CV_GAUSSIAN, 11)
         # Work in the correct colorspace
         self.colorspaceConv[colorspace](tmp)
 
         num_chans = len(min)
-        size = cv.cvGetSize(frame)
-        chan = [ cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
+        size = cv.GetSize(frame)
+        chan = [ cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
                  for _ in range(num_chans) ]
-        cv.cvSplit(tmp, chan[0], chan[1], chan[2], None)
+        cv.Split(tmp, chan[0], chan[1], chan[2], None)
 
-        minS = map(cv.cvScalar, min)
-        maxS = map(cv.cvScalar, max)
+        minS = map(cv.Scalar, min)
+        maxS = map(cv.Scalar, max)
         for i in range(num_chans):
-            cv.cvInRangeS(chan[i], minS[i], maxS[i], chan[i])
+            cv.InRangeS(chan[i], minS[i], maxS[i], chan[i])
 
-        out = cv.cvCreateImage(size, cv.IPL_DEPTH_8U, 1)
+        out = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
         op(chan[0], chan[1], out)
         op(out, chan[2], out)
 
-        # cv.cvReleaseImage(tmp)
+        # cv.ReleaseImage(tmp)
         # #TODO: Why does this cause a segfault?
-        # map(cv.cvReleaseImage, chan)
+        # map(cv.ReleaseImage, chan)
 
         return out
 
     @classmethod
     def thresholdGray(self, gray):
         "A more efficient (?) thresholding for gray stuff"
-        #cv.cvThreshold(gray, ...)
+        #cv.Threshold(gray, ...)
         pass
 
 
@@ -166,3 +167,5 @@ class AltRaw(Base):
     Tforeground = ( 'bgr', [2,  17,  46 ], [255, 255, 255] )
     #Tforeground = ( 'bgr', [190, 190, 190], [255, 255, 255] )
     #foreground = [30,45,60]
+
+    Tblue       = ( 'bgr', [125,  70,  90 ], [255, 190, 255] )

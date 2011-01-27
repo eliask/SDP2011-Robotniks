@@ -1,13 +1,9 @@
 import threshold
-from opencv import highgui
+import cv
 
 thresholds = {}
 
-def update(frame):
-    for window, f in thresholds.items():
-        highgui.cvShowImage(window, f(frame))
-
-def thresholdValues(thresholdRec, thresholdFn, window='Camera'):
+def thresholdValues(thresholdRec, gui):
     """Adds trackbars to the main window for adjusting thresholding values
 
     Optionally uses some other window (specified by 'window').
@@ -20,13 +16,10 @@ def thresholdValues(thresholdRec, thresholdFn, window='Camera'):
     def set2z(x): thresholdRec[2][1]=x
     def set3z(x): thresholdRec[2][2]=x
 
-    highgui.cvNamedWindow(window)
-    highgui.cvCreateTrackbar(window+"ch1 min", window, thresholdRec[1][0], 255, set1a)
-    highgui.cvCreateTrackbar(window+"ch2 min", window, thresholdRec[1][1], 255, set2a)
-    highgui.cvCreateTrackbar(window+"ch3 min", window, thresholdRec[1][2], 255, set3a)
+    cv.CreateTrackbar("ch1 min", gui.WindowName, thresholdRec[1][0], 255, set1a)
+    cv.CreateTrackbar("ch2 min", gui.WindowName, thresholdRec[1][1], 255, set2a)
+    cv.CreateTrackbar("ch3 min", gui.WindowName, thresholdRec[1][2], 255, set3a)
 
-    highgui.cvCreateTrackbar(window+"ch1 max", window, thresholdRec[2][0], 255, set1z)
-    highgui.cvCreateTrackbar(window+"ch2 max", window, thresholdRec[2][1], 255, set2z)
-    highgui.cvCreateTrackbar(window+"ch3 max", window, thresholdRec[2][2], 255, set3z)
-
-    thresholds[window] = thresholdFn
+    cv.CreateTrackbar("ch1 max", gui.WindowName, thresholdRec[2][0], 255, set1z)
+    cv.CreateTrackbar("ch2 max", gui.WindowName, thresholdRec[2][1], 255, set2z)
+    cv.CreateTrackbar("ch3 max", gui.WindowName, thresholdRec[2][2], 255, set3z)

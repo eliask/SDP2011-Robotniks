@@ -30,18 +30,19 @@ class Interpreter:
         angleT   = self.angleT(robot)
         angleDir = self.angleDir(robot)
 
-        # robot['box'].angle only returns an angle between 0 and 90 degrees
-        boxAngles = [ degrees(robot['box'].angle) + n*pi/2
-                      for n in range(-2, 2+1) ]
+        boxAngles = entOrientation(robot)
 
         # In case neither the T nor the direction marker is found
-        robot['modOrient'] = boxAngles[2]
+        robot['modOrient'] = boxAngles # N.B.: could be []
 
         angleBox = None
-        if angleDir:
-            angleBox = sorted( boxAngles, key=lambda x: abs(angleDir - x) )[0]
-        elif angleT:
-            angleBox = sorted( boxAngles, key=lambda x: abs(angleT - x) )[0]
+        if boxAngles:
+            if angleDir:
+                angleBox = sorted( boxAngles,
+                                   key=lambda x: abs(angleDir - x) )[0]
+            elif angleT:
+                angleBox = sorted( boxAngles,
+                                   key=lambda x: abs(angleT - x) )[0]
 
         robot['orient'] = self.mergeMeasurements(angleBox, angleT, angleDir)
 
@@ -83,14 +84,11 @@ class Interpreter:
 
     def convertCoordinates(self, ent, sub):
         "Convert relative coordinates to absolute"
-        R = ent['rect']
-        c = sub['box'].center
-        r = sub['rect']
-        """
-        The sub-entity's bounding rectangle's coordinates are
-        relative to the parent entity.
-        """
-        sub['rect'].x = R.x + r.x
-        sub['rect'].y = R.y + r.y
-        sub['box'].center.x = R.x + c.x
-        sub['box'].center.y = R.y + c.y
+        # The sub-entity's bounding rectangle's coordinates are
+        # relative to the parent entity.
+        w,h = entRect(sub)[2:]
+        sub['rect'] = list( entRect(ent)[:2] + entRect(sub)[:2] )
+
+        sub['rect'] += [w,h]
+        sub['box'] = ( entCenter(ent) + entCenter(sub),
+                       entDim(sub), entAngle(sub) )

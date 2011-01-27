@@ -1,4 +1,4 @@
-from opencv import cv, highgui
+import cv
 from capture import Capture
 from simcapture import SimCapture
 from preprocess import Preprocessor
@@ -10,8 +10,10 @@ import threshold
 import random, time, math, logging
 import debug
 
+T=[0, [150,150,150],[30,30,30]]
 class Vision():
-    rawSize = cv.cvSize(640, 480)
+    #rawSize = (768,576)
+    rawSize = (640, 480)
 
     def __init__(self, world, filename=None, simulator=None):
         if simulator:
@@ -19,22 +21,18 @@ class Vision():
         else:
             self.capture = Capture(self.rawSize, filename)
 
-        self.threshold = threshold.PrimaryRaw
+        self.threshold = threshold.AltRaw
         self.pre = Preprocessor(self.rawSize, self.threshold, simulator)
         self.featureEx = FeatureExtraction(self.pre.cropSize)
         self.interpreter = Interpreter()
         self.world = world
-        self.UI = GUI()
+        self.gui = GUI(world, self.pre.cropSize, self.threshold)
 
         self.times=[]
         self.N=0
 
-        # debug.thresholdValues(self.threshold.Tdirmarker,
-        #                       self.threshold.dirmarker, 'dir')
-        # debug.thresholdValues(self.threshold.Tyellow,
-        #                       self.threshold.yellowT, 'yellow')
-        # debug.thresholdValues(self.threshold.Tblue,
-        #                       self.threshold.blueT, 'blue')
+        #debug.thresholdValues(T, self.gui)
+        #debug.thresholdValues(self.threshold.Tblue, self.gui)
 
     def processFrame(self):
         startTime = time.time()
@@ -44,22 +42,28 @@ class Vision():
 
         frame = self.capture.getFrame()
         logging.debug("Entering preprocessing")
-        standard, bgsub, mask = self.pre.preprocess(frame)
+        standard, bgsub_vals, bgsub_mask = self.pre.preprocess(frame)
         logging.debug("Entering feature extraction")
-        ents = self.featureEx.features(bgsub, self.threshold)
+        ents = self.featureEx.features(bgsub_vals, self.threshold)
         logging.debug("Detected entities:", ents)
         logging.debug("Entering interpreter")
         self.interpreter.interpret(ents)
         logging.debug("Entering interpreter")
         self.world.update(startTime, ents)
-        self.UI.update(standard, ents, self.world)
-        debug.update(standard)
 
+        bgsub = self.pre.remove_background(standard)
+        self.gui.updateWindow('raw', frame)
+        self.gui.updateWindow('mask', bgsub_mask)
+        self.gui.updateWindow('foreground', bgsub_vals)
+        self.gui.updateWindow('bgsub', bgsub)
+        self.gui.updateWindow('standard', standard)
+        self.gui.draw(ents, startTime)
         endTime = time.time()
+
         self.times.append( (endTime - startTime) )
 
     def run(self):
-        while not self.UI.quit: # and N < 500:
+        while not self.gui.quit: # and N < 500:
             self.processFrame()
 
     def runtimeInfo(self):
