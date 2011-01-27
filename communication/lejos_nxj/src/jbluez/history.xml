@@ -1,14 +1,14 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <history>
-   <processor signature="gcc noversion nomachine-Wall -std=gnu99 -g -ggdb -c -Os -fPIC -I../../../bluez-4.86/include -I../../../../../../../../../../../usr/lib/jvm/java-1.6.0-sun-1.6.0.21/include -I../../../../../../../../../../../usr/lib/jvm/java-1.6.0-sun-1.6.0.21/include/linux">
-      <target file="jbluez.o" lastModified="12dc40ab480">
-         <source file="jbluez.c" lastModified="12dc3e70b98"/>
+   <processor signature="gcc noversion nomachine-Wall -std=gnu99 -g -ggdb -c -Os -fPIC -I../../../bluez-4.86/include -I../../../../../../../../../../usr/lib/jvm/java-1.6.0-sun-1.6.0.21/include -I../../../../../../../../../../usr/lib/jvm/java-1.6.0-sun-1.6.0.21/include/linux">
+      <target file="jbluez.o" lastModified="12dc82322f0">
+         <source file="jbluez.c" lastModified="12dc82205c8"/>
       </target>
    </processor>
-   <processor signature="gcc -shared -L/afs/inf.ed.ac.uk/user/s08/s0829961/SDP/sdp9/communication/bluez-4.86/lib -lbluetooth">
-      <target file="libjbluez.so" lastModified="12dc40ab480">
-         <source file="../../../bluez-4.86/lib/libbluetooth.so.3.10.3" lastModified="12dc40165b0"/>
-         <source file="jbluez.o" lastModified="12dc40ab480"/>
+   <processor signature="gcc -shared -L/afs/inf.ed.ac.uk/user/s08/s0838302/sdp9/communication/bluez-4.86/lib -lbluetooth">
+      <target file="libjbluez.so" lastModified="12dc82322f0">
+         <source file="../../../bluez-4.86/lib/libbluetooth.so.3.10.3" lastModified="12dc821ea70"/>
+         <source file="jbluez.o" lastModified="12dc82322f0"/>
       </target>
    </processor>
 </history>
