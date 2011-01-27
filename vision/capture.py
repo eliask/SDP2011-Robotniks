@@ -14,10 +14,10 @@ class Capture:
     def initCapture(self):
         if self.filename:
             logging.info("Capturing from file: %s" % self.filename)
-            self.capture = cv.CreateFileCapture(self.filename)
+            self.capture = cv.CaptureFromFile(self.filename)
         else:
             logging.info("Capturing from camera")
-            self.capture = cv.CreateCameraCapture(-1)
+            self.capture = cv.CaptureFromCAM(-1)
 
         if not self.capture:
             raise CaptureFailure, "Could not open video capture stream"

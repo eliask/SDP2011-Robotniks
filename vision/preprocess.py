@@ -163,8 +163,8 @@ class Preprocessor:
                   0., 8.7340754327613899e+02, 2.8428760615670581e+02,
                   0., 0., 1. ]
 
-        imat = cv.CreateMat(3,3, cv.CV_32F)
-        dmat = cv.CreateMat(1,4, cv.CV_32F)
+        imat = cv.CreateMat(3,3, cv.CV_32FC1)
+        dmat = cv.CreateMat(1,4, cv.CV_32FC1)
 
         for i in range(3):
             for j in range(3):
