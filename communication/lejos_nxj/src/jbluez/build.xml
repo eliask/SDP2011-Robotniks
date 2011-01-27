@@ -47,9 +47,9 @@
   				<fileset dir=".">
   					<include name="jbluez.c"/>
   				</fileset>
-				<libset dir="." libs="bluetooth"/>
+				<libset dir="../../../bluez-4.86/lib" libs="bluetooth"/>
 				<includepath>
-					<pathelement location="."/>
+					<pathelement location="../../../bluez-4.86/include"/>
 				</includepath>
 				<includepath if="jni.include.dir">
 					<pathelement location="${jni.include.dir}"/>

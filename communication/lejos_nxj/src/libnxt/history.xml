@@ -1,13 +1,15 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <history>
-   <processor signature="gcc noversion nomachine-Wall -std=gnu99 -fPIC -c -fPIC -I. -I../../../../../../../usr/lib/jvm/java-6-openjdk/include -I../../../../../../../usr/lib/jvm/java-6-openjdk/include/linux">
-      <target file="main_jlibnxt.o" lastModified="12da1233c08">
-         <source file="main_jlibnxt.c" lastModified="1237bc266c8"/>
+   <processor signature="gcc -shared -L/afs/inf.ed.ac.uk/user/s08/s0829961/SDP/sdp9/communication/libusb-0.1.12/lib -lusb">
+      <target file="libjlibnxt.so" lastModified="12dc40ab480">
+         <source file="../../../libusb-0.1.12/lib/libusb.a" lastModified="12dc4002d30"/>
+         <source file="../../../libusb-0.1.12/lib/libusb-0.1.so.4.4.4" lastModified="12dc4002d30"/>
+         <source file="main_jlibnxt.o" lastModified="12dc40ab480"/>
       </target>
    </processor>
-   <processor signature="gcc -shared -L/home/kitson/Dev/SDP_D/lejos_nxj/src/libnxt -lusb">
-      <target file="libjlibnxt.so" lastModified="12da1233ff0">
-         <source file="main_jlibnxt.o" lastModified="12da1233c08"/>
+   <processor signature="gcc noversion nomachine-Wall -std=gnu99 -fPIC -c -fPIC -I../../../libusb-0.1.12/include -I../../../../../../../../../../../usr/lib/jvm/java-1.6.0-sun-1.6.0.21/include -I../../../../../../../../../../../usr/lib/jvm/java-1.6.0-sun-1.6.0.21/include/linux">
+      <target file="main_jlibnxt.o" lastModified="12dc40ab480">
+         <source file="main_jlibnxt.c" lastModified="12dc3e70b98"/>
       </target>
    </processor>
 </history>

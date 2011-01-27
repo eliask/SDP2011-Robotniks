@@ -43,9 +43,9 @@
   				<fileset dir=".">
   					<include name="main_jlibnxt.c"/>
   				</fileset>
-				<libset dir="." libs="usb"/>
+				<libset dir="../../../libusb-0.1.12/lib" libs="usb"/>
 				<includepath>
-					<pathelement location="."/>
+					<pathelement location="../../../libusb-0.1.12/include"/>
 				</includepath>
   				<includepath if="jni.include.dir">
 					<pathelement location="${jni.include.dir}" />

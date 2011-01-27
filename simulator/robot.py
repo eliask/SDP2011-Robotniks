@@ -8,7 +8,8 @@ from entity import Entity
 import logging
 
 class Robot(Entity):
-
+	
+    size = (59, 38)
     maxSpeed = 6
 
     def __init__(self, sim, pos, image, orientation):
@@ -123,7 +124,7 @@ class Robot(Entity):
         self.savePos()
         self.updateVelocity()
         self.updateDirection()
-        #self.collideRobot()
+        self.collideRobot()
 
         pygame.draw.circle(self.sim.overlay, (0,0,140,255),
                            map(int, self.pos), 20)
@@ -173,7 +174,7 @@ class Robot(Entity):
         for i in selfLines:
             for j in otherLines:
                 point = self.intersectLines(i, j)
-                if point and self.collideBox(selfLines, point):
+                if point and self.collideBox(selfLines, point, otherLines):
                     # We only test one of the robots for this as the
                     # intersections are the same with either
                     collisions.append(point)
@@ -189,26 +190,20 @@ class Robot(Entity):
         move to the normal of the line that contains the two
         intersecting lines of the robot's rectangle shape.
         """
+	print random(), "Collision"
         self.undoMove()
 
-    def collideBox(self, lines, point):
+    def collideBox(self, lines, point, otherLines):
         "Test whether a given line intersection point collides with a box"
         for p0, slope, p1 in lines:
-            if slope == None:
-                if inRange(p1[1], point[1], p0[1]) \
-                and approxZero(point[0] - p0[0]):
-                    return True
-            else:
-                Y = p0[0] + slope * point[0]
-                if inRange(p0[1], Y, p1[1]) and approxZero(Y - point[1]):
-                    return True
+		for r0, slope2, r1 in otherLines:
+			if inRange(p0[0], point[0], p1[0]) and inRange(p0[1], point[1], p1[1]) and inRange(r0[0], point[0], r1[0]) and inRange(r0[1], point[1], r1[1]):
+				return True
 
         return False
 
     def intersectLines(self, line1, line2):
-        """Determine where lines intersect.
-        :: Line -> Line -> Maybe Pos
-        """
+
         (x10, y10), slope1, (x11, y11) = line1
         (x20, y20), slope2, (x21, y21) = line2
 
@@ -217,36 +212,37 @@ class Robot(Entity):
             # point. For simplicity, we don't consider that to be a
             # collision.
             return None
-
-        if slope1 is None:
-            return (x10, x20 + slope2*x10)
-        if slope2 is None:
-            return (x20, x10 + slope1*x20)
-
-        X = (x20 - x10) / (slope1 - slope2)
-        y1 = x10 + slope1 * X
-        #y2 = x20 + slope2 * X
-        # y1 ~= y2 due to noise and numerical instability/inaccuracies
-        return (X, y1)
+	
+        #if slope1 is None:
+        #    return (x10, x20 + slope2*x10)
+        #if slope2 is None:
+        #    return (x20, x10 + slope1*x20)
+	m1 = y10 - slope1 * x10
+	m2 = y20 - slope2 * x20
+        x = (m2 - m1) / (slope1 - slope2)
+        y = m1 + slope1 * x
+        return (x, y)
 
     def getLines(self, corners):
-        """Get lines from corner points
-        :: [ (X,Y) ] -> [ (pos0, Maybe( dy/dx ), pos1) ]
-
-        The lines form a convex hull.
-        """
+        # Get lines from corner points
         lines = []
-        for c1, c2 in zip( corners, corners[-1:] + corners[1:] ):
-            dy, dx = c2[1] - c1[1], c2[0] - c1[0]
+	i = -1
+	for c in corners:
+	    c2 = c
+	    c1 = corners[i]
+	    i += 1
+            dy, dx = c1[1] - c2[1], c1[0] - c2[0]
             if dx == 0:
-                slope = None
+                slope = 0.0
             else:
                 slope = dy / dx
             lines.append( (c1, slope, c2) )
         return lines
 
     def boundingBoxCorners(self, ent):
-        pX, pY = self.rect.topleft
-        W, H   = self.rect.size
-        corners = [ (pX, pY), (pX+W, pY), (pX+W, pY+H), (pX, pY+H) ]
-        return rotatePoints(corners, ent.pos, ent.orientation)
+        W, H   = self.size
+	pX, pY = ent.pos
+	pX -= W / 2 
+	pY -= H / 2 
+	corners = [ (pX, pY), (pX+W, pY), (pX+W, pY+H), (pX, pY+H) ]
+	return rotatePoints(corners, ent.pos, -ent.orientation)
