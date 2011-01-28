@@ -20,6 +20,7 @@ class RealRobotInterface(interface.RobotInterface):
 	def reset(self):
 		#logging.debug("Told the robot: %d", x)
 		self.sendMessage(100)
+
 	def drive(self):
 		print ("Sent command: drive")
 		self.sendMessage(101)

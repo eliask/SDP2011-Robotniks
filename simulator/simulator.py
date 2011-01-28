@@ -106,10 +106,11 @@ class Simulator(object):
 
         self.sprites = pygame.sprite.RenderPlain(self.objects)
 
-    def deleteSprite(self, robot):
+    def setRobotAI(self, robot, ai):
         # TODO: just delete the image and reclassify the robot as a
         # real robot
-        del robot
+        #del robot
+        pass
 
     def initAI(self):
         logging.debug("Initialising AI")
@@ -118,29 +119,38 @@ class Simulator(object):
         ai2, real2 = self.robot2
 
         if ai1 and real1:
-            self.ai.append( ai1(self.world, RealRobotInterface()) )
-            #deleteSprite(self.robots[0])
-            del self.robots[0]
-            logging.debug("AI 1 started")
+            real_interface = RealRobotInterface()
+            #meta_interface = MetaInterface(real_interface, self.robots[0])
+            ai = ai1(self.world, real_interface)
+            self.ai.append(ai)
+            robotSprite = self.robots[0]
+            self.robots[0] = ai
+            del robotSprite
+            self.setRobotAI(self.robots[0], ai)
+            logging.debug("AI 1 started in the real world")
         elif ai1:
             self.ai.append( ai1(self.world, self.robots[0]) )
-            logging.debug("AI 1 started")
+            logging.debug("AI 1 started in the simulated world")
         else:
             logging.debug("No AI 1 present")
 
         if ai2 and real2:
             # TODO: reverse sides here
-            self.ai.append( ai2(self.world, RealRobotInterface()) )
-            logging.debug("AI 2 started")
-            deleteSprite(self.robots[0])
+            ai = ai2(self.world, RealRobotInterface())
+            self.ai.append(ai)
+            robotSprite = self.robots[0]
+            self.robots[1] = ai
+            del robotSprite
+            self.setRobotAI(self.robots[1], ai)
+            logging.debug("AI 2 started in the real world")
         elif ai2:
             self.ai.append( ai2(self.world, self.robots[1]) )
-            logging.debug("AI 2 started")
+            logging.debug("AI 2 started in the simulated world")
         else:
             logging.debug("No AI 2 present")
 
     def runAI(self):
-        logging.debug("Running AI players")
+        #logging.debug("Running AI players")
         for ai in self.ai:
             ai.run()
 
@@ -152,8 +162,8 @@ class Simulator(object):
         self.loadImages()
         self.makeObjects()
         self.world.assignSides()
-        self.initInput()
         self.initAI()
+        self.initInput()
         # By initialising the input after the AI, we can control even
         # AI robots with keyboard
         self.drawEnts()
@@ -173,7 +183,7 @@ class Simulator(object):
             if event.type == QUIT:
                 sys.exit(0)
             else:
-                logging.debug("Got input event: %s", event)
+                #logging.debug("Got input event: %s", event)
                 self.input.robotInput(event)
 
     def makeRobot(self, pos, colour, angle, ai):

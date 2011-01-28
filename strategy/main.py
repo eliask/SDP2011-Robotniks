@@ -17,17 +17,17 @@ class Main(Strategy):
         try:
             self.me = self.world.getSelf() # Find out where I am
         except:
-            print "couldn't find self"
+            logging.warn("couldn't find self")
             return
         try:
             ballPos = self.world.getBall().pos # are we there yet?
         except Exception, e:
-            print "couldn't find ball:",e
+            logging.warn("couldn't find self: %s", e)
             raise
             return
 
-        if self.moveTo( ballPos ): # are we there yet?
-            self.kick()
+        # if self.moveTo( ballPos ): # are we there yet?
+        #     self.kick()
 
     def moveTo(self, dest):
         logging.debug("moveTo(%s)", pos2string(dest))

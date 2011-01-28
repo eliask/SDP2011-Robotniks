@@ -21,13 +21,13 @@ class SimRobotInterface(RobotInterface):
     def __init__(self, *args):
         RobotInterface.__init__(self, *args)
 
+        self.maxSpeed = 6
         self.v = np.array([0.0, 0.0])
         self.accel = 0
 
-        self.ang_v = 0
+        self.ang_v = 0 # The speed at which the robot visibly turns
         self.ang_accel = 0
         self.rotAngle = 0
-        self.maxSpeed = 6
 
         self.movement_dir = 0       # The direction the wheels point at
         self.movement_dir_speed = 0 # The speed at which the wheels turn
