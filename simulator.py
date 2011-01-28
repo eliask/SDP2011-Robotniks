@@ -7,6 +7,8 @@ from strategy.strategies import *
 import common.world
 import simulator.world
 import getopt, sys
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 def usage():
     print "Usage: simulator.py <options>"
