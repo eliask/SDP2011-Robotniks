@@ -57,9 +57,6 @@ class Simulator(object):
             self.screen.blit(bg, (0,0))
         self.sprites.draw(self.screen)
 
-        if not self.headless:
-            pygame.display.flip()
-
         if self.vision:
             pygame.image.save(self.screen, self.visionFile)
             self.vision.processFrame()
