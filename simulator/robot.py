@@ -1,92 +1,27 @@
 from pygame.locals import *
 import pygame
+from copy import deepcopy
 from math import *
 from random import *
 from .common.utils import *
 from world import World
 from entity import Entity
+from robot_interface import *
 import logging
 
-class Robot(Entity):
-	
+class Robot(Entity, SimRobotInterface):
+
     size = (59, 38)
-    maxSpeed = 6
 
     def __init__(self, sim, pos, image, orientation):
         self.orientation = orientation
-        self.accel = 0
 
-        self.ang_v = 0
-        self.ang_accel = 0
-
-        self.movementDir = 0
-        self.turning_speed = 0 # The speed at which the wheels turn
-
+        SimRobotInterface.__init__(self)
         Entity.__init__(self, sim, pos, image)
         self.rotate()
 
-    def reset(self):
-        """Puts the robot's wheels in their default setting of 0 Deg
-
-        The direction is relative to the robot's orientation.
-        """
-        # TODO: make this take time, like acceleration
-	self.movementDir = self.orientation
-
-    def drive(self):
-        "Drive the motors forwards"
-        self.accel = 1
-        logging.debug("Robot drives forwards")
-    def driveR(self):
-        "Drive the motors backwards"
-        # The physical robot doesn't do this yet
-        #return NotImplemented
-        self.accel = -1
-        logging.debug("Robot drives backwards")
-    def stop(self):
-        "Stop movement motors"
-        self.v[0]=0; self.v[1]=0
-        self.accel = 0
-        logging.debug("Robot stops driving")
-    def spinLeftShort(self):
-        logging.debug("Robot does a left spin burst")
-    def spinRightShort(self):
-        logging.debug("Robot does a right spin burst")
-    def tick(self):
-        pass
-
-    def setRobotDirection(self, angle):
-        """
-        Sends commands to the robot to steer its wheels to the
-        direction to permit linear travel in degrees from 0 - 360 Deg.
-
-        The directions are measured clockwise from the top of the
-        robot when facing forward. (I.E 90 Deg = Right, 180 Deg =
-        Back, 270 Deg = Left)
-        """
-        logging.debug( "Robot sets wheel direction to %.2f deg",
-                       degrees(angle) )
-        if angle == 0:
-            return
-        return NotImplemented
-
-    def startSpinLeft(self):
-        "Turn counter-clockwise"
-        self.ang_v = radians(2)
-        logging.debug("Robot spins left")
-    def startSpinRight(self):
-        "Turn clockwise"
-        self.ang_v = radians(-2)
-        logging.debug("Robot spins right")
-    def stopSpin(self):
-        self.ang_v = 0
-        self.ang_accel = 0
-        logging.debug("Robot stops spinning")
     def updateDirection(self):
-        self.movementDir += self.turning_speed
-
-    def kick(self):
-        logging.info("Robot uses kick!  It's super effective!")
+        self.movement_dir += self.movement_dir_speed
 
     def rotate(self):
         rot_img = pygame.transform.rotate(self.base_image,
@@ -98,12 +33,18 @@ class Robot(Entity):
 
     def savePos(self):
         "Save current position, in case we want to revert it"
-        self.prevRect = self.rect
-        self.prevPos  = self.pos
+        self.prevRect = deepcopy(self.rect)
+        self.prevPos  = deepcopy(self.pos)
 
     def undoMove(self):
+        logging.debug("undoMove()")
+        print self.pos, self.prevPos
+        print self.rect, self.prevRect
         self.rect = self.prevRect
         self.pos  = self.prevPos
+        self.v     = np.array([0.0, 0.0])
+        self.ang_v = 0
+        self.accel = 0
 
     def move(self):
         Entity.move(self)
@@ -138,8 +79,8 @@ class Robot(Entity):
     def updateVelocity(self):
         mag = sqrt(sum(self.v**2))
         if mag == 0:
-            self.v[0] = cos(self.movementDir) * self.accel
-            self.v[1] = sin(self.movementDir) * self.accel
+            self.v[0] = cos(self.movement_dir) * self.accel
+            self.v[1] = sin(self.movement_dir) * self.accel
         else:
             newMag = min(mag + abs(self.accel), self.maxSpeed)
             self.v *= newMag / mag
@@ -212,7 +153,7 @@ class Robot(Entity):
             # point. For simplicity, we don't consider that to be a
             # collision.
             return None
-	
+
         #if slope1 is None:
         #    return (x10, x20 + slope2*x10)
         #if slope2 is None:
@@ -242,7 +183,7 @@ class Robot(Entity):
     def boundingBoxCorners(self, ent):
         W, H   = self.size
 	pX, pY = ent.pos
-	pX -= W / 2 
-	pY -= H / 2 
+	pX -= W / 2
+	pY -= H / 2
 	corners = [ (pX, pY), (pX+W, pY), (pX+W, pY+H), (pX, pY+H) ]
 	return rotatePoints(corners, ent.pos, -ent.orientation)
