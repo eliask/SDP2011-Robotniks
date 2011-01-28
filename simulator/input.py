@@ -1,4 +1,6 @@
 from pygame.locals import *
+from math import *
+import logging
 
 class Input:
 
@@ -6,6 +8,7 @@ class Input:
         self.p1 = p1
         self.p2 = p2
         self.initKeymap(p1, p2)
+        self.command_string = ''
 
     def initKeymap(self, p1, p2):
         self.keymap = {
@@ -36,6 +39,28 @@ class Input:
                 start()
             elif event.type == KEYUP and stop:
                 stop()
+            elif event.type == KEYDOWN:
+                self.commandInput(event)
 
         except (IndexError, KeyError, AttributeError):
             pass
+
+    def commandInput(self, event):
+        try:
+            char = chr(event.key)
+        except ValueError:
+            return
+
+        if '0' <= char <= '9':
+            if len(self.command_string) == 0 and char in "12":
+                self.command_string += char
+
+            if len(self.command_string) == 4:
+                robot_num = int( self.command_string[0] )
+                angle = radians(int( self.command_string[1:] ))
+                if robot_num == 1:
+                    self.p1.setRobotDirection(angle)
+                elif robot_num == 2:
+                    self.p2.setRobotDirection(angle)
+
+                self.command_string = ''
