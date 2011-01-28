@@ -159,7 +159,7 @@ def inRange(x, y, z):
 def clamp(_min, val, _max):
     return min(_max, max(_min, val))
 
-def rotatePoints(points, center, angle):
+def rotatePoints(points, center, angle, new_origin=False):
     "Rotate points around center by an angle"
 
     # Any nicer way to do this?
@@ -180,10 +180,12 @@ def rotatePoints(points, center, angle):
                         [ sin(angle),  cos(angle), 1 ],
                         [      0,           0,     1 ] ])
 
-    Transform = Trans1 * Rotate * Trans2
+    if new_origin:
+        Transform = Rotate * Trans2
+    else:
+        Transform = Trans1 * Rotate * Trans2
+
     Rotated = Transform * Points
-    # print Points
-    # print Rotated
 
     return map(np.array,
                zip(Rotated[0].tolist()[0], Rotated[1].tolist()[0]) )

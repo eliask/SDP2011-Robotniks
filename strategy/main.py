@@ -33,7 +33,7 @@ class Main(Strategy):
         logging.debug("moveTo(%s)", pos2string(dest))
 
         if not self.turnTo(dest):
-            self.stop()
+            #self.stop()
             return False
 
         _dist = dist(dest, self.me.pos)
@@ -51,31 +51,36 @@ class Main(Strategy):
     def turnTo(self, dest):
         logging.debug("turnTo(%s)", pos2string(dest))
 
-        orient = self.me.orientation
+        # We convert the position of the destination to a coordinate
+        # system centered around us. We face the X axis.
+        dest2, self2 = rotatePoints([dest, self.me.pos], self.me.pos,
+                              -self.me.orientation, new_origin=True)
 
-        dx, dy = dest[0] - self.me.pos[0], dest[1] - self.me.pos[1]
-        angleToTarget = atan2(dy, dx)
+        print dest, self.me.pos
+        print dest2, self2
+        assert (self2 <= 2).all(), \
+            "the self-centered coordinate system" \
+            "should have the self centered on 0"
 
-        epsilon = radians(28)
-        deltaAngle = angleToTarget - orient
+        x,y = dest2
 
-        # TODO: predictive turning--move to the direction that
-        # minimises intercept time
-        closest = getAnglePi(deltaAngle)
-        logging.debug("Angle relative to ball: %.3f" % deltaAngle)
-        print ("Angle relative to ball: %.3f" % deltaAngle, closest)
-        self.world.pointer = self.me.pos + \
-            np.array((cos(closest), sin(closest))) * (dest - self.me.pos)
+        # Since we are facing x = 0, we choose the turning direction
+        # by seeing whether the destination is above or below us
 
-        if abs(deltaAngle) < epsilon:
+        # self.world.pointer = self.me.pos + \
+        #     np.array((cos(closest), sin(closest))) * (dest - self.me.pos)
+
+        epsilon = 20
+        if abs(y) < epsilon:
             #self.stopSpin()
             return True
-        else:
-            if closest <= 0: # 0 <= deltaAngle <= pi:
+        if y > 0:
+            if rotAngle < turnThresh:
                 self.startSpinLeft()
             else:
-                self.startSpinRight()
-
-            self.drive()
-            return False
+                self.drive()
+        else:
+            self.startSpinRight()
+        self.drive()
+        return False
 
