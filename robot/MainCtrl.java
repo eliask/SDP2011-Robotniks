@@ -152,7 +152,7 @@ public class MainCtrl {
 	     } else if ((message >= 1189)&&(message <= 1548)){
 		 turnLeftWheelTo(message - 1189);
 	     } else if ((message >= 1549)&&(message <= 1908)){
-		 turnRightWheelTo(message - 1908);
+		 turnRightWheelTo(message - 1549);
 	     }
 	}
     }
