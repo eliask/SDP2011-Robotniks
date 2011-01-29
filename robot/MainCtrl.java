@@ -145,6 +145,14 @@ public class MainCtrl {
 	default:
 	     if ((message >= 106)&&(message <=465)){
 		 setRobotDirection(message - 106);
+	     } else if ((message >= 469)&&(message <= 828)){
+		 turnLeftWheelByAmount(message - 469);
+	     } else if ((message >= 829)&(message <= 1188)){
+		 turnRightWheelByAmount(message - 829);
+	     } else if ((message >= 1189)&&(message <= 1548)){
+		 turnLeftWheelTo(message - 1189);
+	     } else if ((message >= 1549)&&(message <= 1908)){
+		 turnRightWheelTo(message - 1908);
 	     }
 	}
     }
@@ -788,6 +796,8 @@ public class MainCtrl {
 		}
 	    }
 	}
+
+	steeringangle_left = (TurnDegs % 360);
     }
 
     //Turns the right wheel to a specified angle
@@ -812,7 +822,9 @@ public class MainCtrl {
 		    motor_right.rotate((int)(rotConstant * ((360 - (steeringangle_right % 360))+ TurnDegs)));
 		}
 	    }
-	}	
+	}
+	
+	steeringangle_right = (TurnDegs % 360);
     }
 }
 
