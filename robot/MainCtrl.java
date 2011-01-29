@@ -36,11 +36,17 @@ public class MainCtrl {
         private static final Button button_right = Button.RIGHT;
         private static final Button button_enter = Button.ENTER;
 
+        //Defines the variable used to prevent the motors starting whilst turning
+        private static  boolean inturn = false;
+
         // Defines variables used for the managing bluetooth connection
 	private static BTConnection connection;
 	private static DataInputStream inputStream;
 
 	public static void main(String[] args) throws InterruptedException{
+	    motor_left.setSpeed(900);
+	    motor_right.setSpeed(900);
+
 	    executionMenu();
 	}
 	
@@ -56,58 +62,89 @@ public class MainCtrl {
 
         //Handles collecting the messages from the server over Bluetooth
 	private static void collectMessage() throws InterruptedException{
-	    int atend = false;
-	    while(atend = false){
+	    boolean atend = false;
+	    long numoftwos = 0;
+	    long prevval = 0;
+	    int messageno = 0;
+	    while(atend == false){
 			try {
 				// Parse if there are any messages
-				if(inputStream.available()>0){
-				        writeToScreen("Got message",7);
+			    long inlen = inputStream.available();
+			    if((inlen>=4) && (inlen%4 == 0)){
+				writeToScreen("Got message no:"+Integer.toString(messageno),7);
+					if (inlen > 4){
+					    inputStream.skip( ((int) (inlen / 4)) * 4);
+					}
 					int message = inputStream.readInt();
 					// Do specific action
-					if (message != 10000){
-					    parseMessage(message);
-					} else {
-					    //if the message is 10000 close connection
+					if (message == 10000){
 					    atend = true;
+					    writeToScreen(Integer.toString(message),7);
+					} else {
+					    writeToScreen(Integer.toString(message),6);
+					    parseMessage(message);
 					}
-					writeToScreen("Done",7);	
+					inputStream.close();
+					inputStream = connection.openDataInputStream();
+			    } else {
+				writeToScreen("inlen = "+Long.toString(inlen),7);
+				
+				if (prevval == inlen){
+				    numoftwos++;
+				} else {
+				    numoftwos = 0;
 				}
+				if (numoftwos > 30){
+				    inputStream.close();
+				    inputStream = connection.openDataInputStream();
+				}
+				prevval = inlen;
+				//try{
+				//    Thread.sleep(200);
+				//}catch (InterruptedException e){
+				//}
+			    }	
 			} catch (IOException e) {
 			    writeToScreen("Error",7);
+			    atend = true;
 			}
 		}
+	    writeToScreen("Exit While",7);
 	}
 
     //Parses integer messages
     public static void parseMessage(int message){
 	switch(message){
-	case 0:
+	case 100:
 	    reset();
 	    break;
-	case 1:
+	case 101:
 	    drive();
 	    break;
-	case 2:
+	case 102:
 	    stop();
 	    break;
-	case 3:
+	case 103:
 	    startSpinRight();
 	    break;
-	case 5:
+	case 104:
 	    startSpinLeft();
 	    break;
-	case 366:
+	case 105:
+	    stopSpin();
+	    break;
+	case 466:
 	    kick();
 	    break;
-	case 367:
+	case 467:
 	    spinRightShort();
 	    break;
-	case 368:
+	case 468:
 	    spinLeftShort();
 	    break;
 	default:
-	     if ((message >= 6)&&(message <=365)){
-		 setRobotDirection(message - 6);
+	     if ((message >= 106)&&(message <=465)){
+		 setRobotDirection(message - 106);
 	     }
 	}
     }
@@ -212,6 +249,14 @@ public class MainCtrl {
         // Standard execution path
         public static void executeStandard(){
 	    connect();
+	    motor_right.resetTachoCount();
+	    motor_left.resetTachoCount();
+
+	    motor_right.regulateSpeed(true);
+	    motor_left.regulateSpeed(true);
+
+	    motor_right.smoothAcceleration(true);
+	    motor_left.smoothAcceleration(true);
 	    try{
 		collectMessage();
 	    } catch (InterruptedException e){
@@ -494,20 +539,13 @@ public class MainCtrl {
 	// Activate kicker
 	public static void kick(){
 	        writeToScreen("Kick", 7);
-		motor_kick.setSpeed(800);
-		motor_kick.forward();
-		try{
-		    Thread.sleep(417);
-		} catch (InterruptedException e){
-		    writeToScreen("Interrupted!",7);
-		}
-		motor_kick.stop();
-		//Button.waitForPress();
+		motor_kick.setSpeed(900);
+		motor_kick.rotate(720);
 	}
 
        //Sets the robot's direction to the input direction in degrees
 	public static void setRobotDirection(int DirectionDEGs){
-		
+	       inturn = true;
 	       boolean hasmoved = false;
 
 	        //Halts the movement motors if they are already running
@@ -538,12 +576,15 @@ public class MainCtrl {
 		if (hasmoved == true){
 		    drive();
 		}
+		inturn = false;
 	}
 
     //Defines the function to set the robot to spin around it's own centre in the right direction
     public static void startSpinRight(){
 		
 	        boolean hasmoved = false;
+
+		inturn = true;
 
 	        //Halts the movement motors if they are already running
 	        if (moving == true){
@@ -568,7 +609,7 @@ public class MainCtrl {
 		} else if((steeringangle_right % 360) < 135){
 			motor_right.rotate((int) (rotConstant * -1 *(45 +( steeringangle_right % 360))));
 		} else if ((steeringangle_right % 360) >= 135 && ((steeringangle_right % 360) <= 315)) {
-			motor_right.rotate((int) (rotConstant * (180 - ((steeringangle_right % 360) - 45))));
+		    motor_right.rotate((int) (rotConstant * (315 - (steeringangle_right % 360))));
 		}
 		
 		steeringangle_right = 315;
@@ -578,12 +619,14 @@ public class MainCtrl {
 		    drive();
 		}
 
+		inturn = false;
 	}
 
     //Defines the function to set the robot to spin around it's own centre in the right direction
     public static void startSpinLeft(){
 		
 	        boolean hasmoved = false;
+		inturn = true;
 
 	        //Halts the movement motors if they are already running
 	        if (moving == true){
@@ -597,7 +640,7 @@ public class MainCtrl {
 		} else if((steeringangle_left % 360) < 135){
 			motor_left.rotate((int) (rotConstant * -1 *(45 +( steeringangle_left % 360))));
 		} else if ((steeringangle_left % 360) >= 135 && ((steeringangle_left % 360) <= 315)) {
-			motor_left.rotate((int) (rotConstant * (180 - ((steeringangle_left % 360) - 45))));
+		    motor_left.rotate((int) (rotConstant * (315 - (steeringangle_left % 360))));
 		}
 		
 		steeringangle_left = 315;
@@ -618,12 +661,14 @@ public class MainCtrl {
 		    drive();
 		}
 
+		inturn = false;
 	}
 
     //Defines the function used to stop the robot spinning round it's own centre
     public static void stopSpin(){
 	
 	 boolean hasmoved = false;
+	 inturn = true;
 
 	 //Halts the movement motors if they are already running
          if (moving == true){
@@ -638,13 +683,16 @@ public class MainCtrl {
 	if (hasmoved == true){
        	    drive();
 	}
+	inturn = false;
     }
 
     //Communicates with the light sensor on the RCX to start the drive motors
     public static void drive(){
-	port_comlight.setPowerType(port_comlight.POWER_RCX9V);
-	port_comlight.activate();
-	moving = true;
+	if((inturn == false) && (motor_left.isMoving() == false) && (motor_right.isMoving()== false)){
+	    port_comlight.setPowerType(port_comlight.POWER_RCX9V);
+	    port_comlight.activate();
+	    moving = true;
+	}
     }
 
     //Communicates with the light sensor on the RCX to stop the drive motors
@@ -655,7 +703,9 @@ public class MainCtrl {
 
     //Resets both wheels to 0 deg
     public static void reset(){
-	
+
+	inturn = true;
+
 	//rotates the left wheels back to 0 deg
 	if ((steeringangle_left % 360) > 180){
 	    motor_left.rotate((int)(rotConstant * (180 - ((steeringangle_left % 360) - 180))));
@@ -674,6 +724,7 @@ public class MainCtrl {
 
 	steeringangle_right = 0;
 
+	inturn = false;
     }
 
     //Makes the robot make a slight spin right
@@ -681,7 +732,7 @@ public class MainCtrl {
 	startSpinRight();
 	drive();
 	try{
-	    Thread.sleep(800);
+	    Thread.sleep(600);
 	} catch (InterruptedException e){
 	    writeToScreen("Msg Col Interupt",7);
 	}
@@ -694,12 +745,38 @@ public class MainCtrl {
 	startSpinLeft();
 	drive();
 	try{
-	    Thread.sleep(800);
+	    Thread.sleep(600);
 	} catch (InterruptedException e){
 	    writeToScreen("Msg Col Interupt",7);
 	}
 	stop();
 	stopSpin();
+    }
+
+    public static void turnLeftWheelByAmount(int TurnDegs){
+	motor_left.rotate((int) (rotConstant * TurnDegs));
+	steeringangle_left = ((steeringangle_left + TurnDegs) % 360);
+    }
+
+    public static void turnRightWheelByAmount(int TurnDegs){
+	motor_right.rotate((int) (rotConstant * TurnDegs));
+	steeringangle_right = ((steeringangle_right + TurnDegs) % 360);
+    }
+
+    public static void turnLeftWheelTo(int TurnDegs){
+	if ((steeringangle_left % 360) < 180){
+	    
+	} else if ((steeringangle_left % 360) >= 180){
+	    
+	}
+    }
+
+    public static void turnRightWheelTo(int TurnDegs){
+	if (((steeringangle_right % 360) - TurnDegs) < 180){
+	    
+	} else if (((steeringangle_right % 360) - TurnDegs) >= 180){
+	    
+	}	
     }
 }
 

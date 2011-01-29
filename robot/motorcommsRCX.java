@@ -31,7 +31,11 @@
 		    Sensor.S1.setTypeAndMode(3,0x80);
 		    Sensor.S2.setTypeAndMode(1,0x40);
 		    
-		    int calibvalue = 81;
+		    try{
+		       Thread.sleep(2000);
+	       	    } catch (InterruptedException e){
+       		    }
+		    int calibvalue = (Sensor.S1.readValue()+1);
 		    int loopctl = 1;
 		    boolean flag1 = false;
 		    while (loopctl > 0){
@@ -51,7 +55,15 @@
 			}
 			
 			if(Sensor.S2.readBooleanValue()){
-			    calibvalue = Sensor.S1.readValue();
+			    if (calibvalue < 83){
+				calibvalue ++;
+			    } else {
+				calibvalue = 78;
+			    }
+			    try{
+				Thread.sleep(2000);
+			    } catch (InterruptedException e){
+			    }
 			}
 		    }		  
 
