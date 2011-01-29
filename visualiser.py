@@ -202,13 +202,13 @@ class Visualiser(object):
             elif event.type == MOUSEBUTTONDOWN:
                 pos = event.pos
                 if event.button == 1:
-                    if not self.startPos:
+                    if self.startPos is None:
                         print "START"
                         self.startPos = pos
                     elif not self.startOrient:
                         self.startOrient = atan2(pos[1] - self.startPos[1],
                                                  pos[0] - self.startPos[0])
-                    elif not self.goalPos:
+                    elif self.goalPos is None:
                         print "GOAL"
                         self.goalPos = pos
                     else:
