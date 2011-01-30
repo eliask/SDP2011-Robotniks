@@ -18,7 +18,6 @@ class RealRobotInterface(interface.RobotInterface):
 		time.sleep(0.5)
 
 	def reset(self):
-		#logging.debug("Told the robot: %d", x)
 		self.sendMessage(100)
 
 	def drive(self):
@@ -45,7 +44,7 @@ class RealRobotInterface(interface.RobotInterface):
                         angle = angle - 180
 
                 msg = 6 + angle
-                assert 6 <= msg <= 465
+                assert 106 <= msg <= 465
                 self.sendMessage(msg)
 
 	def kick(self):
