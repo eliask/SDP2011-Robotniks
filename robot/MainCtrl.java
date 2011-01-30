@@ -145,6 +145,14 @@ public class MainCtrl {
 	default:
 	     if ((message >= 106)&&(message <=465)){
 		 setRobotDirection(message - 106);
+	     } else if ((message >= 469)&&(message <= 828)){
+		 turnLeftWheelByAmount(message - 469);
+	     } else if ((message >= 829)&(message <= 1188)){
+		 turnRightWheelByAmount(message - 829);
+	     } else if ((message >= 1189)&&(message <= 1548)){
+		 turnLeftWheelTo(message - 1189);
+	     } else if ((message >= 1549)&&(message <= 1908)){
+		 turnRightWheelTo(message - 1549);
 	     }
 	}
     }
@@ -753,30 +761,70 @@ public class MainCtrl {
 	stopSpin();
     }
 
+    //Turns the left wheel by a specified ammount
     public static void turnLeftWheelByAmount(int TurnDegs){
 	motor_left.rotate((int) (rotConstant * TurnDegs));
 	steeringangle_left = ((steeringangle_left + TurnDegs) % 360);
     }
 
+    //Turns the right wheel by a specified amount
     public static void turnRightWheelByAmount(int TurnDegs){
 	motor_right.rotate((int) (rotConstant * TurnDegs));
 	steeringangle_right = ((steeringangle_right + TurnDegs) % 360);
     }
 
+    //Turns the left wheel to a specified angle
     public static void turnLeftWheelTo(int TurnDegs){
 	if ((steeringangle_left % 360) < 180){
-	    
+	    if (TurnDegs < 180){
+		motor_left.rotate((int)(rotConstant * (TurnDegs - steeringangle_left)));
+	    } else if (TurnDegs >= 180){
+		if ((TurnDegs - (steeringangle_left % 360)) < 180){
+		    motor_left.rotate((int) (rotConstant * (TurnDegs - steeringangle_left)));
+		} else if(TurnDegs - (steeringangle_left % 360)) >= 180 (){
+			motor_left.rotate((int) ( rotConstant * -1 *((360 - (TurnDegs % 360)) + steeringangle_left)));
+		}
+	    }
 	} else if ((steeringangle_left % 360) >= 180){
-	    
+	    if ((TurnDegs % 360) >= 180){
+		motor_left.rotate((int)(rotConstant * ((TurnDegs % 360) - steeringangle_left)));
+	    }else if (TurnDegs < 180){
+		if(((steeringangle_left % 360) - (TurnDegs % 360)) < 180){
+		    motor_left.rotate((int)(rotConstant * ((TurnDegs % 360) - (steeringangle_left % 360))));
+		} else if(((steeringangle_left % 360) - (TurnDegs % 360)) >= 180){
+		    motor_left.rotate((int)(rotConstant * ((360 - (steeringangle_left % 360))+ TurnDegs)));
+		}
+	    }
 	}
+
+	steeringangle_left = (TurnDegs % 360);
     }
 
+    //Turns the right wheel to a specified angle
     public static void turnRightWheelTo(int TurnDegs){
-	if (((steeringangle_right % 360) - TurnDegs) < 180){
-	    
-	} else if (((steeringangle_right % 360) - TurnDegs) >= 180){
-	    
-	}	
+	if ((steeringangle_right % 360) < 180){
+	    if (TurnDegs < 180){
+		motor_right.rotate((int)(rotConstant * (TurnDegs - steeringangle_right)));
+	    } else if (TurnDegs >= 180){
+		if ((TurnDegs - (steeringangle_right % 360)) < 180){
+		    motor_right.rotate((int) (rotConstant * (TurnDegs - steeringangle_right)));
+		} else if(TurnDegs - (steeringangle_right % 360)) >= 180 (){
+			motor_right.rotate((int) ( rotConstant * -1 *((360 - (TurnDegs % 360)) + steeringangle_right)));
+		}
+	    }
+	} else if ((steeringangle_right % 360) >= 180){
+	    if ((TurnDegs % 360) >= 180){
+		motor_right.rotate((int)(rotConstant * ((TurnDegs % 360) - steeringangle_right)));
+	    }else if (TurnDegs < 180){
+		if(((steeringangle_right % 360) - (TurnDegs % 360)) < 180){
+		    motor_right.rotate((int)(rotConstant * ((TurnDegs % 360) - (steeringangle_right % 360))));
+		} else if(((steeringangle_right % 360) - (TurnDegs % 360)) >= 180){
+		    motor_right.rotate((int)(rotConstant * ((360 - (steeringangle_right % 360))+ TurnDegs)));
+		}
+	    }
+	}
+	
+	steeringangle_right = (TurnDegs % 360);
     }
 }
 

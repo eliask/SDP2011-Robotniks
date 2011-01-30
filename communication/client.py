@@ -55,3 +55,7 @@ class RealRobotInterface(interface.RobotInterface):
 	def spinLeftShort(self):
 		self.sendMessage(468)
 
+	def shutdownServer(self):
+		self.sendMessage(-1)
+
+
