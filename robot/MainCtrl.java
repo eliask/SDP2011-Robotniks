@@ -541,7 +541,205 @@ public class MainCtrl {
 	     stop();
 	     writeToScreen("Done!",2);
 	     button_enter.waitForPress();
+
+	     //Turns the left wheel by 191Degs and then resets the steering back to 0
+	     writeToScreen("TWByAmount Test 1.",1);
+	     writeToScreen("TLWByAmt 191Degs, RST",2);
+	     button_enter.waitForPress();
+	     turnLeftWheelByAmount(191);
+	     writeToScreen("Turned!",2);
+	     button_enter.waitForPress();
+	     reset();
+	     writeToScreen("Done!",2);
+	     button_enter.waitForPress();
+
+	     //Turns the right wheel by 191Degs and then resets the steering back to 0
+	     writeToScreen("TWByAmount Test 2.",1);
+	     writeToScreen("TRWByAmt 191Degs, RST",2);
+	     button_enter.waitForPress();
+	     turnRightWheelByAmount(191);
+	     writeToScreen("Turned!",2);
+	     button_enter.waitForPress();
+	     reset();
+	     writeToScreen("Done!",2);
+	     button_enter.waitForPress();
+
+	     //Sets the robot in a direction of 135Degs and then turns the left wheel to 120Degs and resets
+	     writeToScreen("TWTo Test 1.",1);
+	     writeToScreen("SDir 135, TLWTo 120, RST",2);
+	     button_enter.waitForPress();
+	     setRobotDirection(135);
+	     turnLeftWheelTo(120);
+	     writeToScreen("LW at 120Degs?",2);
+	     button_enter.waitForPress();
+	     reset();
+	     writeToScreen("Done!",2);
+
+	     //Sets the robot in a direction of 120Degs and then turns the left wheel to 135Degs and resets
+	     writeToScreen("TWTo Test 2.",1);
+	     writeToScreen("SDir 120, TLWTo 135, RST",2);
+	     button_enter.waitForPress();
+	     setRobotDirection(120);
+	     turnLeftWheelTo(135);
+	     writeToScreen("LW at 135Degs?",2);
+	     button_enter.waitForPress();
+	     reset();
+	     writeToScreen("Done!",2);
+
+	     //Sets the robot in a direction of 170Degs and then turns the left wheel to 190Degs and resets
+	     writeToScreen("TWTo Test 3.",1);
+	     writeToScreen("SDir 170, TLWTo 190, RST",2);
+	     button_enter.waitForPress();
+	     setRobotDirection(170);
+	     turnLeftWheelTo(190);
+	     writeToScreen("LW at 190Degs?",2);
+	     button_enter.waitForPress();
+	     reset();
+	     writeToScreen("Done!",2);
+
+	     //Sets the robot in a direction of 10Degs and then turns the left wheel to 300Degs and resets
+	     writeToScreen("TWTo Test 4.",1);
+	     writeToScreen("SDir 10, TLWTo 300, RST",2);
+	     button_enter.waitForPress();
+	     setRobotDirection(10);
+	     turnLeftWheelTo(300);
+	     writeToScreen("LW at 300Degs?",2);
+	     button_enter.waitForPress();
+	     reset();
+	     writeToScreen("Done!",2);
+
+	     //Sets the robot in a direction of 200Degs and then turns the left wheel to 320Degs and resets
+	     writeToScreen("TWTo Test 5.",1);
+	     writeToScreen("SDir 200, TLWTo 320, RST",2);
+	     button_enter.waitForPress();
+	     setRobotDirection(200);
+	     turnLeftWheelTo(320);
+	     writeToScreen("LW at 320Degs?",2);
+	     button_enter.waitForPress();
+	     reset();
+	     writeToScreen("Done!",2);
+
+	     //Sets the robot in a direction of 320Degs and then turns the left wheel to 200Degs and resets
+	     writeToScreen("TWTo Test 6.",1);
+	     writeToScreen("SDir 320, TLWTo 200, RST",2);
+	     button_enter.waitForPress();
+	     setRobotDirection(320);
+	     turnLeftWheelTo(200);
+	     writeToScreen("LW at 200Degs?",2);
+	     button_enter.waitForPress();
+	     reset();
+	     writeToScreen("Done!",2);
+
+	     //Sets the robot in a direction of 190Degs and then turns the left wheel to 120Degs and resets
+	     writeToScreen("TWTo Test 7.",1);
+	     writeToScreen("SDir 190, TLWTo 120, RST",2);
+	     button_enter.waitForPress();
+	     setRobotDirection(190);
+	     turnLeftWheelTo(120);
+	     writeToScreen("LW at 120Degs?",2);
+	     button_enter.waitForPress();
+	     reset();
+	     writeToScreen("Done!",2);  
 	     
+	     //Sets the robot in a direction of 10Degs and then turns the left wheel to 193Degs and resets
+	     writeToScreen("TWTo Test 8.",1);
+	     writeToScreen("SDir 10, TLWTo 193, RST",2);
+	     button_enter.waitForPress();
+	     setRobotDirection(10);
+	     turnLeftWheelTo(193);
+	     writeToScreen("LW at 10Degs?",2);
+	     button_enter.waitForPress();
+	     reset();
+	     writeToScreen("Done!",2);
+
+	     //Sets the robot in a direction of 120Degs and then turns the right wheel to 135Degs and resets
+	     writeToScreen("TWTo Test 9.",1);
+	     writeToScreen("SDir 120, TRWTo 135, RST",2);
+	     button_enter.waitForPress();
+	     setRobotDirection(120);
+	     turnRightWheelTo(135);
+	     writeToScreen("RW at 135Degs?",2);
+	     button_enter.waitForPress();
+	     reset();
+	     writeToScreen("Done!",2);
+
+	     //Sets the robot in a direction of 135Degs and then turns the right wheel to 120Degs and resets
+	     writeToScreen("TWTo Test 10.",1);
+	     writeToScreen("SDir 135, TRWTo 120, RST",2);
+	     button_enter.waitForPress();
+	     setRobotDirection(135);
+	     turnRightWheelTo(120);
+	     writeToScreen("RW at 120Degs?",2);
+	     button_enter.waitForPress();
+	     reset();
+	     writeToScreen("Done!",2);
+
+	     //Sets the robot in a direction of 170Degs and then turns the right wheel to 190Degs and resets
+	     writeToScreen("TWTo Test 11.",1);
+	     writeToScreen("SDir 170, TRWTo 190, RST",2);
+	     button_enter.waitForPress();
+	     setRobotDirection(170);
+	     turnRightWheelTo(190);
+	     writeToScreen("RW at 190Degs?",2);
+	     button_enter.waitForPress();
+	     reset();
+	     writeToScreen("Done!",2);
+
+	     //Sets the robot in a direction of 10Degs and then turns the right wheel to 300Degs and resets
+	     writeToScreen("TWTo Test 12.",1);
+	     writeToScreen("SDir 10, TRWTo 300, RST",2);
+	     button_enter.waitForPress();
+	     setRobotDirection(10);
+	     turnRightWheelTo(300);
+	     writeToScreen("RW at 300Degs?",2);
+	     button_enter.waitForPress();
+	     reset();
+	     writeToScreen("Done!",2);
+
+             //Sets the robot in a direction of 200Degs and then turns the right wheel to 320Degs and resets
+	     writeToScreen("TWTo Test 13.",1);
+	     writeToScreen("SDir 200, TRWTo 320, RST",2);
+	     button_enter.waitForPress();
+	     setRobotDirection(200);
+	     turnRightWheelTo(320);
+	     writeToScreen("RW at 320Degs?",2);
+	     button_enter.waitForPress();
+	     reset();
+	     writeToScreen("Done!",2);
+
+	     //Sets the robot in a direction of 320Degs and then turns the right wheel to 200Degs and resets
+	     writeToScreen("TWTo Test 14.",1);
+	     writeToScreen("SDir 320, TRWTo 200, RST",2);
+	     button_enter.waitForPress();
+	     setRobotDirection(320);
+	     turnRightWheelTo(200);
+	     writeToScreen("RW at 200Degs?",2);
+	     button_enter.waitForPress();
+	     reset();
+	     writeToScreen("Done!",2);
+
+	     //Sets the robot in a direction of 190Degs and then turns the right wheel to 120Degs and resets
+	     writeToScreen("TWTo Test 15.",1);
+	     writeToScreen("SDir 190, TRWTo 120, RST",2);
+	     button_enter.waitForPress();
+	     setRobotDirection(190);
+	     turnRightWheelTo(120);
+	     writeToScreen("RW at 120Degs?",2);
+	     button_enter.waitForPress();
+	     reset();
+	     writeToScreen("Done!",2);
+
+	     //Sets the robot in a direction of 10Degs and then turns the right wheel to 193Degs and resets
+	     writeToScreen("TWTo Test 16.",1);
+	     writeToScreen("SDir 10, TRWTo 193, RST",2);
+	     button_enter.waitForPress();
+	     setRobotDirection(10);
+	     turnRightWheelTo(193);
+	     writeToScreen("RW at 193Degs?",2);
+	     button_enter.waitForPress();
+	     reset();
+	     writeToScreen("Done!",2);
+
        }
 
 	// Activate kicker
@@ -781,7 +979,7 @@ public class MainCtrl {
 	    } else if (TurnDegs >= 180){
 		if ((TurnDegs - (steeringangle_left % 360)) < 180){
 		    motor_left.rotate((int) (rotConstant * (TurnDegs - steeringangle_left)));
-		} else if(TurnDegs - (steeringangle_left % 360)) >= 180 (){
+		} else if((TurnDegs - (steeringangle_left % 360)) >= 180 ){
 			motor_left.rotate((int) ( rotConstant * -1 *((360 - (TurnDegs % 360)) + steeringangle_left)));
 		}
 	    }
@@ -808,7 +1006,7 @@ public class MainCtrl {
 	    } else if (TurnDegs >= 180){
 		if ((TurnDegs - (steeringangle_right % 360)) < 180){
 		    motor_right.rotate((int) (rotConstant * (TurnDegs - steeringangle_right)));
-		} else if(TurnDegs - (steeringangle_right % 360)) >= 180 (){
+		} else if((TurnDegs - (steeringangle_right % 360)) >= 180){
 			motor_right.rotate((int) ( rotConstant * -1 *((360 - (TurnDegs % 360)) + steeringangle_right)));
 		}
 	    }
