@@ -32,9 +32,6 @@ class Vision():
         self.times=[]
         self.N=0
 
-        #debug.thresholdValues(T, self.gui)
-        #debug.thresholdValues(self.threshold.Tblue, self.gui)
-
         logging.debug('Vision initialised')
 
     def processFrame(self):
