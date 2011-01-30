@@ -80,15 +80,12 @@ class GUI:
 
     def displayOverlay(self, ents):
         if self.overlay:
-            try:
-                self.drawFPS()
-                self.drawEntities(ents)
-            except Exception, e:
-                logging.warn("overlay drawing failed: %s", e)
+            self.drawFPS()
+            self.drawEntities(ents)
 
         if self.world.pointer:
             cv.Circle(self.frame, self.world.pointer,
-                      cv.Round(20), cv.CV_RGB(0,255,255))
+                      20, cv.CV_RGB(0,255,255))
 
     def displayHistogram(self):
         if self.histogram and self.image.nChannels == 3:
@@ -185,12 +182,9 @@ class GUI:
 
     def processInput(self):
         c = cv.WaitKey(5)
-
-        try:
-            k = chr(c)
-        except ValueError, e:
-            logging.debug(e)
+        if not 0 <= c <= 255:
             return
+        k = chr(c)
 
         if k == '\x1b': #ESC
             self.quit = True
@@ -216,7 +210,7 @@ class GUI:
         # elif k == 'g':
         #     self.switchWindow('pyramid')
         elif k == '0':
-            self.channel = 1
+            self.channel = 0
         elif k == '1':
             self.channel = 1
             print "CHAN"
