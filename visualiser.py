@@ -80,10 +80,10 @@ class Visualiser(object):
         #self.startPos = np.array(rotatePoints([self.startPos], self.startPos, -self.startOrient)[0]) + offset
         self.startPos = np.array([1,1]) + offset
         self.startOrient = 0
-        self.goalPos = np.array(rotatePoints([self.goalPos], self.startPos, -self.startOrient)[0]) + offset
+        self.goalPos = np.array(rotatePoints([self.goalPos], self.startPos, -self.startOrient, new_origin=True ))[0]) + offset
         self.obstacles = map(lambda x: np.array(x)+offset,
                              rotatePoints(self.obstacles, self.startPos,
-                                          -self.startOrient))
+                                          -self.startOrient, new_origin=True )))
 
         self.screen.fill( (0,0,0,0) )
         Max = 0
@@ -99,6 +99,7 @@ class Visualiser(object):
             <=> x1^2 + y1^2 < ± 2R*x1.
             <=> x1^2 + y1^2 < 2R*|x1|.
             """
+            dist = 0
             if x**2 + y**2 < 2*R*abs(y):
                 dist = inf
 
@@ -125,8 +126,21 @@ class Visualiser(object):
             tangent_dist = sqrt( (x_i-x)**2 + (y_i-y)**2 )
             # TODO: either use this or pi - this depending on circle side
             angle = atan2(y_i/R, x_i/R)
-            circle_walk_dist = R*angle/pi
-            dist = tangent_dist + circle_walk_dist
+            circle_walk_dist = R*abs(angle)/pi
+            if dist == 0:
+                dist = tangent_dist + circle_walk_dist
+
+            y1, y2 = -R, y
+            dy = y2 - y1
+            dt = sqrt(dx**2 + dy**2)
+            Det = x1*y2 - x2*y1
+            x_i =  Det*dy / dt**2
+            y_i = -Det*dx / dt**2
+            tangent_dist = sqrt( (x_i-x)**2 + (y_i-y)**2 )
+            angle = atan2(y_i/R, x_i/R)
+            circle_walk_dist = R*abs(angle)/pi
+            if dist == 0:
+                dist = tangent_dist + circle_walk_dist
 
             # for o in self.obstacles:
             #     dist += ( (x_i-o[0])**2 + (y_i-o[1])**2 )** -0.1
@@ -143,11 +157,14 @@ class Visualiser(object):
             dist2 = self.turn_speed/pi * self.speed * angle2 \
                 + sqrt(x**2 + y**2)
 
-            col = [0, min(255, max(0, int(200 - dist))), 0]
-            if dist > Max: Max = dist
+            if dist < inf and dist > Max: Max = dist
 
             if dist2 < dist:
                 col = [min(255, max(0, int(200 - dist2))), 0, 0]
+            else:
+                col = [0, min(255, max(0, int(200 - dist))), 0]
+
+            if dist == inf: continue
 
             self.screen.set_at(offset + map(int, (x,y)), col)
 
