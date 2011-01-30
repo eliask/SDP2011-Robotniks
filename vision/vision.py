@@ -69,9 +69,10 @@ class Vision():
         self.runtimeInfo()
 
     def runtimeInfo(self):
-        avg = 1000*sum(times)/N # in milliseconds
-        variance = sum(map(lambda x:(x-avg)**2, times)) / N
+        avg = 1000*sum(self.times)/self.N # in milliseconds
+        variance = sum(map(lambda x:(x-avg)**2, self.times)) / self.N
         stddev = math.sqrt(variance)
-        logging.info( "Runtime/realtime ratio:", avg * 25/1000 )
+        logging.info( "Runtime/realtime ratio: %.3f", avg * 25/1000 )
         logging.info( "Avg. processing time / frame: %.2f ms", avg )
         logging.info( "Standard deviation: %.2f ms", stddev )
+        logging.info( "Avg. FPS: %.2f", 1000/avg )
