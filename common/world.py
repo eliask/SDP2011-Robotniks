@@ -1,6 +1,8 @@
 from utils import *
 import time
 from math import *
+from robot_estimator import *
+from ball_estimator import *
 
 class Robot: pass
 class Ball:
@@ -35,6 +37,9 @@ class World(object):
             "Legal robot colour is required"
 
         self.ents = {}
+        self.est_ball   = BallEstimator()
+        self.est_yellow = RobotEstimator()
+        self.est_blue   = RobotEstimator()
 
     def openLog(self):
         self.log = open('anomalities.txt', 'a')
@@ -45,21 +50,23 @@ class World(object):
 
         self.pointer = None
 
-        self.updatePredictions()
-        self.updateAttributes()
+        self.est_ball.update( ents['balls'] )
+        self.est_yellow.update( [ents['yellow']] )
+        self.est_blue.update( [ents['blue']] )
+
+        self.convertMeasurements()
+        self.assignSides()
         self.updateStates()
-        self.updateWorld()
 
     def __getPos(self, ent):
         x,y = entCenter(ent)
         return np.array((x,y))
 
-    def __getRobot(self, ent):
+    def __getRobot(self, est):
         robot = Robot()
-        robot.pos = self.__getPos(ent)
-        robot.velocity = ent['velocity']
-        robot.orientation = ent['orient']
-        #robot.direction = ent['direction']
+        robot.pos = estimator.getPos()
+        robot.velocity = estimator.getVelocity()
+        robot.orientation = estimator.getOrientation()
         return robot
 
     def getSelf(self):
@@ -68,9 +75,10 @@ class World(object):
         return self.__getRobot( self.them )
 
     def getBall(self):
+
         ball = Ball()
-        ball.pos = self.__getPos( self.ents['ball'] )
-        ball.velocity = self.ents['ball']['velocity']
+        ball.pos =      self.est_ball.getPos()
+        ball.velocity = self.est_ball.getVelocity()
         return ball
 
     def updateStates(self):
@@ -79,114 +87,18 @@ class World(object):
         if len(self.states) > self.max_states:
             del self.states[0]
 
-    def updatePredictions(self):
-        """Construct a predicted world state
-
-        The predictions made here are later used to reconcile new
-        percepts with our knowledge of the way the world works.
-        """
-        self.predictBall()
-        self.predictRobots()
-
-    def updateAttributes(self):
-        self.assignSides()
-        self.convertMeasurements()
-        self.updateBall()
-        self.updateRobots()
-        self.updateVelocities()
-
     def assignSides(self):
-        self.us = self.ents[self.ourColour]
         if self.ourColour == 'blue':
-            self.them = self.ents['yellow']
+            self.us   = self.est_blue
+            self.them = self.est_yellow
         else:
-            self.them = self.ents['blue']
-
-    def updateWorld(self):
-        """Add missing entities or delete contradictory ones
-
-        In case some essential entities are missing, do our best to
-        compensate for that, i.e., reconstruct them based on our
-        knowledge about them from the past states.
-
-        If, on the other hand, we see things suddenly teleporting
-        somewhere else, we probably
-        """
-        try:
-            for name in ('blue', 'yellow'):
-                e1 = self.states[-1][name]
-                e2 = self.states[-2][name]
-
-                #print e2['orient'] - e1['orient']
-                if abs(e2['orient'] - e1['orient']) > pi/5:
-                    print >>self.log, e1, e2
-
-        except (IndexError, TypeError): pass
-
-    def predictBall(self):
-        pass
-
-    def predictRobots(self):
-        pass
+            self.us   = self.est_yellow
+            self.them = self.est_blue
 
     def convertMeasurements(self):
         "Convert image measures to real-world measures"
-        pass
-
-    def updateBall(self):
-        """Decide where the ball is.
-
-        self.ents contains a list of potential balls. To decide which
-        one is the actual ball, we pick the one that is closest to the
-        predicted ball position.
-
-        Initially we look for the ball near the center, or as close to
-        the center as possible.
-        """
-        # TODO: implement as per description
-        self.ents['ball'] = None
-        if self.ents['balls']:
-            self.ents['ball'] = self.ents['balls'][0]
-
-    def updateRobots(self):
-        pass
-
-    def updateVelocities(self):
-        for name in self.entityNames:
-            if not self.ents[name]:
-                continue
-
-            # We assume we haven't got the start signal in the first
-            # couple of frames
-            if len(self.states) < self.vHorizon:
-                self.ents[name]['velocity'] = np.array([0, 0])
-                continue
-
-            # TODO: fix the hack
-            self.ents[name]['velocity'] = np.array([0, 0])
-
-            # Do this until we have object interpolation working
-            # Or maybe check self.states[*][name] != None after all...
-            try:
-                avgV = self.averageVelocities(name, self.states[self.vHorizon:-2])
-                v0 = entCenter(self.states[-3][name])
-                v1 = entCenter(self.states[-1][name])
-                newV = (v1-v0)*self.vWeight + avgV*(1-self.vWeight)
-                self.ents[name]['velocity'] = newV
-            except TypeError:
-                pass
-
-
-    def averageVelocities(self, name, states):
-        if len(states) == 0:
-            return np.array([0, 0])
-
-        V0 = []; V1 = []
-        for state in states:
-            v0, v1 = state[name]['velocity']
-            V0.append(v0)
-            V1.append(v1)
-        return np.array( sum(V0)/len(V0), sum(V1)/len(V1) )
+        for ent in self.ents:
+            pass
 
 class ReversedWorld(World):
     "See us as the other robot - useful if we have two AIs"
