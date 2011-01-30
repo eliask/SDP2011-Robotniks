@@ -37,9 +37,14 @@ class Vision():
 
         logging.debug('Vision initialised')
 
+    def formatTime(self, t):
+        return time.strftime('%H:%M:%S', time.localtime(t)) \
+            + ( '%.3f' % (t - math.floor(t)) )[1:] #discard leading 0
+
     def processFrame(self):
         startTime = time.time()
-        logging.debug("Frame %d at %f", self.N, startTime)
+        logging.debug("Frame %d at %s", self.N,
+                      self.formatTime(startTime) )
         self.N += 1
 
         logging.debug("Capturing a frame")
