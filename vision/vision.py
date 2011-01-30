@@ -15,6 +15,9 @@ class Vision():
     #rawSize = (768,576)
     rawSize = (640, 480)
 
+    # Whether to 'crash' when something non-critical like the GUI fails
+    debug = True
+
     def __init__(self, world, filename=None, simulator=None):
         logging.info('Initialising vision')
         if simulator:
@@ -51,15 +54,20 @@ class Vision():
         logging.debug("Entering interpreter")
         self.world.update(startTime, ents)
 
-        bgsub = self.pre.remove_background(standard)
-        self.gui.updateWindow('raw', frame)
-        self.gui.updateWindow('mask', bgsub_mask)
-        self.gui.updateWindow('foreground', bgsub_vals)
-        self.gui.updateWindow('bgsub', bgsub)
-        self.gui.updateWindow('standard', standard)
-        self.gui.draw(ents, startTime)
-        endTime = time.time()
+        try:
+            bgsub = self.pre.remove_background(standard)
+            self.gui.updateWindow('raw', frame)
+            self.gui.updateWindow('mask', bgsub_mask)
+            self.gui.updateWindow('foreground', bgsub_vals)
+            self.gui.updateWindow('bgsub', bgsub)
+            self.gui.updateWindow('standard', standard)
+            self.gui.draw(ents, startTime)
+        except Exception, e:
+            logging.error("GUI failed: %s", e)
+            if self.debug:
+                raise
 
+        endTime = time.time()
         self.times.append( (endTime - startTime) )
 
     def run(self):
