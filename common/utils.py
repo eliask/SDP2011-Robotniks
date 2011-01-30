@@ -8,6 +8,8 @@ import tempfile
 from math import *
 import numpy as np
 
+def cvmat2list(mat):
+    return [ mat[i,j] for i in range(mat.rows) for j in range(mat.cols) ]
 
 def entDimPos(ent):
     """Outputs a tuple of strings for entity size and position
