@@ -4,17 +4,18 @@ from math import *
 from robot_estimator import *
 from ball_estimator import *
 
-class Robot: pass
-class Ball:
-    pos=None
+class Robot(object): pass
+class Ball(object):  pass
 
 class World(object):
 
     # Lengths are in millimetres
-    PitchWidth   = 1215
-    PitchLength  = 2240
-    ballDiameter = 45
-    goalLength   = 585
+    PitchWidth   = 121.5
+    PitchLength  = 224.0
+    BallDiameter = 4.5
+    GoalLength   = 58.5
+    RobotLength  = 20.0
+    RobotWidth   = 20.0
 
     max_states   = 5000
     states = []
@@ -27,7 +28,7 @@ class World(object):
     # The entities we are interested in
     entityNames = ('ball', 'blue', 'yellow')
 
-    def __init__(self, ourColour = None):
+    def __init__(self, ourColour=None):
         self.name = "Real World"
         self.time = time.time()
         self.openLog()
