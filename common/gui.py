@@ -160,9 +160,8 @@ class GUI:
 
     def drawEntities(self, ents):
         #self.drawRotBox(ents['balls'], color=cv.CV_RGB(255,0,255), label='BALL')
-        cv.Circle(self.image, self.world.getBall().pos,
-                  15, cv.CV_RGB(200,200,200))
-
+        cv.Circle(self.image, tuple(self.world.getBall().pos),
+                  15, (200,200,200))
 
         if ents['yellow']:
             logging.info( "Yellow robot at angle: %.3f",
