@@ -1,9 +1,9 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from .common.utils import *
+from common.utils import *
 from communication.client import *
-from .strategy.strategy import Strategy
+from strategy.strategy import Strategy
 from ball import *
 from input import Input
 from math import *
@@ -17,7 +17,7 @@ import pygame
 import sys, tempfile, logging
 
 try:
-    from .vision.vision import Vision
+    from vision.vision import Vision
 except ImportError:
     pass
 

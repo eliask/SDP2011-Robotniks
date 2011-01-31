@@ -3,7 +3,7 @@ import pygame
 from copy import deepcopy
 from math import *
 from random import *
-from .common.utils import *
+from common.utils import *
 from world import World
 from entity import Entity
 from robot_interface import *

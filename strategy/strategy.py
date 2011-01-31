@@ -1,4 +1,4 @@
-from .communication.interface import *
+from communication.interface import *
 import logging
 
 class Strategy(object):
