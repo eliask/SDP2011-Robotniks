@@ -69,7 +69,7 @@ def get_contours(frame):
 
         OpenCV Error: Assertion failed (arr != 0 && contour_header != 0 && block != 0) in cvPointSeqFromMat, file /tmp/buildd/opencv-2.1.0/src/cv/cvutils.cpp, line 47
         """
-        logging.warn("Passed an empty image to contour detection")
+        logging.error("Passed an empty image to contour detection")
 
     return contours
 

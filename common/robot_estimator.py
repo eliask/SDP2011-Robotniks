@@ -50,8 +50,6 @@ class RobotEstimator(object):
         return cvmat2list(self.prediction)[6]
 
     def update(self, robots):
-        logging.debug('Updating robot Kalman filter')
-
         prediction = cv.KalmanPredict( self.kalman )[:,0]
         predicted_pos = cvmat2list(prediction)[:2]
         logging.debug( 'Predicted robot position: %s',

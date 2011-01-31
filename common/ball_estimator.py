@@ -37,7 +37,6 @@ class BallEstimator(object):
         return cvmat2list(self.prediction)[2:4]
 
     def update(self, balls):
-        logging.debug('Updating ball Kalman filter')
         prediction = cv.KalmanPredict( self.kalman )[:,0]
         predicted_pos = cvmat2list(prediction)[:2]
         logging.debug( 'Predicted ball position: %s',
