@@ -3,7 +3,7 @@ from vision.preprocess import Preprocessor
 from vision.capture import *
 from vision.vision import Vision
 import os, tempfile
-from .common.utils import *
+from common.utils import *
 import vision.threshold
 
 class OpenCVPitch(Capture):

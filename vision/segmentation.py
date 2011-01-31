@@ -1,5 +1,5 @@
 import cv
-from .common.utils import *
+from common.utils import *
 import logging
 
 _red = cv.Scalar(0, 0, 255, 0)

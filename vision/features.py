@@ -1,5 +1,5 @@
 import cv
-from .common.utils import *
+from common.utils import *
 import threshold
 import segmentation
 import logging
