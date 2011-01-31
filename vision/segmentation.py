@@ -25,8 +25,10 @@ def find_connected_components(frame):
     """
 
     # A workaround for OpenCV 2.0 crash on receiving a (nearly) black image
-    if cv.CountNonZero(frame) < 10:
+    nonzero = cv.CountNonZero(frame)
+    if nonzero < 20:
         return []
+    logging.debug("Segmentation got an image with %d nonzero pixels", nonzero)
 
     contours = get_contours(frame)
     #out = draw_contours(frame, contours)
