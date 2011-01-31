@@ -23,6 +23,11 @@ def find_connected_components(frame):
 
     The input frame is modified in place.
     """
+
+    # A workaround for OpenCV 2.0 crash on receiving a (nearly) black image
+    if cv.CountNonZero(frame) < 10:
+        return []
+
     contours = get_contours(frame)
     #out = draw_contours(frame, contours)
 
@@ -57,20 +62,11 @@ def get_contours(frame):
     if contours is None:
         return
 
-    try:
-        contours = cv.ApproxPoly( contours,
-                                  storage,
-                                  cv.CV_POLY_APPROX_DP,
-                                  cv.ArcLength(contours)*0.05,
-                                  1 )
-    except cv.error:
-        """Often fails with the following error due having a uniform
-        input image:
-
-        OpenCV Error: Assertion failed (arr != 0 && contour_header != 0 && block != 0) in cvPointSeqFromMat, file /tmp/buildd/opencv-2.1.0/src/cv/cvutils.cpp, line 47
-        """
-        logging.error("Passed an empty image to contour detection")
-
+    contours = cv.ApproxPoly( contours,
+                              storage,
+                              cv.CV_POLY_APPROX_DP,
+                              cv.ArcLength(contours)*0.05,
+                              1 )
     return contours
 
 def draw_contours(frame, contours):
