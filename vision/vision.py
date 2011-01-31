@@ -8,7 +8,6 @@ from common.world import World
 from common.gui import GUI
 import threshold
 import random, time, math, logging
-import debug
 
 T=[0, [150,150,150],[30,30,30]]
 class Vision():
