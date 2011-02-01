@@ -46,14 +46,14 @@ class World(object):
         self.log = open('anomalities.txt', 'a')
 
     def update(self, time, ents):
+        dt = time - self.time
         self.time = time
         self.ents = ents
-
         self.pointer = None
 
-        self.est_ball.update( ents['balls'] )
-        self.est_yellow.update( [ents['yellow']] )
-        self.est_blue.update( [ents['blue']] )
+        self.est_ball.update( ents['balls'], dt )
+        self.est_yellow.update( [ents['yellow']], dt )
+        self.est_blue.update( [ents['blue']], dt )
 
         self.convertMeasurements()
         self.assignSides()

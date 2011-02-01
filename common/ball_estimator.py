@@ -1,15 +1,15 @@
 import logging
 from utils import *
-from kalman import Kalman
+from kalman import *
 
 class BallEstimator(Kalman):
 
-    transitionM = [ [ 1, 0, 1, 0, 0, 0 ], # p_x
-                    [ 0, 1, 0, 1, 0, 0 ], # p_y
-                    [ 0, 0, 1, 0, 1, 0 ], # v_x
-                    [ 0, 0, 0, 1, 0, 1 ], # v_y
-                    [ 0, 0, 0, 0, 1, 0 ], # a_x
-                    [ 0, 0, 0, 0, 0, 1 ], # a_y
+    transitionM = [ [ 1, 0, D, 0, 0, 0 ], # p_x
+                    [ 0, 1, 0, D, 0, 0 ], # p_y
+                    [ 0, 0, 1, 0, D, 0 ], # v_x
+                    [ 0, 0, 0, 1, 0, D ], # v_y
+                    [ 0, 0, 0, 0, 0, 0 ], # a_x
+                    [ 0, 0, 0, 0, 0, 0 ], # a_y
                     ]
 
     def __init__(self):
@@ -21,8 +21,9 @@ class BallEstimator(Kalman):
     def getVelocity(self):
         return map(float, (self.prediction[2], self.prediction[3]))
 
-    def update(self, balls):
-        self.predict()
+    def update(self, balls, dt):
+        print self.getPos()
+        self.predict(dt)
         logging.debug( 'Predicted ball position: %s',
                        pos2string(self.getPos()) )
 
@@ -40,4 +41,3 @@ class BallEstimator(Kalman):
             self.measurement[1] = pos[1]
 
         self.correct(self.measurement)
-        self.predict()

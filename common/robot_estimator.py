@@ -1,6 +1,6 @@
 import logging
 from utils import *
-from kalman import Kalman
+from kalman import *
 
 class RobotEstimator(Kalman):
     """TODO: also track
@@ -10,14 +10,14 @@ class RobotEstimator(Kalman):
     """
 
     # p_x, p_y, v_x, v_y, a_x, a_y, orient, motor dir
-    transitionM = [ [ 1, 0, 1, 0, 0, 0, 0, 0], # p_x
-                    [ 0, 1, 0, 1, 0, 0, 0, 0], # p_y
-                    [ 0, 0, 1, 0, 1, 0, 0, 0], # v_x
-                    [ 0, 0, 0, 1, 0, 1, 0, 0], # v_y
-                    [ 0, 0, 0, 0, 1, 0, 0, 0], # a_x
-                    [ 0, 0, 0, 0, 0, 1, 0, 0], # a_y
-                    [ 0, 0, 0, 0, 0, 0, 1, 1], # orientation
-                    [ 0, 0, 0, 0, 0, 0, 0, 1], # angular velocity (delta ^)
+    transitionM = [ [ 1, 0, 0, 0, 0, 0, 0, D ], # orientation
+                    [ 0, 1, 0, D, 0, 0, 0, 0 ], # p_x
+                    [ 0, 0, 1, 0, D, 0, 0, 0 ], # p_y
+                    [ 0, 0, 0, 1, 0, D, 0, 0 ], # v_x
+                    [ 0, 0, 0, 0, 1, 0, D, 0 ], # v_y
+                    [ 0, 0, 0, 0, 0, 1, 0, 0 ], # a_x
+                    [ 0, 0, 0, 0, 0, 0, 1, 0 ], # a_y
+                    [ 0, 0, 0, 0, 0, 0, 0, 1 ], # angular velocity (delta ^)
                     ]
 
     def __init__(self):
@@ -26,16 +26,16 @@ class RobotEstimator(Kalman):
         Kalman.__init__(self, 8,3,0, self.transitionM)
 
     def getPos(self):
-        return map(float, (self.prediction[0], self.prediction[1]))
+        return map(float, (self.prediction[1], self.prediction[2]))
 
     def getVelocity(self):
-        return map(float, (self.prediction[2], self.prediction[3]))
+        return map(float, (self.prediction[3], self.prediction[4]))
 
     def getOrientation(self):
-        return float(self.prediction[6])
+        return float(self.prediction[0])
 
-    def update(self, robots):
-        self.predict()
+    def update(self, robots, dt):
+        self.predict(dt)
         logging.debug( 'Predicted robot position: %s',
                        pos2string(self.getPos()) )
 
@@ -54,4 +54,3 @@ class RobotEstimator(Kalman):
             self.measurement[2] = best_match['orient']
 
         self.correct(self.measurement)
-        self.predict()
