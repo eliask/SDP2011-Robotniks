@@ -14,8 +14,6 @@ public class TestThreads {
 
 		thread1.start();
 		thread2.start();
-
-		
 		Thread.sleep(3000);
 	
 	}
