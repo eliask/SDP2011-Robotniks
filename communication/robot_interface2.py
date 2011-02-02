@@ -6,10 +6,15 @@ from datetime import datetime
 REPLAY_LOG_DIRECTORY = "logs/communication/replay/"
 
 class RealRobotInterface(interface.RobotInterface):
-
-    MotorPrecision = 4 # number of speed settings for each direction.
-                       # Zero is counted twice.
-
+    
+    """
+    Number of speed settings for each direction.  Zero is counted twice.
+    """
+    MotorPrecision = 4
+    
+    """
+    Initialises the RealRobotInterface.
+    """
     def __init__(self):
         logging.info("Physical robot interface 2 started")
         self.client_socket = \
@@ -25,7 +30,10 @@ class RealRobotInterface(interface.RobotInterface):
         handler = logging.FileHandler(REPLAY_LOG_DIRECTORY + 
             self.init_time.strftime("%d-%m-%y %H-%M-%S"), "w")
         self.replay_logger.addHandler(handler)
-
+    
+    """
+    Resets the commands to the defaults.
+    """
     def initCommands(self):
         self.reset = False
         self.kick  = False
@@ -33,7 +41,10 @@ class RealRobotInterface(interface.RobotInterface):
         self.drive2 = 0
         self.turn1 = 0
         self.turn2 = 0
-
+    
+    """
+    Logs all the commands in a message."
+    """
     def logCommands(self):
         Prec = self.MotorPrecision
         logging.info( "Sent the robot the command:" )
@@ -55,11 +66,14 @@ class RealRobotInterface(interface.RobotInterface):
     """
     Logs a message to the replay logfile for later playback.
     """
-    def logCommand(self, message):
+    def logMessage(self, message):
         time_since_init = int(datetime.now().strftime("%s")) - \
             int(self.init_time.strftime("%s"))
         self.replay_logger.info( "%d %d" % (time_since_init, message))
-
+    
+    """
+    Encodes the current commands into a transmitable message.
+    """
     def encodeCommands(self):
         """
         The binary command encoding:
@@ -103,30 +117,57 @@ class RealRobotInterface(interface.RobotInterface):
         message &= self.turn2 << 11
 
         return message
-
+    
+    """
+    Sends the current commands, as a message, to the robot.
+    """
     def sendMessage(self, x):
         message = self.encodeCommands()
         logging.debug("Told the robot: %d", x)
         self.client_socket.send('%d\n' % x)
         self.initCommands()
-
+    
+    """
+    Sets the reset command to be sent.
+    """
     def reset(self):
         self.reset = True
-
+    
+    """
+    Calculates the appropriate value for a drive command given the speed
+    setting.
+    """
     def __drive(self, setting):
         Prec = self.MotorPrecision
         return int(setting < 0)*Prec & (setting & (Prec-1))
-
+    
+    """
+    Sets the drive1 command to be sent with given speed setting.
+    """
     def drive1(self, setting):
         self.drive1 = self.__drive(setting)
+    
+    """
+    Sets the drive2 command to be sent with given speed setting.
+    """
     def drive2(self, setting):
         self.drive2 = self.__drive(setting)
+    
+    """
+    Sets the turn1 command to be sent with given speed setting.
+    """
     def turn1(self, setting):
         self.turn1 = self.__drive(setting)
+    
+    """
+    Sets the drive2 command to be sent with given speed setting.
+    """
     def turn2(self, setting):
         self.turn2 = self.__drive(setting)
-
+    
+    """
+    Sends the shutdown signal to the robot and closes the socket.
+    """
     def shutdownServer(self):
         self.sendMessage(-1)
-
-
+        self.client_socket.close()
