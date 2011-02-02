@@ -48,18 +48,18 @@ class RealRobotInterface(interface.RobotInterface):
         ^      ^     ^        ^     ^      ^       ^
         |     kick   |        |   Turn     |  Two unused bits
         don't    Move wheel1  |  wheel1 CW |    out of 16
-        reset     forward     | at speed 3 |
-                              |            |
+        reset      forward    | at speed 3 |
+                  at speed 1  |            |
                         Stop/don't move    |
                             wheel2         |
                                      Turn wheel2 CCW
                                        at speed 2
 
         Note that the encoding has the property the the "stop
-        everything" command is encoded simply as 0
+        everything" command is encoded simply as 0.
 
-        reset = reset wheel positions if 1
-        kick =  start kick if 1
+        reset = reset wheel positions if 1.
+        kick =  start kick if 1.
 
         General steering commands for the 4 motors:
         Note: X means "don't care" or "either 1 or 0"
