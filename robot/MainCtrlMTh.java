@@ -18,9 +18,6 @@ public class MainCtrlMTh {
 	private static DataInputStream inputStream;
 
 	public static void main(String[] args) throws InterruptedException{
-	    Movement.motor_left.setSpeed(900);
-	    Movement.motor_right.setSpeed(900);
-
 	    executionMenu();
 	}
 	
@@ -88,13 +85,25 @@ public class MainCtrlMTh {
        private static void parseMessage(int message){
 	   int threadCount = 0;
 
-	   boolean reset = message & 1;
-	   boolean kick = message & ( (1<<1)-1 << 1 );
-	   byte motor1_dir = message & ( (1<<3)-1 << 2 );
-	   byte motor2_dir = message & ( (1<<3)-1 << 5 );
-	   int angle1 = ( (1<<9)-1 << 8 );
-	   int angle2 = ( (1<<9)-1 << 17 );
+	   int reset = message & 1;
+	   int kick = (message & 2)/2;
+	   int motor_sleft = ((message & 3)/3)+(((message & 4)/4)*2)+(((message & 5)/5)*3);
+	   int motor_sright = ((message & 6)/6)+(((message & 7)/7)*2)+(((message & 8)/8)*3);
+	   int motor_dleft = ((message & 9)/9)+(((message & 10)/10)*2)+(((message & 11)/11)*3);
+	   int motor_dright = ((message & 12)/12)+(((message & 13)/13)*2)+(((message & 14)/14)*3);
 
+	   Movement.setThreadsRunning(5);
+	   Thread thread1 = new KickThread(kick);
+	   Thread thread2 = new SteeringLeftThread(motor_sleft);
+	   Thread thread3 = new SteeringRightThread(motor_sright);
+	   Thread thread4 = new DriveLeftThread(motor_dleft);
+	   Thread thread5 = new DriveRightThread(motor_dright);
+
+	   thread1.start();
+	   thread2.start();
+	   thread3.start();
+	   thread4.start();
+	   thread5.start();
 
        }
 
@@ -200,9 +209,15 @@ public class MainCtrlMTh {
 
 	    Movement.motor_right.regulateSpeed(true);
 	    Movement.motor_left.regulateSpeed(true);
+	    
+	    Movement.motor_left.resetTachoCount();
+	    Movement.motor_right.resetTachoCount();
 
 	    Movement.motor_right.smoothAcceleration(true);
 	    Movement.motor_left.smoothAcceleration(true);
+
+	    Movement.port_comlight.setPowerType(Movement.port_comlight.POWER_RCX9V);
+
 	    try{
 		collectMessage();
 	    } catch (InterruptedException e){
@@ -222,11 +237,7 @@ public class MainCtrlMTh {
 }
 
 class Movement {
-	
-        //Defines the variables used for determining the position of each wheel
-        private static int steeringAngleLeft = 0;
-	private static int steeringAngleRight = 0;
-    
+       
         //Defines the motors used for steering the right and left wheels
 	public static final Motor motor_left = Motor.A;
 	public static final Motor motor_right = Motor.B;
@@ -258,135 +269,195 @@ class Movement {
 	    threadsRunning--;
 	}
     }
-    
-    public static int getSteeringAngleLeft(){
-        return steeringAngleLeft;
-    }
-
-    public static int getSteeringAngleRight(){
-	return steeringAngleRight;
-    }
-
-    public static void setSteeringAngleLeft(int Degs){
-	steeringAngleLeft = Degs;
-    }
-
-    public static void setSteeringAngleRight(int Degs){
-	steeringAngleRight = Degs;
-    }
 	
 }
 
 // Activate kicker
 class KickThread extends Thread {
+    int control = 0;
 
-	public KickThread() {
+	public KickThread(int control) {
+	    this.control = control;
 	}
 	public void run() {
-      	    Movement.motor_kick.setSpeed(900);
-	    Movement.motor_kick.rotate(720);
-	    Movement.decrementThreadsRunning();
+      	    if (control == 1){
+		Movement.motor_kick.setSpeed(900);
+		Movement.motor_kick.rotate(720);
+		Movement.decrementThreadsRunning();
+	    }
 	}
 }
 
-//Communicates with the light sensor on the RCX to start the drive motors
-class StartDriveThread extends Thread {
+class SteeringLeftThread extends Thread{
+    private int control = 0;
 
-       	public StartDriveThread() {
-	}    
-        public void run(){
-	    Movement.port_comlight.setPowerType(Movement.port_comlight.POWER_RCX9V);
-	    Movement.port_comlight.activate();
-	    Movement.decrementThreadsRunning();
-	}
-}
-
-
-//Communicates with the light sensor on the RCX to stop the drive motors
-class StopDriveThread extends Thread {
-
-    public StopDriveThread(){
+    public SteeringLeftThread(int control){
+	this.control = control;
     }
+
     public void run(){
-	Movement.port_comlight.passivate();
+	switch(control){
+	case 0:
+	    Movement.motor_left.stop();
+	    break;
+	case 4:
+	    Movement.motor_left.stop();
+	    break;
+	case 1:
+	    Movement.motor_left.setSpeed(300);
+	    Movement.motor_left.backward();
+	    break;
+	case 2:
+	    Movement.motor_left.setSpeed(600);
+	    Movement.motor_left.backward();
+	    break;
+	case 3:
+	    Movement.motor_left.setSpeed(900);
+	    Movement.motor_left.backward();
+	    break;
+	case 5:
+	    Movement.motor_left.setSpeed(300);
+	    Movement.motor_left.forward();
+	    break;
+	case 6:
+	    Movement.motor_left.setSpeed(600);
+	    Movement.motor_left.forward();
+	    break;
+        case 7:
+	    Movement.motor_left.setSpeed(900);
+	    Movement.motor_left.forward();
+	    break;
+	}
+	
 	Movement.decrementThreadsRunning();
     }
 }
 
-//Turns the left wheel to a specified angle
-class LeftWheelToThread extends Thread{
+class SteeringRightThread extends Thread{
+    private int control = 0;
 
-    private static int TurnDegs = 0;
-
-    public LeftWheelToThread(int TurnDegs){
-	this.TurnDegs = TurnDegs;
+    public SteeringRightThread(int control){
+	this.control = control;
     }
 
-    public synchronized void run(){
-	if ((Movement.getSteeringAngleLeft() % 360) < 180){
-		if (TurnDegs < 180){
-		    Movement.motor_left.rotate((int)(Movement.rotConstant * (TurnDegs - Movement.getSteeringAngleLeft())));
-		} else if (TurnDegs >= 180){
-		    if ((TurnDegs - (Movement.getSteeringAngleLeft() % 360)) < 180){
-			Movement.motor_left.rotate((int) (Movement.rotConstant * (TurnDegs - Movement.getSteeringAngleLeft())));
-		    } else if((TurnDegs - (Movement.getSteeringAngleLeft() % 360)) >= 180 ){
-			Movement.motor_left.rotate((int) (Movement.rotConstant * -1 *((360 - (TurnDegs % 360)) + Movement.getSteeringAngleLeft())));
-		    }
-		}
-	} else if ((Movement.getSteeringAngleLeft() % 360) >= 180){
-		if ((TurnDegs % 360) >= 180){
-		    Movement.motor_left.rotate((int)(Movement.rotConstant * ((TurnDegs % 360) - Movement.getSteeringAngleLeft())));
-		}else if (TurnDegs < 180){
-		    if(((Movement.getSteeringAngleLeft() % 360) - (TurnDegs % 360)) < 180){
-			Movement.motor_left.rotate((int)(Movement.rotConstant * ((TurnDegs % 360) - (Movement.getSteeringAngleLeft() % 360))));
-		    } else if(((Movement.getSteeringAngleLeft() % 360) - (TurnDegs % 360)) >= 180){
-			Movement.motor_left.rotate((int)(Movement.rotConstant * ((360 - (Movement.getSteeringAngleLeft() % 360))+ TurnDegs)));
-		    }
-		}
-	    }
-
-	    Movement.setSteeringAngleLeft(TurnDegs % 360);
-	    Movement.decrementThreadsRunning();
+    public void run(){
+	switch (control){
+        case 0:
+	    Movement.motor_right.stop();
+	    break;
+	case 4:
+	    Movement.motor_right.stop();
+	    break;
+	case 1:
+	    Movement.motor_right.setSpeed(300);
+	    Movement.motor_right.backward();
+	    break;
+	case 2:
+	    Movement.motor_right.setSpeed(600);
+	    Movement.motor_right.backward();
+	    break;
+	case 3:
+	    Movement.motor_right.setSpeed(900);
+	    Movement.motor_right.backward();
+	    break;
+	case 5:
+	    Movement.motor_right.setSpeed(300);
+	    Movement.motor_right.forward();
+	    break;
+	case 6:
+	    Movement.motor_right.setSpeed(600);
+	    Movement.motor_right.forward();
+	    break;
+        case 7:
+	    Movement.motor_right.setSpeed(900);
+	    Movement.motor_right.forward();
+	    break;
 	}
-    }
-
-
-
-//Turns the right wheel to a specified angle
-class RightWheelToThread extends Thread{
-
-    private static int TurnDegs = 0; 
-
-    public RightWheelToThread(int TurnDegs){
-	this.TurnDegs = TurnDegs;
-    }
-
-    public synchronized void run(){
-	    if ((Movement.getSteeringAngleRight() % 360) < 180){
-		if (TurnDegs < 180){
-		    Movement.motor_right.rotate((int)(Movement.rotConstant * (TurnDegs - Movement.getSteeringAngleRight())));
-		} else if (TurnDegs >= 180){
-		    if ((TurnDegs - (Movement.getSteeringAngleRight() % 360)) < 180){
-			Movement.motor_right.rotate((int) (Movement.rotConstant * (TurnDegs - Movement.getSteeringAngleRight())));
-		    } else if((TurnDegs - (Movement.getSteeringAngleRight() % 360)) >= 180){
-			Movement.motor_right.rotate((int) ( Movement.rotConstant * -1 *((360 - (TurnDegs % 360)) + Movement.getSteeringAngleRight())));
-		    }
-		}
-	    } else if ((Movement.getSteeringAngleRight() % 360) >= 180){
-		if ((TurnDegs % 360) >= 180){
-		    Movement.motor_right.rotate((int)(Movement.rotConstant * ((TurnDegs % 360) - Movement.getSteeringAngleRight())));
-		}else if (TurnDegs < 180){
-		    if(((Movement.getSteeringAngleRight() % 360) - (TurnDegs % 360)) < 180){
-			Movement.motor_right.rotate((int)(Movement.rotConstant * ((TurnDegs % 360) - (Movement.getSteeringAngleRight() % 360))));
-		    } else if(((Movement.getSteeringAngleRight() % 360) - (TurnDegs % 360)) >= 180){
-			Movement.motor_right.rotate((int)(Movement.rotConstant * ((360 - (Movement.getSteeringAngleRight() % 360))+ TurnDegs)));
-		    }
-		}
-	    }
 	
-	    Movement.setSteeringAngleRight(TurnDegs % 360);
+	Movement.decrementThreadsRunning();
+    }
+}
+
+class DriveLeftThread extends Thread {
+    private int control = 0;
+    
+       	public DriveLeftThread(int control) {
+	    this.control = control;
+	}    
+        public void run(){
+	    switch(control){
+	    case 0:
+		Movement.port_comlight.passivate();
+		break;
+	    case 4:
+		Movement.port_comlight.passivate();
+		break;
+	    case 1:
+		Movement.port_comlight.activate();
+		break;
+	    case 2:
+		Movement.port_comlight.activate();
+		break;
+	    case 3:
+		Movement.port_comlight.activate();
+		break;
+	    case 5:
+		Movement.port_comlight.activate();
+		break;
+	    case 6:
+		Movement.port_comlight.activate();
+		break;
+	    case 7:
+		Movement.port_comlight.activate();
+		break;
+	    }
+
+	    Movement.decrementThreadsRunning();
+
+	}
+}
+
+class DriveRightThread extends Thread {
+    private int control = 0;
+    
+    public DriveRightThread(int control) {
+	this.control = control;
+    }    
+    public void run(){
+	   
+	switch(control){
+	    case 0:
+		Movement.port_comlight.passivate();
+		break;
+	    case 4:
+		Movement.port_comlight.passivate();
+		break;
+	    case 1:
+		Movement.port_comlight.activate();
+		break;
+	    case 2:
+		Movement.port_comlight.activate();
+		break;
+	    case 3:
+		Movement.port_comlight.activate();
+		break;
+	    case 5:
+		Movement.port_comlight.activate();
+		break;
+	    case 6:
+		Movement.port_comlight.activate();
+		break;
+	    case 7:
+		Movement.port_comlight.activate();
+		break;
+	 }
+
 	    Movement.decrementThreadsRunning();
     }
-    
 }
+
+
+
+
+
     
