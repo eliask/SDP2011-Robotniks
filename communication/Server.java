@@ -7,23 +7,24 @@ import java.util.ArrayList;
 
 public class Server {
 
-	private boolean loopback = true;
+	protected boolean loopback = false;
 	private PCBluetooth pcb = null;
 	private int port = 6879;
 	private ServerSocket ss = null;
 	private boolean finished = false;
 	private ArrayList<Socket> sockets = new ArrayList<Socket>();
 	private ExecutorService executor = null;
+	private boolean commandSent = false;
 
 	public static void main(String[] args){
-		boolean loopback = false;
+		Server server = new Server();
 		if (args.length > 0){
-			loopback = true;
+			server.loopback = true;
 		}
-		new Server().startServer(loopback);
+		server.startServer();
 	}
 
-	public void startServer(boolean loopback){
+	public void startServer(){
 		pcb = new PCBluetooth();
 		if (!loopback)
 			pcb.openConnection();
@@ -56,14 +57,16 @@ public class Server {
 				System.err.println("failed to send message. ignoring...");
 			}
 		}
+		commandSent = true;
 	}
 
 	public void serverLoop() throws IOException{
 		executor = Executors.newCachedThreadPool();
 		executor.execute(new ConnectionListener());
+		executor.execute(new KeepAlive());
 		while(!finished){
 			try{
-				Thread.sleep(1000);
+				Thread.sleep(250);
 			}catch(InterruptedException e){
 				// don't care
 			}
@@ -73,6 +76,27 @@ public class Server {
 			s.close();
 		}
 		executor.shutdownNow();
+	}
+
+	class KeepAlive implements Runnable {
+
+		public void run(){
+			while(!finished){
+				try{
+					Thread.sleep(5000);
+				}catch(InterruptedException e){
+					// nobody cares
+				}
+				if(!commandSent){
+					try{
+						pcb.sendMessage(0);
+					}catch(IOException e){
+						System.err.println("send message failed.");
+					}
+				}
+				commandSent = false;
+			}
+		}
 	}
 
 	class ConnectionListener implements Runnable{
