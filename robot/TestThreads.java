@@ -26,7 +26,7 @@ class RMotorAThread extends Thread {
 	}
 	public void run() {
 	    LCD.drawString("ma", 0, 0);
-	    TestThreads.ma.rotate(720); 
+	    TestThreads.ma.rotate(720);
 	}
 }
 
