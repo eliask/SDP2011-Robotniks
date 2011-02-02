@@ -67,9 +67,9 @@ class RealRobotInterface(interface.RobotInterface):
     Logs a message to the replay logfile for later playback.
     """
     def logMessage(self, message):
-        time_since_init = int(datetime.now().strftime("%s")) - \
-            int(self.init_time.strftime("%s"))
-        self.replay_logger.info( "%d %d" % (time_since_init, message))
+        time_since_init = float(datetime.now().strftime("%s.%f")) - \
+            float(self.init_time.strftime("%s.%f"))
+        self.replay_logger.info( "%f %d" % (time_since_init, message))
     
     """
     Encodes the current commands into a transmitable message.
