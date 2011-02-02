@@ -1,7 +1,9 @@
 import interface
 import socket
 import logging
-import time
+from datetime import datetime
+
+REPLAY_LOG_DIRECTORY = "logs/communication/replay/"
 
 class RealRobotInterface(interface.RobotInterface):
 
@@ -14,6 +16,15 @@ class RealRobotInterface(interface.RobotInterface):
             socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client_socket.connect(("localhost", 6879))
         logging.info("Connected to robot interface server")
+        
+        # Set up the replay logger.
+        self.init_time = datetime.now()
+        self.replay_logger = logging.getLogger('replay_logger')
+        self.replay_logger.setLevel(logging.DEBUG)
+        
+        handler = logging.FileHandler(REPLAY_LOG_DIRECTORY + 
+            self.init_time.strftime("%d-%m-%y %H-%M-%S"), "w")
+        self.replay_logger.addHandler(handler)
 
     def initCommands(self):
         self.reset = False
@@ -40,6 +51,14 @@ class RealRobotInterface(interface.RobotInterface):
         logging.info( "turn2: %c%d" %
                       {True:'CCW',False:' CW'}[self.turn2&Prec > 0],
                       self.turn2 & (Prec-1) )
+    
+    """
+    Logs a message to the replay logfile for later playback.
+    """
+    def logCommand(self, message):
+        time_since_init = int(datetime.now().strftime("%s")) - \
+            int(self.init_time.strftime("%s"))
+        self.replay_logger.info( "%d %d" % (time_since_init, message))
 
     def encodeCommands(self):
         """
