@@ -1,6 +1,6 @@
-from .communication.interface import *
-from .common.utils import *
-from .common.world import *
+from communication.interface import *
+from common.utils import *
+from common.world import *
 from math import *
 from strategy import *
 import logging
