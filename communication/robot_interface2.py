@@ -109,12 +109,12 @@ class RealRobotInterface(interface.RobotInterface):
         """
         message = 0L
 
-        message &= self.reset << 0
-        message &= self.kick << 1
-        message &= self.motor1_dir << 2
-        message &= self.motor2_dir << 5
-        message &= self.turn1 << 8
-        message &= self.turn2 << 11
+        message |= self.reset << 0
+        message |= self.kick << 1
+        message |= self.motor1_dir << 2
+        message |= self.motor2_dir << 5
+        message |= self.turn1 << 8
+        message |= self.turn2 << 11
 
         return message
     
