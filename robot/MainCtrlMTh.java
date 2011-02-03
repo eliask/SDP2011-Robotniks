@@ -86,11 +86,11 @@ public class MainCtrlMTh {
 	   int threadCount = 0;
 
 	   int reset = message & 1;
-	   int kick = (message & 2)/2;
-	   int motor_sleft = ((message & 3)/3)+(((message & 4)/4)*2)+(((message & 5)/5)*3);
-	   int motor_sright = ((message & 6)/6)+(((message & 7)/7)*2)+(((message & 8)/8)*3);
-	   int motor_dleft = ((message & 9)/9)+(((message & 10)/10)*2)+(((message & 11)/11)*3);
-	   int motor_dright = ((message & 12)/12)+(((message & 13)/13)*2)+(((message & 14)/14)*3);
+           int kick = (message >> 1) & 1;
+           int motor_dleft  = (message >> 2) & 7;
+           int motor_dright = (message >> 5) & 7;
+           int motor_sleft  = (message >> 8) & 7;
+           int motor_sright = (message >> 11) & 7;
 
 	   Movement.setThreadsRunning(5);
 	   Thread thread1 = new KickThread(kick);
