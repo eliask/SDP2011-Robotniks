@@ -80,10 +80,10 @@ class Visualiser(object):
         #self.startPos = np.array(rotatePoints([self.startPos], self.startPos, -self.startOrient)[0]) + offset
         self.startPos = np.array([1,1]) + offset
         self.startOrient = 0
-        self.goalPos = np.array(rotatePoints([self.goalPos], self.startPos, -self.startOrient, new_origin=True ))[0]) + offset
-        self.obstacles = map(lambda x: np.array(x)+offset,
-                             rotatePoints(self.obstacles, self.startPos,
-                                          -self.startOrient, new_origin=True )))
+        self.goalPos = np.array(rotatePoints([self.goalPos], self.startPos, -self.startOrient, new_origin=True ))[0] + offset
+        self.obstacles = map(lambda x: np.array(x)+offset, \
+                             rotatePoints(self.obstacles, self.startPos, \
+                                          -self.startOrient, new_origin=True ))
 
         self.screen.fill( (0,0,0,0) )
         Max = 0
