@@ -42,10 +42,6 @@ class RealRobotInterface(interface.RobotInterface):
 
                 # The robot takes in a clockwise integer angle in degrees
                 angle = int(round(degrees(angle))) % 360
-                if angle < 180:
-                        angle = angle + 180
-                else:
-                        angle = angle - 180
 
                 msg = 106 + angle
                 assert 106 <= msg <= 465
