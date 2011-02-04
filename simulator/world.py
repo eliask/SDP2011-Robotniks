@@ -47,10 +47,10 @@ class World(common.world.World):
     def openLog(self):
         pass # No anomalies to record
 
-    def getSelf(self):
-        return self.us
-    def getOpponent(self):
-        return self.them
+    # def getSelf(self):
+    #     return self.us
+    # def getOpponent(self):
+    #     return self.them
     def getBall(self):
         return self.ents['ball']
     def myPos(self):

@@ -121,8 +121,8 @@ class Simulator(object):
             ai = ai1(self.world, real_interface)
             self.ai.append(ai)
             robotSprite = self.robots[0]
-            self.robots[0] = ai
-            del robotSprite
+            #self.robots[0] = ai
+            #del robotSprite
             self.setRobotAI(self.robots[0], ai)
             logging.debug("AI 1 started in the real world")
         elif ai1:
@@ -137,7 +137,7 @@ class Simulator(object):
             self.ai.append(ai)
             robotSprite = self.robots[0]
             self.robots[1] = ai
-            del robotSprite
+            #del robotSprite
             self.setRobotAI(self.robots[1], ai)
             logging.debug("AI 2 started in the real world")
         elif ai2:
@@ -173,7 +173,7 @@ class Simulator(object):
             self.runAI()
 
     def initInput(self):
-        self.input = Input(self.robots[0], self.robots[1])
+        self.input = Input(self, self.robots[0], self.robots[1])
 
     def handleInput(self):
         for event in pygame.event.get():
@@ -193,7 +193,7 @@ class Simulator(object):
 
     def makeBall(self, pos):
         ent = Ball(self, pos, self.images['ball'])
-        ent.v += [1, 7]
+        #ent.v += [1, 7]
         self.world.ents['ball'] = ent
         self.addEnt(ent)
 

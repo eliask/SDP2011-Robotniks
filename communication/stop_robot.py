@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 from client import *
 interface = RealRobotInterface()
 interface.stop()
