@@ -9,6 +9,14 @@ class Main(Strategy):
     """The main strategy class
 
     """
+    std = True
+    spinning = False
+    driving = False
+    move_angle = 0
+
+    def __init__(self, *args):
+        Strategy.__init__(self, *args)
+        self.reset()
 
     def run(self):
         "Run strategy off of the current state of the World."
@@ -16,18 +24,23 @@ class Main(Strategy):
         #ballPos=np.array(300,200)
         try:
             self.me = self.world.getSelf() # Find out where I am
-        except:
-            logging.warn("couldn't find self")
+        except Exception, e:
+            logging.warn("couldn't find self: %s", e)
             return
         try:
             ballPos = self.world.getBall().pos # are we there yet?
         except Exception, e:
-            logging.warn("couldn't find self: %s", e)
-            raise
+            logging.warn("couldn't find ball: %s", e)
             return
 
-        # if self.moveTo( ballPos ): # are we there yet?
-        #     self.kick()
+        print self.me.pos, ballPos
+        if self.me.pos[0] == 0 or ballPos[0] == 0:
+            self.stop()
+            print "POS 0"
+            return
+
+        if self.moveTo( ballPos ): # are we there yet?
+            self.kick()
 
     def moveTo(self, dest):
         logging.debug("moveTo(%s)", pos2string(dest))
@@ -36,16 +49,26 @@ class Main(Strategy):
             #self.stop()
             return False
 
-        _dist = dist(dest, self.me.pos)
+        print self.me.pos
+        _dist = dist(dest, np.array(self.me.pos))
+        print _dist
+        print dest
         logging.debug("Distance to ball: %.3f" % _dist)
-        epsilon = 20
+        epsilon = 50
         # TODO: implement the canKick predicate instead
         if _dist < epsilon:
-            self.stop()
+            if self.driving:
+                time.sleep(1)
+                self.stop()
+                self.driving=False
             return True
         else:
-            self.reset()
-            self.drive()
+            if not self.std:
+                self.std = True
+                self.reset()
+            else:
+                self.driving = True
+                self.drive()
             return False
 
     def turnTo(self, dest):
@@ -64,23 +87,42 @@ class Main(Strategy):
 
         x,y = dest2
 
+        angle = atan2(y,x)
+        print "Delta-angle:", self.move_angle, angle
+        if degrees(abs(self.move_angle - angle)) < 10:
+            return True
+        else:
+            print "Set angle:", angle
+            time.sleep(1)
+            self.stop()
+            time.sleep(1)
+            self.setRobotDirection(angle)
+            time.sleep(2)
+            self.move_angle = angle
+            return True
+
         # Since we are facing x = 0, we choose the turning direction
         # by seeing whether the destination is above or below us
 
         # self.world.pointer = self.me.pos + \
         #     np.array((cos(closest), sin(closest))) * (dest - self.me.pos)
 
-        epsilon = 20
+        epsilon = 10
         if abs(y) < epsilon:
-            #self.stopSpin()
+            self.stopSpin()
+            self.spinning = False
             return True
+        if self.spinning:
+            self.std = True
+            self.drive()
+            return False
+
         if y > 0:
-            if rotAngle < turnThresh:
-                self.startSpinLeft()
-            else:
-                self.drive()
+            #self.spinning = not self.spinning
+            self.startSpinLeft()
         else:
             self.startSpinRight()
-        self.drive()
+
+        self.spinning = True
         return False
 

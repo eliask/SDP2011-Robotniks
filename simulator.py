@@ -102,10 +102,10 @@ def main():
     # assert not (real1 or real2) or vision, \
     #    "Using real robots requires vision"
 
-    if real1 or real2:
-        world = common.world.World(colour)
-    else:
-        world = simulator.world.World(colour)
+    # if real1 or real2:
+    #     world = common.world.World(colour)
+    # else:
+    world = simulator.world.World(colour)
 
     assert not (real1 and real2), \
         "How are we to run 2 physical robots??"
@@ -119,7 +119,7 @@ def main():
                      robot1=(ai1, real1),
                      robot2=(ai2, real2),
                      colour=colour,
-                     real_world=(real1 or real2),
+                     real_world=None, #(real1 or real2),
                      )
     sim.run()
 

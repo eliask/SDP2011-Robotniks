@@ -18,13 +18,13 @@ class Ball(Entity):
             self.v[1] = -self.v[1]
 
         if self.rect.left < World.Pitch.left and \
-                ( self.rect.top    > LeftGoalArea.top or
-                  self.rect.bottom > LeftGoalArea.bottom ):
+                ( self.rect.top    > World.LeftGoalArea.top or
+                  self.rect.bottom > World.LeftGoalArea.bottom ):
                 self.v[0] = -self.v[0]
 
         elif self.rect.right > World.Pitch.right and \
-                ( self.rect.top    > RightGoalArea.top or
-                  self.rect.bottom > RightGoalArea.bottom ):
+                ( self.rect.top    > World.RightGoalArea.top or
+                  self.rect.bottom > World.RightGoalArea.bottom ):
                 self.v[0] = -self.v[0]
 
     def collideRobots(self):

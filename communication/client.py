@@ -2,7 +2,9 @@ import interface
 import socket
 import logging
 import time
+from math import *
 
+until=time.time()
 class RealRobotInterface(interface.RobotInterface):
 
 	def __init__(self):
@@ -14,8 +16,10 @@ class RealRobotInterface(interface.RobotInterface):
 
 	def sendMessage(self, x):
 		logging.debug("Told the robot: %d", x)
-		self.client_socket.send('%d\n' % x)
-		time.sleep(0.5)
+                global until
+                if until < time.time():
+                        self.client_socket.send('%d\n' % x)
+                        until = time.time() + 0.8
 
 	def reset(self):
 		self.sendMessage(100)
@@ -43,7 +47,7 @@ class RealRobotInterface(interface.RobotInterface):
                 else:
                         angle = angle - 180
 
-                msg = 6 + angle
+                msg = 106 + angle
                 assert 106 <= msg <= 465
                 self.sendMessage(msg)
 
