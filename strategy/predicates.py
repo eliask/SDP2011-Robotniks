@@ -1,14 +1,18 @@
+from math import *
+
 class PredicateStore:
 
+    epsilon = 20 # A small distance
+   	
     def opponentReachesGoal(self):
         "The ball is directly between our goal and the opponent"
         return False
 
-    def existsGoalKick(self):
+    def existsGoal(self):
         "There is an opportunity to score"
-        return False
+         return False
 
-    def collision(self):
+   def collision(self):
         "We are colliding with the opponent"
         return False
 
@@ -19,8 +23,8 @@ class PredicateStore:
     def opponentIsFar(self):
         "The opponent can hardly affect what we are doing"
         return False
-
-    def opponentReachesUs(self):
+    
+     def opponentReachesUs(self):
         "The opponent could reach us if we do an action"
         return False
 
@@ -47,25 +51,25 @@ class PredicateStore:
     def canDefend(self):
         "We can block the way to the ball"
         return False
-
+    
     def ballIsMoving(self):
         "The ball is moving"
-        return False
-
-    def ballIsStationary(self):
-        "The ball is not moving"
-        return False
+        if  ball.velcotiy > 0:
+            return True
+        else:
+            return False
 
     def canIntercept(self):
         "We can move to intercept the ball"
-        return False
+	return False
 
     def opponentIsMoving(self):
         "The opponent is moving"
-        return False
+         return False
 
     def opponentIsStationary(self):
         "The opponent is not moving"
+	
         return False
 
     def holdingBall(self):
@@ -78,4 +82,15 @@ class PredicateStore:
 
     def canKick(self):
         "We are able to hit the ball with the kicker"
-        return False
+        if euclideanDist(ball.pos,robot.pos) < epsilon: 
+            return True
+
+    def euclideanDist(x,y):
+        value = 0
+        for i in range (len(x)):
+            value += (x[i]-y[i])**2
+        distance = sqrt(value)
+        return distance
+        
+            
+        
