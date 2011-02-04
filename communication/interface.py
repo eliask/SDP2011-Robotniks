@@ -16,6 +16,8 @@ class RobotInterface(object):
         self.replay_logger = logging.getLogger('replay_logger')
         self.replay_logger.setLevel(logging.DEBUG)
 
+        self.initCommands()
+
         handler = logging.FileHandler(REPLAY_LOG_DIRECTORY +
             time.strftime("%Y%m%d-%H%M%S", time.localtime(self.start_time)), "w")
         self.replay_logger.addHandler(handler)
@@ -23,18 +25,18 @@ class RobotInterface(object):
     def recordCommands(self):
         time_since_init = time.time() - self.start_time
         command_string = "%d,%d,%d,%d,%d,%d" \
-            % ( int(self.reset), int(self.kick),
-                self.drive1, self.drive2, self.turn1, self.turn2 )
+            % ( int(self._reset), int(self._kick),
+                self._drive1, self._drive2, self._turn1, self._turn2 )
         self.replay_logger.info( "%.3f\t%s" % (time_since_init, command_string) )
 
     def initCommands(self):
         "Resets the commands to the defaults."
-        self.reset = False
-        self.kick  = False
-        self.drive1 = 0
-        self.drive2 = 0
-        self.turn1 = 0
-        self.turn2 = 0
+        self._reset = False
+        self._kick  = False
+        self._drive1 = 0
+        self._drive2 = 0
+        self._turn1 = 0
+        self._turn2 = 0
 
     def tick(self):
         """Perform communication interface state update.

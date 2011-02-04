@@ -21,20 +21,20 @@ class RealRobotInterface(interface.RobotInterface):
         "Log commands in a (perhaps) more human-readable way"
         Prec = self.MotorPrecision
         logging.info( "Sent the robot the command:" )
-        logging.info( "reset: %d" % int(self.reset) )
-        logging.info( "kick: %d" % int(self.kick) )
-        logging.info( "drive1: %c%d" %
-                      {True:' Fwd',False:'Back'}[self.drive1&Prec > 0],
-                      self.drive1 & (Prec-1) )
-        logging.info( "drive2: %c%d" %
-                      {True:' Fwd',False:'Back'}[self.drive2&Prec > 0],
-                      self.drive2 & (Prec-1) )
-        logging.info( "turn1: %c%d" %
-                      {True:'CCW',False:' CW'}[self.turn1&Prec > 0],
-                      self.turn1 & (Prec-1) )
-        logging.info( "turn2: %c%d" %
-                      {True:'CCW',False:' CW'}[self.turn2&Prec > 0],
-                      self.turn2 & (Prec-1) )
+        logging.info( "reset: %d" % int(self._reset) )
+        logging.info( "kick: %d" % int(self._kick) )
+        logging.info( "drive1: %d %s" %
+                      ( self._drive1 & (Prec-1),
+                        {True:' Fwd',False:'Back'}[self._drive1&Prec > 0] ))
+        logging.info( "drive2: %d %s" %
+                      ( self._drive2 & (Prec-1),
+                        {True:' Fwd',False:'Back'}[self._drive2&Prec > 0] ))
+        logging.info( "turn1: %d %s" %
+                      ( self._turn1 & (Prec-1),
+                        {True:'CCW',False:' CW'}[self._turn1&Prec > 0] ))
+        logging.info( "turn2: %d %s" %
+                      ( self._turn2 & (Prec-1),
+                        {True:'CCW',False:' CW'}[self._turn2&Prec > 0] ))
 
     def encodeCommands(self):
         """Encodes commands into a message for transmission.
@@ -77,12 +77,12 @@ class RealRobotInterface(interface.RobotInterface):
         """
         message = 0L
 
-        message |= self.reset << 0
-        message |= self.kick << 1
-        message |= self.motor1_dir << 2
-        message |= self.motor2_dir << 5
-        message |= self.turn1 << 8
-        message |= self.turn2 << 11
+        message |= self._reset << 0
+        message |= self._kick << 1
+        message |= self._drive1 << 2
+        message |= self._drive2 << 5
+        message |= self._turn1 << 8
+        message |= self._turn2 << 11
 
         return message
 
@@ -100,7 +100,10 @@ class RealRobotInterface(interface.RobotInterface):
     Sets the reset command to be sent.
     """
     def reset(self):
-        self.reset = True
+        self._kick = True
+
+    def reset(self):
+        self._reset = True
 
     """
     Calculates the appropriate value for a drive command given the speed
@@ -108,31 +111,35 @@ class RealRobotInterface(interface.RobotInterface):
     """
     def __drive(self, setting):
         Prec = self.MotorPrecision
-        return int(setting < 0)*Prec & (setting & (Prec-1))
+        return int(setting < 0)*Prec | (setting & (Prec-1))
+
+    def drive(self, setting):
+        "Drive forward using both wheels--more flexible control has not been implemented"
+        self._drive2 = self.__drive(setting)
 
     """
     Sets the drive1 command to be sent with given speed setting.
     """
     def drive1(self, setting):
-        self.drive1 = self.__drive(setting)
+        self._drive1 = self.__drive(setting)
 
     """
     Sets the drive2 command to be sent with given speed setting.
     """
     def drive2(self, setting):
-        self.drive2 = self.__drive(setting)
+        self._drive2 = self.__drive(setting)
 
     """
     Sets the turn1 command to be sent with given speed setting.
     """
     def turn1(self, setting):
-        self.turn1 = self.__drive(setting)
+        self._turn1 = self.__drive(setting)
 
     """
     Sets the drive2 command to be sent with given speed setting.
     """
     def turn2(self, setting):
-        self.turn2 = self.__drive(setting)
+        self._turn2 = self.__drive(setting)
 
     """
     Sends the shutdown signal to the robot and closes the socket.
