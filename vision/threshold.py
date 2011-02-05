@@ -82,10 +82,6 @@ class Base(object):
         op(chan[0], chan[1], out)
         op(out, chan[2], out)
 
-        # cv.ReleaseImage(tmp)
-        # #TODO: Why does this cause a segfault?
-        # map(cv.ReleaseImage, chan)
-
         return out
 
     @classmethod
@@ -154,18 +150,66 @@ class PrimaryRaw(Base):
 
 
 class AltRaw(Base):
-    Tball       = ( 'bgr', [40,   60,   160], [110, 110, 255] )
+    Tball       = [ 'bgr', [40,   60,   160], [110, 110, 255] ]
     # ch2,ch3 min. can be ~0:
     Tblue       = ( 'bgr', [125,  70,  90 ], [255, 190, 255] )
-    Tyellow     = ( 'bgr', [0,  200,  0 ], [255, 255, 255] )
+    Tyellow     = [ 'bgr', [0,  200,  0 ], [255, 255, 255] ]
 
     # Effectively return only foreground objects (+ a little noise)
-    Trobots = ( 'bgr', [255,  185,  255], [255, 255, 255] )
+    Trobots = [ 'bgr', [255,  185,  255], [255, 255, 255] ]
     Tdirmarker  = ( 'bgr', [75,   110,  75 ], [110, 160, 110] ) #w/magic
     Tdirmarker  = ( 'bgr', [75,   100,  85 ], [120, 150, 120] ) #w/magic
-    Tdirmarker  = ( 'bgr', [65,   80,  55 ], [120, 150, 120] ) #w/magic
-    Tforeground = ( 'bgr', [2,  17,  46 ], [255, 255, 255] )
-    #Tforeground = ( 'bgr', [190, 190, 190], [255, 255, 255] )
+    Tdirmarker  = [ 'bgr', [65,   80,  55 ], [120, 150, 120] ] #w/magic
+    Tforeground = [ 'bgr', [2,  17,  46 ], [255, 255, 255] ]
+    Tforeground = [ 'bgr', [190, 190, 190], [255, 255, 255] ]
+    Tfg = [ 'bgr', [10,10,10], [91,91,91]]
     #foreground = [30,45,60]
 
-    Tblue       = ( 'bgr', [125,  70,  90 ], [255, 190, 255] )
+    Tblue       = [ 'bgr', [125,  70,  90 ], [255, 190, 255] ]
+    Tcustom     = [ 'bgr', [125,  70,  90 ], [255, 190, 255] ]
+
+    @classmethod
+    def custom(self, image):
+        return self.threshold(frame, self.Tcustom)
+
+    def updateThresholds(self, hist_props):
+        B,G,R = hist_props
+
+        # The plateaus of the histogram don't actually seem to provide
+        # very much useful information, especially since they
+        # fluctuate.
+        platB, platG, platR = map(lambda x:x['plateaus'], hist_props)
+
+        ppB, ppG, ppR = map(lambda x:x['post_peaks'], hist_props)
+        #print "GLOBAL:", ppB, ppG, ppR
+        # print hist_props[0]
+        # print hist_props[1]
+        # print hist_props[2]
+        #platG[min(0, len(platG))], platR[min(0,len(platR))]]
+        if len(platG) > 2: gMin = platG[1]
+        else: gMin = 0
+        if len(platR) > 2: rMin = platR[1]
+        else: rMin = 0
+        #if len(platB) >
+        for i in platB:
+            if ppB+20 < i: ppB = i; break
+        self.Tblue[1] = [min(ppB, B[98]), G[25], R[0]]
+        self.Tblue[2] = [255, 255, R[50]]
+
+        self.Tyellow[1] = [0, 5+max(ppG, R[99]), 5+max(ppR, R[99])]
+        self.Tyellow[2] = [255, 255, 255]
+
+        self.Tball[1] = [0, 0, max(ppR, R[95])]
+        self.Tball[2] = [B[80], R[80], 255]
+
+        # prim
+        self.Tdirmarker[1] = [B[15], G[20], R[15]]
+        self.Tdirmarker[2] = [B[35], G[35], R[35]]
+
+        # alt
+        self.Tdirmarker[1] = [B[30], G[30], R[30]]
+        self.Tdirmarker[2] = [B[50], G[40], R[50]]
+
+        self.Tforeground[1] = [ppG, ppB, ppR]
+        self.Tforeground[1] = [B[self.Tfg[1][0]], G[self.Tfg[1][1]], R[self.Tfg[1][2]]]
+        #self.Tforeground[2] = [B[self.Tfg[2][0]], G[self.Tfg[2][1]], R[self.Tfg[2][2]]]

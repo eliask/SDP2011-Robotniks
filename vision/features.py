@@ -58,7 +58,9 @@ class FeatureExtraction:
             if ents[colour]:
                 logging.debug("Found a %s robot", colour)
             else:
+                #self.detect_robot_from_T(Iobjects, ents, colour)
                 logging.warn("Could not find a %s robot!", colour)
+                pass
 
         return ents
 
@@ -71,6 +73,15 @@ class FeatureExtraction:
             R = ball_cand['rect']
             if self.sizeMatch(ball_cand, 'balls'):
                 ents['balls'].append(ball_cand)
+
+    def detect_robot_from_T(self, frame, ents, colour):
+        if colour == 'yellow':
+            ent_T = self.detectYellow(frame)
+        else:
+            ent_T = self.detectBlue(frame)
+
+        print ents[colour], ent_T
+        ents[colour] = ent_T
 
     def detectRobots(self, frame, ents):
         "Detect the potential robots in the image"

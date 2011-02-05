@@ -36,7 +36,8 @@ class Preprocessor:
         self.B         = cv.CreateImage(self.cropSize, cv.IPL_DEPTH_8U, 1)
 
         logging.debug("Loading the background image")
-        self.bg = cv.LoadImage('alt-pitch-bg.png')
+        #self.bg = cv.LoadImage('alt-pitch-bg.png')
+        self.bg = cv.LoadImage('prim-pitch-bg.png')
         logging.debug("Processing the background image:")
         self.bg = cv.CloneImage( self.crop(self.undistort(self.bg)) )
         # cv.SaveImage("calibrated-background.png", self.bg)
@@ -100,7 +101,8 @@ class Preprocessor:
 
         self.Igray = self.threshold.foreground(self.Imask)
         cv.CvtColor(self.Imask, self.Igray, cv.CV_BGR2GRAY)
-        cv.EqualizeHist(self.Igray, self.Igray)
+        cv.Threshold(self.Igray, self.Igray, 150, 255, cv.CV_THRESH_OTSU)
+        #cv.EqualizeHist(self.Igray, self.Igray)
         cv.CvtColor(self.Igray, self.Imask, cv.CV_GRAY2BGR)
 
         #Finally, return the salient bits of the original frame

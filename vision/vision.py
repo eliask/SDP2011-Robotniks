@@ -4,6 +4,7 @@ from simcapture import SimCapture
 from preprocess import Preprocessor
 from features import FeatureExtraction
 from interpret import Interpreter
+from histogram import Histogram
 from common.world import World
 from common.gui import GUI
 import threshold
@@ -24,12 +25,13 @@ class Vision():
         else:
             self.capture = Capture(self.rawSize, filename)
 
-        self.threshold = threshold.AltRaw
+        self.threshold = threshold.AltRaw()
         self.pre = Preprocessor(self.rawSize, self.threshold, simulator)
         self.featureEx = FeatureExtraction(self.pre.cropSize)
         self.interpreter = Interpreter()
         self.world = world
         self.gui = GUI(world, self.pre.cropSize, self.threshold)
+        self.histogram = Histogram(self.pre.cropSize)
 
         self.times=[]
         self.N=0
@@ -51,6 +53,10 @@ class Vision():
         logging.debug("Entering preprocessing")
         standard, bgsub_vals, bgsub_mask = self.pre.preprocess(frame)
         logging.debug("Entering feature extraction")
+
+        hist_props = self.histogram.calcHistogram(bgsub_vals)
+        self.threshold.updateThresholds(hist_props)
+
         ents = self.featureEx.features(bgsub_vals, self.threshold)
         logging.debug("Detected entities:", ents)
         logging.debug("Entering interpreter")

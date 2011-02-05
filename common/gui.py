@@ -3,6 +3,10 @@ from utils import *
 from math import *
 import time
 import logging
+#from vision.camshift import CamShift
+from vision.histogram import Histogram
+import scipy.optimize
+#from vision.histogram import Histogram
 
 _fps = cv.Scalar(0,0,255,128)
 
@@ -19,12 +23,14 @@ class GUI:
     quit = False
     curThreshold = 0
     thresholdAdjustment = False
+    show_camshift = True
 
     def __init__(self, world, size, threshold):
         self.world = world
 
         self.threshold = threshold
         self.initThresholds()
+        #self.camshift = CamShift()
 
         self.Ihist = cv.CreateImage((128,64), 8, 3);
         self.R         = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
@@ -32,18 +38,113 @@ class GUI:
         self.B         = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
 
         cv.NamedWindow(self.WindowName)
+        self.drag_start = None
+        cv.SetMouseCallback(self.WindowName, self.on_mouse)
 
     def initThresholds(self):
         T = self.threshold
+
         self.thresholds = \
             [ ("none", None, None),
-              ("foreground", T.foreground, T.Tforeground),
-              ("robots", T.robots, T.Trobots),
               ("ball", T.ball, T.Tball),
-              ("blue T", T.blueT, T.Tblue),
-              ("yellow T", T.yellowT, T.Tyellow),
+              ("foreground", T.foreground, T.Tforeground),
               ("direction marker", T.dirmarker, T.Tdirmarker),
+              ("yellow T", T.yellowT, T.Tyellow),
+              ("blue T", T.blueT, T.Tblue),
+              #("custom", T.custom, T.Tcustom),
+              ("robots", T.robots, T.Trobots),
             ]
+
+    def on_mouse(self, event, x, y, flags, param):
+        if event == cv.CV_EVENT_LBUTTONDOWN:
+            self.drag_start = (x, y)
+        if event == cv.CV_EVENT_LBUTTONUP:
+            self.drag_start = None
+            self.track_window = self.selection
+            self.autoThreshold()
+        if self.drag_start:
+            xmin = min(x, self.drag_start[0])
+            ymin = min(y, self.drag_start[1])
+            xmax = max(x, self.drag_start[0])
+            ymax = max(y, self.drag_start[1])
+            self.selection = (xmin, ymin, xmax - xmin, ymax - ymin)
+
+    def autoThreshold(self):
+        # self.hist_image = self.image
+        # self.thresh_image = self.images['standard']
+
+        cv.SetImageROI(self.image, self.selection)
+        #cv.ShowImage(self.WindowName, self.thresh_image)
+        #cv.WaitKey(10)
+
+        _histogram = Histogram(self.selection[2:])
+        tmp = cv.CreateImage(self.selection[2:], 8,3)
+        cv.Copy(self.image, tmp)
+        hist_props = _histogram.calcHistogram(tmp)
+        B,G,R = hist_props
+        ppB, ppG, ppR = map(lambda x:x['post_peaks'], hist_props)
+        print ppB, ppG, ppR
+
+        self.threshold.Tyellow[1] = [0, 5+max(ppG, R[99]), 5+max(ppR, R[99])]
+        self.threshold.Tyellow[2] = [255, 255, 255]
+
+        cv.ResetImageROI(self.image)
+
+        return
+
+        start = time.time()
+        minmax = self.threshold.Tforeground[1] + self.threshold.Tforeground[2]
+        a= scipy.optimize.anneal( self.thresholdTarget, minmax,
+                                  schedule='boltzmann',
+                                  lower=[0,0,0,0,0,0],
+                                  upper=[255,255,255,255,255,255] )
+        # a= scipy.optimize.brute( self.thresholdTarget, minmax,
+        #                           lower=[0,0,0,0,0,0],
+        #                           upper=[255,255,255,255,255,255] )
+        print "OUT:", a
+        print "TIME:", time.time() - start
+        #cv.ResetImageRoi(self.image)
+
+    def getSelectionBorderArea(self, frame):
+        S = self.selection
+        thickness = 5
+        top = (S[0], S[1], thickness, S[3])
+        left = (S[0], S[1], S[2], thickness)
+        right = (S[2]-thickness, S[1], thickness, S[3])
+        bottom = (S[0], S[3]-thickness, S[2], thickness)
+
+        area = 0
+        cv.SetImageROI(frame, top)
+        area += cv.CountNonZero(frame)
+        cv.SetImageROI(frame, bottom)
+        area += cv.CountNonZero(frame)
+        cv.SetImageROI(frame, left)
+        area += cv.CountNonZero(frame)
+        cv.SetImageROI(frame, right)
+        area += cv.CountNonZero(frame)
+
+        return area
+
+    def thresholdTarget(self, minmax):
+        # Penalise bounds-crossing
+        if (minmax < 0).any() or (minmax > 255).any():
+            return 1e1000
+        if (minmax[:3] > minmax[3:]).any():
+            return 1e100
+
+        self.threshold.Tyellow[1] = list(minmax[:3])
+        self.threshold.Tyellow[2] = list(minmax[3:])
+        print self.threshold.Tyellow
+        out = self.threshold.yellowT(self.thresh_image)
+        cv.SetImageROI(out, self.selection)
+        cv.ShowImage(self.WindowName, out)
+        cv.WaitKey(10)
+        area_in = cv.CountNonZero(out)
+        area_borders = self.getSelectionBorderArea(out)
+        cv.ResetImageROI(out)
+        #area_out = cv.CountNonZero(out)
+        print area_in, area_borders
+        return area_borders**2 - area_in**2
 
     def setFPS(self, startTime):
         self.fps = 1.0/(time.time() - startTime)
@@ -70,7 +171,32 @@ class GUI:
         self.processInput()
         self.displayHistogram()
         self.displayOverlay(ents)
+        #self.displayCamshift()
+        self.drawMouseSelection()
         cv.ShowImage(self.WindowName, self.image)
+
+    def drawMouseSelection(self):
+        def is_rect_nonzero(r):
+            (_,_,w,h) = r
+            return (w > 0) and (h > 0)
+
+        if self.drag_start and is_rect_nonzero(self.selection):
+            sub = cv.GetSubRect(self.image, self.selection)
+            save = cv.CloneMat(sub)
+            cv.ConvertScale(self.image, self.image, 0.5)
+            cv.Copy(save, sub)
+            x,y,w,h = self.selection
+            cv.Rectangle(self.image, (x,y), (x+w,y+h), (255,255,255))
+
+            #cv.EllipseBox( self.image, track_box, cv.CV_RGB(255,0,0), 3, cv.CV_AA, 0 )
+            # sel = cv.GetSubRect(self.hue, self.selection )
+            # cv.CalcArrHist( [sel], hist, 0)
+            # (_, max_val, _, _) = cv.GetMinMaxHistValue( hist)
+            # if max_val != 0:
+            #     cv.ConvertScale(hist.bins, hist.bins, 255. / max_val)
+
+    def displayCamshift(self):
+        self.camshift.run(self.image)
 
     def updateWindow(self, name, frame):
         self.images[name] = frame
@@ -90,19 +216,27 @@ class GUI:
     def displayHistogram(self):
         if self.histogram and self.image.nChannels == 3:
             try:
-                self.drawHistogram()
+                if not self.hist_image:
+                    self.hist_image = self.image
+                self.drawHistogram(self.hist_image)
             except Exception, e:
                 logging.warn("drawHistogram failed: %s", e)
+        self.hist_image = None
 
-    def drawHistogram(self):
-        hist_size = 64
+    def drawHistogram(self, image):
+        w=0.5; n=9
+        gauss1d = np.exp( -0.5 * w/n * np.array(range(-(n-1), n, 2))**2 )
+        gauss1d /= sum(gauss1d)
+
+        hist_size = 180
         hist = cv.CreateHist([hist_size], cv.CV_HIST_ARRAY, [[0,256]], 1)
-        cv.Split(self.image, self.B, self.G, self.R, None)
+        cv.Split(image, self.B, self.G, self.R, None)
 
         channels = self.B, self.G, self.R
         _red   = cv.Scalar(255,0,0,0)
         _green = cv.Scalar(0,255,0,0)
         _blue  = cv.Scalar(0,0,255,0)
+        _white = cv.Scalar(255,255,255,0)
         _trans = cv.Scalar(0,0,0,255)
         values = _blue, _green, _red
 
@@ -112,26 +246,34 @@ class GUI:
             cv.CalcHist( [ch], hist, 0, None )
             cv.Set( self.Ihist, _trans)
             bin_w = cv.Round( float(self.Ihist.width)/hist_size )
+            # min_value, max_value, pmin, pmax = cv.GetMinMaxHistValue(hist)
 
-            min_value, max_value, pmin, pmax = cv.GetMinMaxHistValue(hist)
-            cv.Scale( hist.bins, hist.bins,
-                      float(self.Ihist.height)/max_value, 0 )
-
-            X = self.image.width - self.Ihist.width
+            X = image.width - self.Ihist.width
             rect = (X,Y,self.Ihist.width,self.Ihist.height)
-            cv.SetImageROI(self.image, rect)
 
-            for i in range(hist_size):
+            hist_arr = [cv.GetReal1D(hist.bins,i) for i in range(hist_size)]
+            hist_arr = np.convolve(gauss1d, hist_arr, 'same')
+
+            cv.SetImageROI(image, rect)
+            hist_arr *= self.Ihist.height/max(hist_arr)
+            for i,v in enumerate(hist_arr):
                 cv.Rectangle( self.Ihist,
                               (i*bin_w, self.Ihist.height),
-                              ( (i+1)*bin_w, self.Ihist.height
-                                - cv.Round(cv.GetReal1D(hist.bins,i)) ),
-                              colour, -1, 8, 0 );
+                              ( (i+1)*bin_w, self.Ihist.height - round(v) ),
+                              colour, -1, 8, 0 )
 
-            cv.AddWeighted(self.image, 1-self.hist_visibility, self.Ihist,
-                           self.hist_visibility, 0.0, self.image)
+            diffs = np.diff(hist_arr, 1)
+            for i,v in enumerate(diffs):
+                if v > 1 and diffs[i-1]*diffs[i] <= 0:
+                    cv.Rectangle( self.Ihist,
+                                  (i*bin_w, self.Ihist.height),
+                                  ( (i+1)*bin_w, self.Ihist.height - round(hist_arr[i]) ),
+                                  _white, -1, 8, 0 )
 
-        cv.ResetImageROI(self.image)
+            cv.AddWeighted(image, 1-self.hist_visibility, self.Ihist,
+                           self.hist_visibility, 0.0, image)
+
+        cv.ResetImageROI(image)
 
     def drawRotBox(self, ent, color=cv.CV_RGB(255,128,0), label="UNNAMED"):
         if not ent:
@@ -181,9 +323,7 @@ class GUI:
 
     def processInput(self):
         c = cv.WaitKey(5)
-        if not 0 <= c <= 255:
-            return
-        k = chr(c)
+        k = chr(c % 0x100)
 
         if k == '\x1b': #ESC
             self.quit = True
@@ -203,16 +343,14 @@ class GUI:
             self.curThreshold = 0
         elif k == 't':
             self.curThreshold = (self.curThreshold + 1) % len(self.thresholds)
-            self.threshold = self.thresholds[self.curThreshold]
-        # elif k == 'a':
-        #     self.switchWindow('adaptive')
+        elif k == 'a':
+            self.switchWindow('adaptive')
         # elif k == 'g':
         #     self.switchWindow('pyramid')
         elif k == '0':
             self.channel = 0
         elif k == '1':
             self.channel = 1
-            print "CHAN"
         elif k == '2':
             self.channel = 2
         elif k == '3':
@@ -221,9 +359,19 @@ class GUI:
             self.overlay = not self.overlay
         elif k == 'h':
             self.histogram = not self.histogram
+        elif k == '4':
+            pass #self.show_camshift = not self.show_camshift
         elif k == 'q':
             #self.setTrackbars
             pass
+        elif k == 'Q': # left arrow
+            self.left()
+        elif k == 'S': # right arrow
+            self.right()
+        elif k == 'R': # up arrow
+            self.up()
+        elif k == 'T': # down arrow
+            self.right()
         elif k == 's':
             filename = time.strftime('%Y%m%d-%H%M-%S.png')
             cv.SaveImage(filename, self.image)

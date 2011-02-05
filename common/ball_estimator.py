@@ -22,7 +22,7 @@ class BallEstimator(Kalman):
         return map(float, (self.prediction[2], self.prediction[3]))
 
     def update(self, balls, dt):
-        print self.getPos()
+        #print self.getPos()
         self.predict(dt)
         logging.debug( 'Predicted ball position: %s',
                        pos2string(self.getPos()) )

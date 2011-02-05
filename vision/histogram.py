@@ -31,24 +31,62 @@ class Histogram:
     def calcHistogram(self, image):
         cv.Split(image, self.B, self.G, self.R, None)
         channels = self.B, self.G, self.R
-        plateaus = []
+
+        hist_props = [{} for channel in channels]
+
+        #Normalisation constant for histogram size
+        size_norm = 255.0 / self.hist_size
+
         for chnum, ch in enumerate(channels):
             #, colour, Ypos in zip(channels, values, positions):
             cv.CalcHist( [ch], self.hist, 0, None )
 
             hist_arr = self.smoothHistogram()
             diffs = np.diff(hist_arr, 1)
-            plateaus.append([])
-            for i,v in enumerate(diffs):
-                if hist_arr[i] > 1 and diffs[i-1]*diffs[i] <= 0:
-                    plateaus[chnum].append(i)
 
-            # for i in plateaus[chnum]:
-            #     if i > 10 and min_val
+            hist_props[chnum]['plateaus'] = []
+            mins = [(0,0)]
+            for i,v in enumerate(diffs):
+                if v < mins[-1][1]:
+                    mins.append((i,v))
+                if hist_arr[i] > 1 and diffs[i-1]*diffs[i] <= 0:
+                    hist_props[chnum]['plateaus'].append(i*size_norm)
+
+            hist_props[chnum]['mins'] = [(i*size_norm,v) for i,v in mins]
+            #print "MINS:",mins
+
+
+            # Calculate beyond the 100th percentile due to numerical instability
+            ptile = range(0,103,1)
+            total = sum(hist_arr)
+            running_sum = 0
+            for i,v in enumerate(hist_arr):
+                running_sum += v
+                while running_sum >= total * ptile[0]/100.0:
+                    hist_props[chnum][ptile[0]] = i*size_norm
+                    del ptile[0]
+
+            # Make sure all percentiles are actually in the data structure:
+            prev = 10
+            for p in ptile:
+                if p in hist_props[chnum]:
+                    prev = p
+                else:
+                    hist_props[chnum][p] = hist_props[chnum][prev]
+            assert 90 in hist_props[chnum], "percentile calculation incomplete"
+
+            post_peaks = mins[-1][0]
+            for i in range(mins[-1][0],len(diffs)):
+                if diffs[i-1]*diffs[i] <= 0:
+                    post_peaks = i
+                    #print hist_arr[i:]
+                    break
+            #print "POST:",post_peaks*size_norm
+            hist_props[chnum]['post_peaks'] = post_peaks * size_norm
 
             #self.drawHistogram(image, chnum, hist_arr, plateaus)
 
-        return plateaus
+        return hist_props
 
     def drawHistogram(self, image, chnum, hist_arr, plateaus):
         positions = (0, (self.Ihist.height+10), 2*self.Ihist.height+20)
