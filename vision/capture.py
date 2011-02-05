@@ -12,28 +12,37 @@ class Capture:
         self.initCapture()
 
     def initCapture(self):
+        self.image = None
         if self.filename:
             logging.info("Capturing from file: %s", self.filename)
-            self.capture = cv.CaptureFromFile(self.filename)
+            ext = self.filename.split(".")[-1]
+            if ext in ('png', 'jpg', 'jpeg'):
+                self.image = cv.LoadImage(self.filename)
+                self.capture = True
+            else:
+                self.capture = cv.CaptureFromFile(self.filename)
         else:
             logging.info("Capturing from camera")
             self.capture = cv.CaptureFromCAM(-1)
 
+            cv.SetCaptureProperty(self.capture,
+                                  cv.CV_CAP_PROP_FRAME_WIDTH,
+                                  self.size[0])
+            cv.SetCaptureProperty(self.capture,
+                                  cv.CV_CAP_PROP_FRAME_HEIGHT,
+                                  self.size[1])
+
         if not self.capture:
             raise CaptureFailure, "Could not open video capture stream"
-
-        cv.SetCaptureProperty(self.capture,
-                              cv.CV_CAP_PROP_FRAME_WIDTH,
-                              self.size[0])
-        cv.SetCaptureProperty(self.capture,
-                              cv.CV_CAP_PROP_FRAME_HEIGHT,
-                              self.size[1])
 
     def __getFrame(self):
         """Returns a new frame from the video stream in BGR format
 
         Raises an exception if there is an error acquiring a frame.
         """
+        if self.image:
+            return cv.CloneImage(self.image)
+
         frame = cv.QueryFrame(self.capture)
         if frame is None:
             raise CaptureFailure
