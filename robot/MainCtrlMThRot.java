@@ -7,7 +7,7 @@ import lejos.nxt.*;
 import lejos.nxt.comm.*;
 
 // Collect commands, write to screen
-public class MainCtrlMTh {
+public class MainCtrlMThRot {
 
         //Defines the buttons
         private static final Button button_left = Button.LEFT;
@@ -19,6 +19,8 @@ public class MainCtrlMTh {
 	private static DataInputStream inputStream;
 
 	public static void main(String[] args) throws InterruptedException{
+	    Thread dispThreadCount = new DispThreadCount();
+	    dispThreadCount.start();
 	    executionMenu();
 	}
 	
@@ -49,12 +51,13 @@ public class MainCtrlMTh {
 					}
 					int message = inputStream.readInt();
 					// Do specific action
-					if (message == 65535){
+					if (message >= (1<<26)){
 					    atend = true;
 					    writeToScreen(Integer.toString(message),7);
-					} else if (message != 65535){
-					    if (Movement.getThreadsRunning() == 0){ 
+					} else if (message < (1<<26)){
+					    if (Movement.getThreadsRunning() <= 0){ 
 						writeToScreen(Integer.toString(message),6);
+						Movement.setThreadsRunning(5);
 						parseMessage(message);
 					    }
 					}
@@ -87,25 +90,23 @@ public class MainCtrlMTh {
 	   int threadCount = 0;
 
 	   int reset = message & 1;
-	   int kick = (message >> 1) & 1;
-	   int motor_dleft = (message >> 2) & 7;
-	   int motor_dright = (message >> 5) & 7;
-	   int motor_sleft = (message >> 8) & 7;
-	   int motor_sright = (message >> 11) & 7;
+	   int kick = (message >>> 1) & 1;
+	   int motor_dleft = (message >>> 2) & 7;
+	   int motor_dright = (message >>> 5) & 7;
+	   int motor_sleft = (message >>> 8) & 1023;
+	   int motor_sright = (message >>> 17) & 1023;
 	   
-	       Movement.setThreadsRunning(5);
 	       Thread thread1 = new KickThread(kick);
-	       Thread thread2 = new SteeringLeftThread(motor_sleft);
-	       Thread thread3 = new SteeringRightThread(motor_sright);
-	       Thread thread4 = new DriveLeftThread(motor_dleft);
-	       Thread thread5 = new DriveRightThread(motor_dright);
+	       Thread thread2 = new DriveLeftThread(motor_dleft);
+	       Thread thread3 = new DriveRightThread(motor_dright);
+	       Thread thread4 = new SteeringLeftThread(motor_sleft);
+	       Thread thread5 = new SteeringRightThread(motor_sright);
 
 	       thread1.start();
 	       thread2.start();
 	       thread3.start();
 	       thread4.start();
 	       thread5.start();
-	       
        }
 
 	// Writes a message to the brick's screen on a particular line if valid
@@ -219,6 +220,9 @@ public class MainCtrlMTh {
 
 	    Movement.port_comlight.setPowerType(Movement.port_comlight.POWER_RCX9V);
 
+	    Movement.setPositionLeft(0);
+	    Movement.setPositionLeft(0);
+
 	    try{
 		collectMessage();
 	    } catch (InterruptedException e){
@@ -248,6 +252,10 @@ class Movement {
 	
 	//Defines the number of motor turns to wheel turns
 	public static final double rotConstant = 2.375;
+    
+        //Defines position of the right and left wheels
+        private static int position_left = 0;
+        private static int position_right = 0;
 
         //Defines the sensor port used to power the communication light
         public static final SensorPort port_comlight = SensorPort.S1;
@@ -270,7 +278,23 @@ class Movement {
 	    threadsRunning--;
 	}
     }
-	
+
+    public static int getPositionLeft(){
+	return position_left;
+    }
+
+    public static int getPositionRight(){
+	return position_right;
+    }
+
+    public synchronized static void setPositionLeft(int Degs){
+	position_left = Degs;
+    }
+
+    public synchronized static void setPositionRight(int Degs){
+	position_right = Degs;
+    }
+
 }
 
 // Activate kicker
@@ -291,104 +315,16 @@ class KickThread extends Thread {
 	}
 }
 
-class SteeringLeftThread extends Thread{
+class DriveLeftThread extends Thread{
     private int control = 0;
 
-    public SteeringLeftThread(int control){
+    public DriveLeftThread(int control){
 	this.control = control;
     }
 
     public void run(){
+ 
 	switch(control){
-	case 0:
-	    Movement.motor_left.stop();
-	    break;
-	case 4:
-	    Movement.motor_left.stop();
-	    break;
-	case 1:
-	    Movement.motor_left.setSpeed(300);
-	    Movement.motor_left.backward();
-	    break;
-	case 2:
-	    Movement.motor_left.setSpeed(600);
-	    Movement.motor_left.backward();
-	    break;
-	case 3:
-	    Movement.motor_left.setSpeed(900);
-	    Movement.motor_left.backward();
-	    break;
-	case 5:
-	    Movement.motor_left.setSpeed(300);
-	    Movement.motor_left.forward();
-	    break;
-	case 6:
-	    Movement.motor_left.setSpeed(600);
-	    Movement.motor_left.forward();
-	    break;
-        case 7:
-	    Movement.motor_left.setSpeed(900);
-	    Movement.motor_left.forward();
-	    break;
-	}
-	
-	Movement.decrementThreadsRunning();
-    }
-}
-
-class SteeringRightThread extends Thread{
-    private int control = 0;
-
-    public SteeringRightThread(int control){
-	this.control = control;
-    }
-
-    public void run(){
-	switch (control){
-        case 0:
-	    Movement.motor_right.stop();
-	    break;
-	case 4:
-	    Movement.motor_right.stop();
-	    break;
-	case 1:
-	    Movement.motor_right.setSpeed(300);
-	    Movement.motor_right.backward();
-	    break;
-	case 2:
-	    Movement.motor_right.setSpeed(600);
-	    Movement.motor_right.backward();
-	    break;
-	case 3:
-	    Movement.motor_right.setSpeed(900);
-	    Movement.motor_right.backward();
-	    break;
-	case 5:
-	    Movement.motor_right.setSpeed(300);
-	    Movement.motor_right.forward();
-	    break;
-	case 6:
-	    Movement.motor_right.setSpeed(600);
-	    Movement.motor_right.forward();
-	    break;
-        case 7:
-	    Movement.motor_right.setSpeed(900);
-	    Movement.motor_right.forward();
-	    break;
-	}
-	
-	Movement.decrementThreadsRunning();
-    }
-}
-
-class DriveLeftThread extends Thread {
-    private int control = 0;
-    
-       	public DriveLeftThread(int control) {
-	    this.control = control;
-	}    
-        public void run(){
-	    switch(control){
 	    case 0:
 		Movement.port_comlight.passivate();
 		break;
@@ -414,20 +350,20 @@ class DriveLeftThread extends Thread {
 		Movement.port_comlight.activate();
 		break;
 	    }
-
-	    Movement.decrementThreadsRunning();
-
-	}
+	
+	Movement.decrementThreadsRunning();
+    }
 }
 
-class DriveRightThread extends Thread {
+class DriveRightThread extends Thread{
     private int control = 0;
-    
-    public DriveRightThread(int control) {
+
+    public DriveRightThread(int control){
 	this.control = control;
-    }    
+    }
+
     public void run(){
-	   
+	 
 	switch(control){
 	    case 0:
 		Movement.port_comlight.passivate();
@@ -453,13 +389,73 @@ class DriveRightThread extends Thread {
 	    case 7:
 		Movement.port_comlight.activate();
 		break;
-	 }
+	    }
+	
+	Movement.decrementThreadsRunning();
+    }
+}
 
+class SteeringLeftThread extends Thread {
+    private int turn = 0;
+    
+       	public SteeringLeftThread(int turn) {
+	    this.turn = turn;
+	}    
+        public void run(){
+	    
+	    if (((turn -Movement.getPositionLeft())>0) && ((turn -Movement.getPositionLeft())<180)){
+		Movement.motor_left.rotate((int)(Movement.rotConstant * (turn -Movement.getPositionLeft())));
+	    } else if ((turn -Movement.getPositionLeft()) >= 180){
+		Movement.motor_left.rotate((int)(Movement.rotConstant * -1 *(360- (turn - Movement.getPositionLeft()))));
+	    } else if (((turn -Movement.getPositionLeft()) < 0) && ((turn -Movement.getPositionLeft())>-180)){
+		Movement.motor_left.rotate((int)(Movement.rotConstant * ((turn-Movement.getPositionLeft()))));
+	    } else if ((turn -Movement.getPositionLeft()) <= -180){
+		Movement.motor_left.rotate((int)(Movement.rotConstant * (-360 - (turn -Movement.getPositionLeft()))));
+	    }
+	    
+	    Movement.setPositionLeft((turn % 360));
+	    Movement.decrementThreadsRunning();
+
+	}
+}
+
+class SteeringRightThread extends Thread {
+    private int turn = 0;
+    
+    public SteeringRightThread(int turn) {
+	this.turn = turn;
+    }    
+    public void run(){
+	   
+	 if (((turn - Movement.getPositionRight())>0) && ((turn - Movement.getPositionRight())<180)){
+		Movement.motor_right.rotate((int)(Movement.rotConstant * (turn - Movement.getPositionRight())));
+	    } else if ((turn - Movement.getPositionRight()) >= 180){
+		Movement.motor_right.rotate((int)(Movement.rotConstant * -1 *(360- (turn - Movement.getPositionRight()))));
+	    } else if (((turn - Movement.getPositionRight()) < 0) && ((turn - Movement.getPositionRight())>-180)){
+		Movement.motor_right.rotate((int)(Movement.rotConstant * ((turn-Movement.getPositionRight()))));
+	    } else if ((turn - Movement.getPositionRight()) <= -180){
+		Movement.motor_right.rotate((int)(Movement.rotConstant * (-360 - (turn - Movement.getPositionRight()))));
+	    }
+
+	    Movement.setPositionRight(turn);
 	    Movement.decrementThreadsRunning();
     }
 }
 
-
+class DispThreadCount extends Thread{
+    public DispThreadCount(){
+    }
+    public void run(){
+	while (true){
+	    LCD.drawString("                ", 0, 5);
+	    LCD.drawString(Integer.toString(Movement.getThreadsRunning()), 0, 5);
+	    try{
+		Thread.sleep(3000);
+	    } catch (InterruptedException e){
+	    }
+	}
+    }
+}
 
 
 
