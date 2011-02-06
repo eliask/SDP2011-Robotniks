@@ -33,9 +33,12 @@ class GUI:
         #self.camshift = CamShift()
 
         self.Ihist = cv.CreateImage((128,64), 8, 3);
+        self.HSV       = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
         self.R         = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
         self.G         = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
         self.B         = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
+
+        self.hist_image = None
 
         cv.NamedWindow(self.WindowName)
         self.drag_start = None
@@ -73,17 +76,19 @@ class GUI:
         # self.hist_image = self.image
         # self.thresh_image = self.images['standard']
 
-        cv.SetImageROI(self.image, self.selection)
+        #cv.SetImageROI(self.image, self.selection)
         #cv.ShowImage(self.WindowName, self.thresh_image)
         #cv.WaitKey(10)
 
         _histogram = Histogram(self.selection[2:])
         tmp = cv.CreateImage(self.selection[2:], 8,3)
-        cv.Copy(self.image, tmp)
+        #cv.Copy(self.image, tmp)
+        cv.CvtColor(self.images['foreground'], tmp, cv.CV_BGR2HSV)
         hist_props = _histogram.calcHistogram(tmp)
         B,G,R = hist_props
         ppB, ppG, ppR = map(lambda x:x['post_peaks'], hist_props)
         print ppB, ppG, ppR
+        print hist_props
 
         self.threshold.Tyellow[1] = [0, 5+max(ppG, R[99]), 5+max(ppR, R[99])]
         self.threshold.Tyellow[2] = [255, 255, 255]
@@ -161,6 +166,7 @@ class GUI:
         if self.curThreshold > 0 and self.image.nChannels == 3:
             name, thresh, vals = self.thresholds[self.curThreshold]
             logging.info("Thresholding image for: %s", name)
+            print ("Thresholding image for: %s" % name)
             self.image = thresh(self.image)
 
     def draw(self, ents, startTime):
@@ -214,14 +220,15 @@ class GUI:
                       20, cv.CV_RGB(0,255,255))
 
     def displayHistogram(self):
+        self.hist_image = self.images['foreground']
         if self.histogram and self.image.nChannels == 3:
             try:
                 if not self.hist_image:
                     self.hist_image = self.image
                 self.drawHistogram(self.hist_image)
             except Exception, e:
+                raise e
                 logging.warn("drawHistogram failed: %s", e)
-        self.hist_image = None
 
     def drawHistogram(self, image):
         w=0.5; n=9
@@ -230,7 +237,8 @@ class GUI:
 
         hist_size = 180
         hist = cv.CreateHist([hist_size], cv.CV_HIST_ARRAY, [[0,256]], 1)
-        cv.Split(image, self.B, self.G, self.R, None)
+        cv.CvtColor(image, self.HSV, cv.CV_BGR2HSV)
+        cv.Split(self.HSV, self.B, self.G, self.R, None)
 
         channels = self.B, self.G, self.R
         _red   = cv.Scalar(255,0,0,0)
@@ -248,7 +256,7 @@ class GUI:
             bin_w = cv.Round( float(self.Ihist.width)/hist_size )
             # min_value, max_value, pmin, pmax = cv.GetMinMaxHistValue(hist)
 
-            X = image.width - self.Ihist.width
+            X = self.HSV.width - self.Ihist.width
             rect = (X,Y,self.Ihist.width,self.Ihist.height)
 
             hist_arr = [cv.GetReal1D(hist.bins,i) for i in range(hist_size)]

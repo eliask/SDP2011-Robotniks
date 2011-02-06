@@ -10,8 +10,9 @@ class FeatureExtraction:
     # Format : ( min_w, max_w, min_h, max_H)
     # width is defined as the longer dimension
     Sizes = { 'balls'     : (3,  25,  3, 25),
-              'T'         : (15, 35, 10, 25),
-              'robots'    : (38, 80, 20, 60),
+              #'T'         : (15, 35, 10, 25),
+              'T'         : (5, 45, 3, 40),
+              'robots'    : (28, 80, 20, 60),
               'dirmarker' : (5,  12, 5,  12),
             }
 
@@ -80,8 +81,10 @@ class FeatureExtraction:
         else:
             ent_T = self.detectBlue(frame)
 
-        print ents[colour], ent_T
-        ents[colour] = ent_T
+        if ent_T:
+            ents[colour] = ent_T
+            ents[colour]['T'] = ent_T
+            ents[colour]['dirmarker'] = None
 
     def detectRobots(self, frame, ents):
         "Detect the potential robots in the image"

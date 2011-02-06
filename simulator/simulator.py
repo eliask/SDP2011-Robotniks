@@ -161,7 +161,7 @@ class Simulator(object):
         self.world.assignSides()
         self.initAI()
         self.initInput()
-        # By initialising the input after the AI, we can control even
+        # by initialising the input after the AI, we can control even
         # AI robots with keyboard
         self.drawEnts()
 

@@ -23,13 +23,16 @@ class Histogram:
         self.G         = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
         self.B         = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
 
+        self.tmp       = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
+
     def smoothHistogram(self):
         hist_arr = [cv.GetReal1D(self.hist.bins,i) for i in range(self.hist_size)]
         hist_arr = np.convolve(self.gauss1d, hist_arr, 'same')
         return hist_arr
 
     def calcHistogram(self, image):
-        cv.Split(image, self.B, self.G, self.R, None)
+        cv.CvtColor(image, self.tmp, cv.CV_BGR2HSV)
+        cv.Split(self.tmp, self.B, self.G, self.R, None)
         channels = self.B, self.G, self.R
 
         hist_props = [{} for channel in channels]
@@ -84,7 +87,7 @@ class Histogram:
             #print "POST:",post_peaks*size_norm
             hist_props[chnum]['post_peaks'] = post_peaks * size_norm
 
-            #self.drawHistogram(image, chnum, hist_arr, plateaus)
+            #self.drawHistogram(tmp, chnum, hist_arr, plateaus)
 
         return hist_props
 

@@ -66,8 +66,8 @@ class Preprocessor:
         if not self.standardised:
             frame = self.standardise(frame)
         self.continuousLearnBackground(frame)
-        bgsub = self.remove_background_values(frame)
-        return frame, bgsub, self.threshold.foreground(bgsub)
+        bgsub, mask = self.remove_background_values(frame)
+        return frame, bgsub, mask
 
     def crop(self, frame):
         logging.debug("Cropping a frame")
@@ -99,16 +99,17 @@ class Preprocessor:
     def remove_background_values(self, frame):
         self.Imask = self.remove_background(frame)
 
+        #cv.ShowImage("ASD", self.Imask)
         self.Igray = self.threshold.foreground(self.Imask)
         cv.CvtColor(self.Imask, self.Igray, cv.CV_BGR2GRAY)
-        cv.Threshold(self.Igray, self.Igray, 150, 255, cv.CV_THRESH_OTSU)
+        cv.Threshold(self.Igray, self.Igray, 200, 255, cv.CV_THRESH_OTSU)
         #cv.EqualizeHist(self.Igray, self.Igray)
         cv.CvtColor(self.Igray, self.Imask, cv.CV_GRAY2BGR)
 
         #Finally, return the salient bits of the original frame
         cv.And(self.Imask, frame, self.Iobjects)
 
-        return self.Iobjects
+        return self.Iobjects, self.Igray
 
     def background_mask(self, frame):
         bgsub_eq = cv.CreateImage(self.pre.cropSize, cv.IPL_DEPTH_8U, 1)

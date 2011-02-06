@@ -51,6 +51,7 @@ class RobotEstimator(Kalman):
 
             self.measurement[0] = pos[0]
             self.measurement[1] = pos[1]
-            self.measurement[2] = best_match['orient']
+            if 'orient' in best_match:
+                self.measurement[2] = best_match['orient']
 
         self.correct(self.measurement)

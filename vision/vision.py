@@ -9,6 +9,7 @@ from common.world import World
 from common.gui import GUI
 import threshold
 import random, time, math, logging
+import debug
 
 T=[0, [150,150,150],[30,30,30]]
 class Vision():
@@ -36,6 +37,8 @@ class Vision():
         self.times=[]
         self.N=0
 
+        debug.thresholdValues(self.threshold.Tfg, self.gui)
+
         logging.debug('Vision initialised')
 
     def formatTime(self, t):
@@ -54,8 +57,10 @@ class Vision():
         standard, bgsub_vals, bgsub_mask = self.pre.preprocess(frame)
         logging.debug("Entering feature extraction")
 
-        hist_props = self.histogram.calcHistogram(bgsub_vals)
-        self.threshold.updateThresholds(hist_props)
+        hist_props_bgsub = self.histogram.calcHistogram(standard)
+        hist_props_abs = self.histogram.calcHistogram(bgsub_vals)
+        self.threshold.updateBGSubThresholds(hist_props_bgsub)
+        #self.threshold.updateAbsThresholds(hist_props_abs)
 
         ents = self.featureEx.features(bgsub_vals, self.threshold)
         logging.debug("Detected entities:", ents)
@@ -71,6 +76,21 @@ class Vision():
             self.gui.updateWindow('foreground', bgsub_vals)
             self.gui.updateWindow('bgsub', bgsub)
             self.gui.updateWindow('standard', standard)
+            canny = cv.CreateImage(self.pre.cropSize, 8,1)
+            # adaptive = cv.CreateImage(self.pre.cropSize, 32,3)
+            # tmp = cv.CreateImage(self.pre.cropSize, 8,3)
+            # cv.Convert(standard, adaptive)
+            cv.CvtColor(bgsub, canny, cv.CV_BGR2GRAY)
+            cv.Threshold(canny, canny, 150, 255, cv.CV_THRESH_OTSU)
+            # cv.Threshold(canny, canny, 100, 255, cv.CV_ADAPTIVE_THRESH_GAUSSIAN_C)
+            # cv.Sobel(adaptive, adaptive, 1,1,1)
+            # cv.Convert(adaptive, tmp)
+            # cv.ConvertScale(tmp, tmp, 10)
+            # cv.CvtColor(tmp, canny, cv.CV_BGR2GRAY)
+            # cv.Threshold(canny,canny, 50, 255, cv.CV_THRESH_BINARY)
+            cv.Canny(canny,canny, 100, 180,3)
+
+            self.gui.updateWindow('adaptive', canny)
             self.gui.draw(ents, startTime)
         except Exception, e:
             logging.error("GUI failed: %s", e)
