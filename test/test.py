@@ -66,7 +66,12 @@ def find_py(d):
 Runs all the tests.
 """
 def run_tests(error_file):
-	suite = unittest.TestLoader().discover(TEST_DIR, top_level_dir = TEST_DIR)
+	if __name__ == "__main__":
+		tld = TEST_DIR
+	else:
+		tld = BASE_DIR
+	
+	suite = unittest.TestLoader().discover(TEST_DIR, top_level_dir = tld)
 	result = unittest.TextTestRunner(stream = error_file).run(suite)
 	
 	if(result.wasSuccessful()):
@@ -95,7 +100,7 @@ def find_tests():
 """
 Le's do dis!
 """
-if __name__ == "__main__":
+def test():
 	error_file = open(ERROR_FILE, "w")
 	
 	check_syntax(error_file)
@@ -107,3 +112,6 @@ if __name__ == "__main__":
 		sys.exit(1)
 	else:
 		os.remove(ERROR_FILE)
+
+if __name__ == "__main__":
+	test()
