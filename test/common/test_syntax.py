@@ -14,9 +14,16 @@ class TestSyntax(unittest.TestCase):
 	Checks the syntax of all the python files.
 	"""
 	def test_syntax(self):
+		failures = []
 		for f in self.find_py(test.BASE_DIR):
-			py_compile.compile(f, None, f.replace(test.BASE_DIR + os.sep, ""), True)
-			os.remove(f + "c")
+			try:
+				py_compile.compile(f, None, f.replace(test.BASE_DIR + os.sep, ""), True)
+				os.remove(f + "c")
+			except py_compile.PyCompileError as (errstr):
+				failures.append(errstr.__str__())
+		if(failures):
+			errors = "\n\n".join(failures)
+			self.fail("Found %d syntax errors:\n\n%s" % (len(failures), errors))
 	
 	"""
 	Find all .py files below the base (git) directory.
