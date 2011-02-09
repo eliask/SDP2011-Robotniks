@@ -12,7 +12,7 @@ public class PCBluetooth {
     private static String name = "NXT";
     private static String address = "00:16:53:07:D6:2B";
 
-    public static void main(String[] args) throws InterruptedException, IOException{
+    public static void main(String[] args) throws InterruptedException, IOException, NXTCommException {
         openConnection();
         Thread.sleep(2000);
         for (int i=1; i<100; i++) {
@@ -23,24 +23,16 @@ public class PCBluetooth {
     }
 
     // Tries to connect to robot and set up an output stream
-    public static void openConnection() {
+    public static void openConnection() throws NXTCommException {
         // Set up bluetooth
-        try {
             communicator = NXTCommFactory.createNXTComm(NXTCommFactory.BLUETOOTH);
-        } catch (NXTCommException e) {
-            e.printStackTrace();
-        }
 
         // Try connect
         NXTInfo nxtInfo = new NXTInfo(0, name,address);
         System.out.format("Connecting to %s", nxtInfo.name);
 
         boolean connected = false;
-        try {
             connected = communicator.open(nxtInfo);
-        } catch (NXTCommException e) {
-            e.printStackTrace();
-        }
 
         // Set up output stream if connection worked
         if (!connected) {

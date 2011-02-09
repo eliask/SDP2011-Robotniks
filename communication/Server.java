@@ -2,6 +2,7 @@ import java.io.*;
 import java.net.*;
 import java.util.concurrent.*;
 import java.util.ArrayList;
+import lejos.pc.comm.NXTCommException;
 
 /* Send command -1 to cleanly shutdown server, closing bluetooth connection */
 
@@ -15,20 +16,44 @@ public class Server {
 	private ArrayList<Socket> sockets = new ArrayList<Socket>();
 	private ExecutorService executor = null;
 	private boolean commandSent = false;
+	protected boolean restart = false;
 
-	public static void main(String[] args){
+	public static void main(String[] args) throws NXTCommException{
 		Server server = new Server();
 		if (args.length > 0){
 			server.loopback = true;
 		}
-		server.startServer();
+		do{
+			server.restart = false;
+			server.startServer();
+		}while(server.restart);
 	}
 
-	public void startServer(){
-		pcb = new PCBluetooth();
-		if (!loopback)
-			pcb.openConnection();
+	private void reconnect(){
+		if (!loopback){
+			boolean reconnect = false;
+			do{
+					try{
+						pcb.openConnection();
+						System.out.println("connected!");
+						reconnect = false;
+					}catch(NXTCommException e){
+						System.err.println("failed to connect. retrying in 3 seconds.");
+						reconnect = true;
+						try{
+							Thread.sleep(3000);
+						}catch(InterruptedException ee){
+							// meh
+						}
+						pcb = new PCBluetooth();
+					}
+			}while(reconnect);
+		}	
+	}
 
+	public void startServer() throws NXTCommException {
+		pcb = new PCBluetooth();
+		reconnect();
 		try{
 			ss = new ServerSocket(port);
 			if (loopback)
@@ -55,18 +80,12 @@ public class Server {
 		}
 	}
 
-	public synchronized void sendMessage(int message){
+	public synchronized void sendMessage(int message) throws IOException {
 		commandSent = true;
 		if (loopback)
 			return;
 
-		try{
-			pcb.sendMessage(message);
-		}catch(IOException e){
-			// Usually this happens when the connection dies.
-			// Should we try to reconnect?
-			System.err.println("failed to send message. ignoring...");
-		}
+		pcb.sendMessage(message);
 	}
 
 	public void serverLoop() throws IOException{
@@ -92,16 +111,22 @@ public class Server {
 	class KeepAlive implements Runnable {
 
 		public void run(){
-			while(!finished){
-				commandSent = false;
-				try{
-					Thread.sleep(5000);
-				}catch(InterruptedException e){
-					// nobody cares
+			try{
+				while(!finished){
+					commandSent = false;
+					try{
+						Thread.sleep(5000);
+					}catch(InterruptedException e){
+						// nobody cares
+					}
+					if(!commandSent){
+						sendMessage(0);
+					}
 				}
-				if(!commandSent){
-					sendMessage(0);
-				}
+			}catch(IOException e){
+				finished = true;
+				restart = true;
+				System.err.println("connection lost.");
 			}
 		}
 	}
