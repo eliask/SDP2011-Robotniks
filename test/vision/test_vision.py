@@ -6,6 +6,17 @@ from vision.features import FeatureExtraction
 import unittest2 as unittest
 
 class TestVision(unittest.TestCase):
+    """Test image-based object recognition
+
+    Currently this is very much coupled with the other vision test,
+    even though neither this nor that test case explicitly mention
+    each other. The reason for this is that the histogram adjustment
+    modifies the "global" threshold values, and those values end up
+    being used here. This actually slightly improves the performance
+    of detecting the blue T, but completely breaks direction marker
+    detection.
+    """
+
     base = 'test/vision/'
 
     def setUp(self):
