@@ -15,9 +15,13 @@ class Preprocessor:
                                         2,2, #X,Y offsets
                                         cv.CV_SHAPE_RECT)
 
-    def __init__(self, rawSize, threshold, simulator=None):
+    def __init__(self, rawSize, threshold, simulator=None, bg=None):
         self.rawSize = rawSize
         self.cropSize = self.cropRect[2:]
+
+        if rawSize[0] < 640:
+            self.cropSize = rawSize
+
         logging.info( "Captured image size: %s", dim2string(self.rawSize))
         logging.info( "Cropped image size: %s", dim2string(self.cropSize))
 
@@ -35,27 +39,33 @@ class Preprocessor:
         self.G         = cv.CreateImage(self.cropSize, cv.IPL_DEPTH_8U, 1)
         self.B         = cv.CreateImage(self.cropSize, cv.IPL_DEPTH_8U, 1)
 
-        logging.debug("Loading the background image")
-        #self.bg = cv.LoadImage('alt-pitch-bg.png')
-        self.bg = cv.LoadImage('prim-pitch-bg.png')
-        logging.debug("Processing the background image:")
-        self.bg = cv.CloneImage( self.crop(self.undistort(self.bg)) )
-        # cv.SaveImage("calibrated-background.png", self.bg)
+        if bg:
+            logging.debug("Loading dummy background image")
+            self.bg = cv.CreateImage(self.rawSize, cv.IPL_DEPTH_8U, 3)
+            cv.Zero(self.bg)
+        else:
+            logging.debug("Loading the background image")
+            #self.bg = cv.LoadImage('alt-pitch-bg.png')
+            self.bg = cv.LoadImage('prim-pitch-bg.png')
+            logging.debug("Processing the background image:")
+            self.bg = cv.CloneImage( self.crop(self.undistort(self.bg)) )
+            # cv.SaveImage("calibrated-background.png", self.bg)
 
         self.standardised = simulator is not None
 
         self.threshold = threshold
 
-    def standardise(self, frame):
-        """Crop and undistort an image, i.e. convert to standard format
+    def get_standard_form(self, frame):
+        """Undistort an image, i.e. convert to standard format
 
         Returns an internal buffer.
         """
-        undistorted = self.undistort(frame)
-        cropped = self.crop(undistorted)
-        return cropped
+        if self.standardised:
+            return frame
+        else:
+            return self.crop( self.undistort(frame) )
 
-    def preprocess(self, frame):
+    def bgsub(self, frame):
         """Preprocess a frame
         :: CvMat -> (CvMat, CvMat, CvMat)
 
@@ -63,11 +73,11 @@ class Preprocessor:
         prior camera calibration data and then removes the background
         using an image of the background.
         """
-        if not self.standardised:
-            frame = self.standardise(frame)
+        # if not self.standardised:
+        #     frame = self.get_standard_form(frame)
         self.continuousLearnBackground(frame)
         bgsub, mask = self.remove_background_values(frame)
-        return frame, bgsub, mask
+        return bgsub, mask
 
     def crop(self, frame):
         logging.debug("Cropping a frame")

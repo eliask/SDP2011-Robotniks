@@ -2,7 +2,7 @@
 This script runs all defined tests.
 """
 
-import os, py_compile, re, sys, unittest2 as unittest
+import os, sys, unittest2 as unittest
 
 """
 The base directory (git root directory).
@@ -19,8 +19,8 @@ Runs all the tests.
 """
 def run_tests():
 	suite = unittest.TestLoader().discover(TEST_DIR, top_level_dir = BASE_DIR)
-	result = unittest.TextTestRunner().run(suite)
-	
+	result = unittest.TextTestRunner(verbosity=2).run(suite)
+
 	if not result.wasSuccessful():
 		sys.exit(1)
 

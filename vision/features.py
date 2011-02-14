@@ -16,10 +16,11 @@ class FeatureExtraction:
               'dirmarker' : (5,  12, 5,  12),
             }
 
-    def __init__(self, size):
+    def __init__(self, size, threshold=None):
         self.gray16 = cv.CreateImage(size, cv.IPL_DEPTH_16S, 1)
         self.gray8 = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
         self.Itmp = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
+        self.threshold = threshold
 
     def features(self, Iobjects, threshold):
         """Extract relevant features from objects
@@ -60,7 +61,7 @@ class FeatureExtraction:
                 logging.debug("Found a %s robot", colour)
             else:
                 #self.detect_robot_from_T(Iobjects, ents, colour)
-                logging.warn("Could not find a %s robot!", colour)
+                logging.info("Could not find a %s robot!", colour)
                 pass
 
         return ents
@@ -179,12 +180,13 @@ class FeatureExtraction:
         return self.Sizes[name][0] < width  < self.Sizes[name][1] \
             and self.Sizes[name][2] < height < self.Sizes[name][3]
 
-    hough_params = [30,50]
+    #hough_params = [30,50]
+    hough_params = [180,120]
     def detectCircles(self, rect):
         """Detect circles in the picture
 
         the Hough circle transform parameters min_radius and max_radius
-        are adjusted as follows:
+        are adjusted as follows (for the 768x576 image):
 
         * The black direction marker is around 8 to 11 pixels wide.
         * The ball is around 12 and 16 pixels wide.
@@ -200,26 +202,25 @@ class FeatureExtraction:
         out = cv.CloneImage(rect)
         cv.Smooth(rect, rect, cv.CV_GAUSSIAN, 9, 9)
         size = cv.GetSize(rect)
-        cv.CvtColor(rect, gray, cv.CV_BGR2GRAY)
-        storage = cv.CreateMemStorage(0)
+        cv.CvtColor(rect, self.gray8, cv.CV_BGR2GRAY)
+        #storage = cv.CreateMemStorage(0)
+        storage = cv.CreateMat(7000, 1, cv.CV_32FC3)
 
-        print "PARAMS:", params
+        print "PARAMS:", self.hough_params
 
         #Note: circles.total denotes the number of circles
-        circles = cv.HoughCircles(self.gray, storage, cv.CV_HOUGH_GRADIENT,
-                                    2, #dp / resolution
-                                    10, #circle dist threshold
-                                    1+self.hough_params[0], #param1
-                                    1+self.hough_params[1], #param2
-                                    # 2,  #min_radius
-                                    # 12,  #max_radius
+        circles = cv.HoughCircles(self.gray8, storage, cv.CV_HOUGH_GRADIENT,
+                                    3, #dp / resolution
+                                    2, #circle dist threshold
+                                    max(1,self.hough_params[0]), #param1
+                                    max(1,self.hough_params[1]), #param2
+                                    2,  #min_radius
+                                    14,  #max_radius
                                     )
 
-        for circle in circles:
-            # It took a fair amount of trouble to find out how to do this properly!
-            x, y, radius = [circle[i] for i in range(3)]
-
-            cv.Circle(rect, Point(x, y), cv.Round(min(30,radius)), cv.CV_RGB(300,1,1))
+        for x,y,radius in [storage[i,0] for i in range(storage.rows)]:
+            cv.Circle(rect, (x,y), cv.Round(radius), cv.CV_RGB(300,1,1))
+        cv.ShowImage("BASD", rect)
 
         return rect
 

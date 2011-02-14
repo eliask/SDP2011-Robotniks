@@ -208,7 +208,8 @@ class GUI:
         self.images[name] = frame
 
     def switchWindow(self, name):
-        self.active = name
+        if self.images[name]:
+            self.active = name
 
     def displayOverlay(self, ents):
         if self.overlay:
@@ -353,6 +354,8 @@ class GUI:
             self.curThreshold = (self.curThreshold + 1) % len(self.thresholds)
         elif k == 'a':
             self.switchWindow('adaptive')
+        elif k == 'n':
+            self.switchWindow('new')
         # elif k == 'g':
         #     self.switchWindow('pyramid')
         elif k == '0':

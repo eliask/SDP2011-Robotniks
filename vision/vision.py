@@ -54,7 +54,8 @@ class Vision():
         logging.debug("Capturing a frame")
         frame = self.capture.getFrame()
         logging.debug("Entering preprocessing")
-        standard, bgsub_vals, bgsub_mask = self.pre.preprocess(frame)
+        standard = self.pre.get_standard_form(frame)
+        bgsub_vals, bgsub_mask = self.pre.bgsub(standard)
         logging.debug("Entering feature extraction")
 
         hist_props_bgsub = self.histogram.calcHistogram(standard)
@@ -88,9 +89,12 @@ class Vision():
             # cv.ConvertScale(tmp, tmp, 10)
             # cv.CvtColor(tmp, canny, cv.CV_BGR2GRAY)
             # cv.Threshold(canny,canny, 50, 255, cv.CV_THRESH_BINARY)
-            cv.Canny(canny,canny, 100, 180,3)
+            #cv.Canny(canny,canny, 100, 180,3)
+            cv.CvtColor(canny, bgsub, cv.CV_GRAY2BGR)
+            new = self.featureEx.detectCircles(bgsub)
 
             self.gui.updateWindow('adaptive', canny)
+            self.gui.updateWindow('new', new)
             self.gui.draw(ents, startTime)
         except Exception, e:
             logging.error("GUI failed: %s", e)
