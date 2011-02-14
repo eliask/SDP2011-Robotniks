@@ -3,7 +3,6 @@ try:
 except ImportError:
     pass
 
-import pygame
 import tempfile
 from math import *
 import numpy as np
