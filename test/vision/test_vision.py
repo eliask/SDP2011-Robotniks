@@ -10,7 +10,7 @@ class TestVision(unittest.TestCase):
 
     def setUp(self):
         self.threshold = vision.threshold.AltRaw()
-        self.log = logging.getLogger("test.vision")
+        self.log = logging.getLogger("test.vision.static")
 
     def test_recognition(self):
         N = 0
@@ -62,6 +62,35 @@ class TestVision(unittest.TestCase):
                 self.log.warn("Failed to recognise a blue T in: %s", blue)
 
         self.assertEqual( N, len(robots), 'Imperfect blue T recognition' )
+
+    def test_global_recog(self):
+        "Test full scene recognition"
+        images = glob(self.base+'global*.png')
+        N = 0
+        for image in images:
+            im = cv.LoadImage(image)
+            size = (im.width, im.height)
+            print size
+            pre = Preprocessor(size, self.threshold)
+            featureEx = FeatureExtraction(pre.cropSize)
+
+            standard = pre.get_standard_form(im)
+            bgsub, mask = pre.bgsub(standard)
+
+            ents = featureEx.features(bgsub, self.threshold)
+            if not ents['blue']:
+                self.log.warn("Failed to recognise the blue robot in: %s", image)
+            if not ents['yellow']:
+                self.log.warn("Failed to recognise the yellow robot in: %s", image)
+            if not ents['balls']:
+                self.log.warn("Failed to recognise the ball in: %s", image)
+            if len(ents['balls']) > 1:
+                self.log.warn("Recognised more than one ball in: %s", image)
+
+            if ents['blue'] and ents['yellow'] and ents['balls']:
+                N += 1
+
+        self.assertEqual( N, len(images), 'Imperfect global scene recognition' )
 
     def recogniseDirmarker(self, image):
         size = (image.width, image.height)

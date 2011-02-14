@@ -1,5 +1,5 @@
 import cv
-from capture import Capture
+from capture import Capture, CaptureFailure
 from simcapture import SimCapture
 from preprocess import Preprocessor
 from features import FeatureExtraction
@@ -12,6 +12,7 @@ import random, time, math, logging
 import debug
 
 T=[0, [150,150,150],[30,30,30]]
+inf=1e1000
 class Vision():
     #rawSize = (768,576)
     rawSize = (640, 480)
@@ -19,12 +20,14 @@ class Vision():
     # Whether to 'crash' when something non-critical like the GUI fails
     debug = True
 
-    def __init__(self, world, filename=None, simulator=None):
+    def __init__(self, world, filename=None, simulator=None, once=False, headless=False):
         logging.info('Initialising vision')
         if simulator:
             self.capture = SimCapture(simulator)
         else:
-            self.capture = Capture(self.rawSize, filename)
+            self.capture = Capture(self.rawSize, filename, once)
+
+        self.headless = headless
 
         self.threshold = threshold.AltRaw()
         self.pre = Preprocessor(self.rawSize, self.threshold, simulator)
@@ -70,44 +73,55 @@ class Vision():
         logging.debug("Entering interpreter")
         self.world.update(startTime, ents)
 
-        try:
-            bgsub = self.pre.remove_background(standard)
-            self.gui.updateWindow('raw', frame)
-            self.gui.updateWindow('mask', bgsub_mask)
-            self.gui.updateWindow('foreground', bgsub_vals)
-            self.gui.updateWindow('bgsub', bgsub)
-            self.gui.updateWindow('standard', standard)
-            canny = cv.CreateImage(self.pre.cropSize, 8,1)
-            # adaptive = cv.CreateImage(self.pre.cropSize, 32,3)
-            # tmp = cv.CreateImage(self.pre.cropSize, 8,3)
-            # cv.Convert(standard, adaptive)
-            cv.CvtColor(bgsub, canny, cv.CV_BGR2GRAY)
-            cv.Threshold(canny, canny, 150, 255, cv.CV_THRESH_OTSU)
-            # cv.Threshold(canny, canny, 100, 255, cv.CV_ADAPTIVE_THRESH_GAUSSIAN_C)
-            # cv.Sobel(adaptive, adaptive, 1,1,1)
-            # cv.Convert(adaptive, tmp)
-            # cv.ConvertScale(tmp, tmp, 10)
-            # cv.CvtColor(tmp, canny, cv.CV_BGR2GRAY)
-            # cv.Threshold(canny,canny, 50, 255, cv.CV_THRESH_BINARY)
-            #cv.Canny(canny,canny, 100, 180,3)
-            cv.CvtColor(canny, bgsub, cv.CV_GRAY2BGR)
-            new = self.featureEx.detectCircles(bgsub)
+        if not self.headless:
+            try:
+                bgsub = self.pre.remove_background(standard)
+                self.gui.updateWindow('raw', frame)
+                self.gui.updateWindow('mask', bgsub_mask)
+                self.gui.updateWindow('foreground', bgsub_vals)
+                self.gui.updateWindow('bgsub', bgsub)
+                self.gui.updateWindow('standard', standard)
+                canny = cv.CreateImage(self.pre.cropSize, 8,1)
+                # adaptive = cv.CreateImage(self.pre.cropSize, 32,3)
+                # tmp = cv.CreateImage(self.pre.cropSize, 8,3)
+                # cv.Convert(standard, adaptive)
+                cv.CvtColor(bgsub, canny, cv.CV_BGR2GRAY)
+                cv.Threshold(canny, canny, 150, 255, cv.CV_THRESH_OTSU)
+                # cv.Threshold(canny, canny, 100, 255, cv.CV_ADAPTIVE_THRESH_GAUSSIAN_C)
+                # cv.Sobel(adaptive, adaptive, 1,1,1)
+                # cv.Convert(adaptive, tmp)
+                # cv.ConvertScale(tmp, tmp, 10)
+                # cv.CvtColor(tmp, canny, cv.CV_BGR2GRAY)
+                # cv.Threshold(canny,canny, 50, 255, cv.CV_THRESH_BINARY)
+                #cv.Canny(canny,canny, 100, 180,3)
+                cv.CvtColor(canny, bgsub, cv.CV_GRAY2BGR)
+                new = self.featureEx.detectCircles(bgsub)
 
-            self.gui.updateWindow('adaptive', canny)
-            self.gui.updateWindow('new', new)
-            self.gui.draw(ents, startTime)
-        except Exception, e:
-            logging.error("GUI failed: %s", e)
-            if self.debug:
-                raise
+                self.gui.updateWindow('adaptive', canny)
+                self.gui.updateWindow('new', new)
+                self.gui.draw(ents, startTime)
+            except Exception, e:
+                logging.error("GUI failed: %s", e)
+                if self.debug:
+                    raise
 
         endTime = time.time()
         self.times.append( (endTime - startTime) )
 
-    def run(self):
+    def run(self, skip=0, until=inf):
         logging.debug("Entering the main loop")
-        while not self.gui.quit: # and N < 500:
-            self.processFrame()
+
+        try:
+            if skip > 0:
+                logging.debug("Skipping the first %d frames", skip)
+            for _ in range(skip):
+                self.capture.getFrame()
+
+            while not self.gui.quit and self.N < until:
+                self.processFrame()
+        except CaptureFailure:
+            pass
+
         self.runtimeInfo()
 
     def runtimeInfo(self):
