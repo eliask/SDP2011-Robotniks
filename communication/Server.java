@@ -31,8 +31,8 @@ public class Server {
 
 	private void reconnect(){
 		if (!loopback){
-			boolean reconnect = false;
-			do{
+			boolean reconnect = true;
+				while(reconnect){
 					try{
 						pcb.openConnection();
 						System.out.println("connected!");
@@ -47,7 +47,7 @@ public class Server {
 						}
 						pcb = new PCBluetooth();
 					}
-			}while(reconnect);
+				}
 		}	
 	}
 
@@ -94,6 +94,10 @@ public class Server {
 		executor.execute(new KeepAlive());
 
 		while(!finished){
+			if(restart){
+				reconnect();
+				restart = false;
+			}
 			try{
 				Thread.sleep(250);
 			}catch(InterruptedException e){
@@ -124,7 +128,6 @@ public class Server {
 					}
 				}
 			}catch(IOException e){
-				finished = true;
 				restart = true;
 				System.err.println("connection lost.");
 			}
@@ -167,7 +170,7 @@ public class Server {
 					if (c == '\n') {
 						int z = Integer.parseInt(num);
 						if(z == -1){
-							finished = true;
+							restart = true;
 							break;
 						}
 						sendMessage(z);
