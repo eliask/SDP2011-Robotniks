@@ -275,7 +275,7 @@ class Movement {
 
     public synchronized static void decrementThreadsRunning(){
 	if (threadsRunning > 0){
-	    threadsRunning--;
+	    setThreadsRunning(threadsRunning - 1);
 	}
     }
 
