@@ -1,5 +1,6 @@
 import cv
 from capture import Capture, CaptureFailure
+from mplayer_capture import MPlayerCapture
 from simcapture import SimCapture
 from preprocess import Preprocessor
 from features import FeatureExtraction
@@ -25,7 +26,9 @@ class Vision():
         if simulator:
             self.capture = SimCapture(simulator)
         else:
-            self.capture = Capture(self.rawSize, filename, once)
+            #required on DICE:
+            self.capture = MPlayerCapture(self.rawSize, filename, once)
+            #self.capture = Capture(self.rawSize, filename, once)
 
         self.headless = headless
 
@@ -70,9 +73,10 @@ class Vision():
         logging.debug("Detected entities:", ents)
         logging.debug("Entering interpreter")
         self.interpreter.interpret(ents)
-        logging.debug("Entering interpreter")
+        logging.debug("Entering World")
         self.world.update(startTime, ents)
 
+        logging.debug("Updating GUI")
         if not self.headless:
             try:
                 bgsub = self.pre.remove_background(standard)

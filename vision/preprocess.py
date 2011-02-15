@@ -101,7 +101,7 @@ class Preprocessor:
         """
         logging.debug("Performing background subtraction")
 
-        cv.CvtColor(frame, self.Igray, cv.CV_BGR2GRAY)
+        #cv.CvtColor(frame, self.Igray, cv.CV_BGR2GRAY)
         cv.Sub(frame, self.bg, self.Imask)
 
         return self.Imask
@@ -109,6 +109,7 @@ class Preprocessor:
     def remove_background_values(self, frame):
         self.Imask = self.remove_background(frame)
 
+        logging.debug("Using thresholded background subtracted image as a mask")
         #cv.ShowImage("ASD", self.Imask)
         self.Igray = self.threshold.foreground(self.Imask)
         cv.CvtColor(self.Imask, self.Igray, cv.CV_BGR2GRAY)
