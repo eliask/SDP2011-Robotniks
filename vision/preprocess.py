@@ -46,7 +46,7 @@ class Preprocessor:
         else:
             logging.debug("Loading the background image")
             #self.bg = cv.LoadImage('alt-pitch-bg.png')
-            self.bg = cv.LoadImage('prim-pitch-bg.png')
+            self.bg = cv.LoadImage('prim-pitch-bg.jpg')
             logging.debug("Processing the background image:")
             self.bg = cv.CloneImage( self.crop(self.undistort(self.bg)) )
             # cv.SaveImage("calibrated-background.png", self.bg)

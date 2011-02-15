@@ -15,7 +15,7 @@ class MPlayerCapture:
         return open('.mplayer-store', 'r').readline().strip()
 
     def getName(self, num):
-        return '%s/%08d.png' % (self.dir, num)
+        return '%s/%08d.jpg' % (self.dir, num)
 
     def fileExists(self, num):
         try:
