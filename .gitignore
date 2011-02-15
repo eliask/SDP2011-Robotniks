@@ -1,3 +1,4 @@
 *.pyc
 anomalities.txt
 .eprj
+.mplayer-store
