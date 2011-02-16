@@ -78,7 +78,7 @@ class ControlCentre{
     }
 }
 
-class Receiver extends Thread{
+class Receiver extends Thread {
     // Defines variables used for the managing bluetooth connection
     private static BTConnection connection;
     private static DataInputStream inputStream;
@@ -92,6 +92,9 @@ class Receiver extends Thread{
 	 } catch (InterruptedException e){
 	     Thread msgInterruptDisplay = new ScreenWriter("Msg Col Interupt",7);
 	     msgInterruptDisplay.start();
+	 } catch (java.io.IOException e){
+	     Thread msgIOExeptionDisplay = new ScreenWriter("IOExeption at receiver",7);
+	     msgIOExeptionDisplay.start();
 	 }
     }
 
@@ -108,7 +111,7 @@ class Receiver extends Thread{
 	openConnDisplay.start();
     }
 
-    private static void collectMessage() throws InterruptedException{
+    private static void collectMessage() throws InterruptedException, IOException{
 	boolean atend = false;
 	 while(atend == false){
 	     int message = inputStream.readInt();
@@ -134,10 +137,10 @@ class Receiver extends Thread{
         int kick = (message >>> 1) & 1;
 	int motor_dleft = (message >>> 2) & 7;
 	int motor_dright = (message >>> 5) & 7;
-	int motor_sleft = (message >>> 8) & 1023;
-	int motor_sright = (message >>> 17) & 1023;
+	int motor_sleft = (message >>> 8) & 511;
+	int motor_sright = (message >>> 17) & 511;
 
-	ControlCentre.setKickState(( kick == 0));
+	ControlCentre.setKickState(( kick != 0));
 	ControlCentre.setTargetSteeringAngleLeft(motor_sleft);
 	ControlCentre.setTargetSteeringAngleRight(motor_sright);
 	ControlCentre.setTargetDriveLeftVal(motor_dleft);
@@ -281,6 +284,9 @@ class SteeringLeftThread extends Thread{
 
 	while(true){
 	    setToAngle(ControlCentre.getTargetSteeringAngleLeft());
+
+	     LCD.drawString("LeftWheel: " + Integer.toString(getToAngle()) + "             ",0 ,1);
+
 	    
 	    if (((getToAngle() - getCurrentSteeringAngle())>0) && ((getToAngle() - getCurrentSteeringAngle())<180)){
 		motor_left.rotate((int)(Movement.rotConstant * (getToAngle() - getCurrentSteeringAngle())));
@@ -328,7 +334,9 @@ class SteeringRightThread extends Thread{
 
 	while(true){
 	    setToAngle(ControlCentre.getTargetSteeringAngleRight());
-	    
+
+	    LCD.drawString("RightWheel: " + Integer.toString(getToAngle()) + "           ",0 ,2);	    
+
 	    if (((getToAngle() - getCurrentSteeringAngle())>0) && ((getToAngle() - getCurrentSteeringAngle())<180)){
 		Movement.motor_right.rotate((int)(Movement.rotConstant * (getToAngle() - getCurrentSteeringAngle())));
 	    } else if ((getToAngle() - getCurrentSteeringAngle()) >= 180){
