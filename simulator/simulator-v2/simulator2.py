@@ -15,54 +15,73 @@ def main():
 	pymunk.init_pymunk()
 	space = pymunk.Space()
 	space.gravity = (0,0)
-	space.damping = 0.6
+	#space.damping = 0.6
 
 	### Adding the object to the space
 	walls = add_walls(space)
 	ball = add_ball(space)
+
+	### Initialisation of the robot
 	us = add_robot(space)
+	kickZone = kick_bounding_box(space, us)
 	wheel1 = add_wheel_front(space, us)
 	wheel2 = add_wheel_back(space, us)
 	us.body.position = (100,100)
-	wheel1.body.position = (100, 100)
-	wheel2.body.position = (100, 100)
-	robot_img = pygame.image.load("yellow_robot.png")
-	speed = (0,0)
+	wheel1.body.position = (125, 85)
+	wheel2.body.position = (75, 115)
+	cons1 = pymunk.SimpleMotor(us.body, wheel1.body, 0) 
+	cons2 = pymunk.SimpleMotor(us.body, wheel2.body, 0) 
+	space.add(cons1, cons2)
 	
+	### Loading sprites
+	robot_img = pygame.image.load("yellow_robot.png")
+	pitch_img = pygame.image.load("calibrated-background-cropped.png")
+	ball_img = pygame.image.load("ball.png")
+	
+
 	while running:
 		for event in pygame.event.get():
 			if event.type == QUIT:
 				running = False
 			elif event.type == KEYDOWN and event.key == K_ESCAPE:
 				running = False
-			elif event.type == KEYDOWN and event.key == K_w:
-				speed = (100*cos(us.body.angle), 100*sin(us.body.angle))
 			elif event.type == KEYDOWN and event.key == K_s:
-				speed = (0,0)
+				stop(us, wheel1, wheel2)
 			elif event.type == KEYDOWN and event.key == K_a:
-				us.body.angle -= radians(5)
+				wheel1.body.angle -= radians(5)
+				wheel2.body.angle -= radians(5)
 			elif event.type == KEYDOWN and event.key == K_d:
-				us.body.angle += radians(5)
+				wheel1.body.angle += radians(5)
+				wheel2.body.angle += radians(5)
 			elif event.type == KEYDOWN and event.key == K_r:
-				us.body.angle = 0 
+				reset(us, wheel1, wheel2)
 			elif event.type == KEYDOWN and event.key == K_SPACE:
-				ball.body.apply_impulse((100*cos(us.body.angle), 100*sin(us.body.angle)), (0,0))
-			elif event.type == KEYDOWN and event.key == K_t:
-				wheel1.body.velocity = (100, 0)
-				wheel2.body.velocity = (100, 0)
-
-
-		screen.fill(THECOLORS["green"])
+				kick(us, ball, kickZone)
+			elif event.type == KEYDOWN and event.key == K_w:
+				drive(wheel1, wheel2)	
+			elif event.type == KEYDOWN and event.key == K_c:
+				startSpinRight(us, wheel1, wheel2)
+			elif event.type == KEYDOWN and event.key == K_z:
+				startSpinLeft(us, wheel1, wheel2)
+			elif event.type == KEYDOWN and event.key == K_x:
+				stopSpin(us, wheel1, wheel2)
 				
-		draw_walls(screen, walls)		
-		draw_ball(screen, ball)
+
+		#screen.fill(THECOLORS["green"])
+		screen.blit(pitch_img, (0,0))
+				
+		#draw_walls(screen, walls)		
+		draw_ball(screen, ball, ball_img)
 		draw_robot(screen, us, robot_img)
 		draw_wheel(screen, wheel1)
 		draw_wheel(screen, wheel2)
-		#us.body.velocity = speed
+		#draw_kick_zone(screen, kickZone)
 		
-		#kickZone = pymunk.Poly(us.body, kick_bounding_box(screen, us))
-		kick_bounding_box(screen, us)
+
+		ball.body.velocity.x = ball.body.velocity.x / 1.007
+		ball.body.velocity.y = ball.body.velocity.y / 1.007
+		#print ball.body.velocity	
+
 		space.step(1/50.0)
 
 		pygame.display.flip()
@@ -103,17 +122,19 @@ def add_ball(space):
 	radius = 5
 	inertia = pymunk.moment_for_circle(mass, 0, radius)
 	body = pymunk.Body(mass, inertia)
-	body.position = 384,210 
+	body.position = 384,212 
 	shape = pymunk.Circle(body, radius)
-	shape.elasticity = 0.7
+	shape.elasticity = 0.1
 	shape.friction = 0.9
+	shape.group = 3
 	space.add(body, shape)
 	return shape
 
 
-def draw_ball(screen, ball):
+def draw_ball(screen, ball, img):
 	p = int(ball.body.position.x), int(ball.body.position.y)
-	pygame.draw.circle(screen, THECOLORS["red"], p, int(ball.radius), 5)
+	#pygame.draw.circle(screen, THECOLORS["red"], p, int(ball.radius), 5)
+	screen.blit(img, p)
 
 def add_robot(space):
 	fp = [(-30, -20), (30, -20), (30, 20), (-30, 20)]
@@ -134,55 +155,110 @@ def draw_robot(screen, robot, robot_img):
 
 	offset = [rotated_robot_img.get_size()[0]/2, rotated_robot_img.get_size()[1]/2] 
 	p = p - offset
-	#screen.blit(rotated_robot_img, p)
+	screen.blit(rotated_robot_img, p)
 	
 	### draw lines around the robot
 	ps = robot.get_points()
 	ps.append(ps[0])
-	pygame.draw.lines(screen, THECOLORS["blue"], False, ps)
+	#pygame.draw.lines(screen, THECOLORS["blue"], False, ps)
 	
 def add_wheel_front(space, robot):
-	w1 = [ (20,-15), (25,-15) ]
-
-	moment_wheel_front = pymunk.moment_for_segment(1000, (20,-15), (25,-15))
-	wheel_front_body= pymunk.Body(1000, moment_wheel_front)
-	wheel_front_shape = pymunk.Segment(wheel_front_body, (20,-15), (25,-15), 1.0)
-	wheel_front_shape.group = 2
-	rotation_wheel_front = pymunk.PinJoint(robot.body, wheel_front_body, (22.5, -15), (22.5, -15))
-		
-	space.add(wheel_front_body, wheel_front_shape, rotation_wheel_front)
-	return wheel_front_shape 
+	fp = [(-3, -1), (3, -1), (3, 1), (-3, 1)]
+	mass = 1000
+	moment = pymunk.moment_for_poly(mass, fp)
+	wheel_body = pymunk.Body(mass, moment)
+	wheel_shape = pymunk.Poly(wheel_body, fp)
+	wheel_shape.group = 2
+	wheel_body.position = (25, -15)
+	joint = pymunk.PivotJoint(robot.body, wheel_body, (25, -15))
+	space.add(wheel_body, wheel_shape, joint)
+	return wheel_shape 
 
 def add_wheel_back(space, robot):
-	w1 = [ (-20,15), (-25,15) ]
-
-	moment_wheel_front = pymunk.moment_for_segment(1000, (-20,15), (-25,15))
-	wheel_front_body= pymunk.Body(1000, moment_wheel_front)
-	wheel_front_shape = pymunk.Segment(wheel_front_body, (-20,15), (-25,15), 1.0)
-	wheel_front_shape.group = 2
-	rotation_wheel_front = pymunk.PinJoint(robot.body, wheel_front_body, (-22.5, 15), (-22.5, 15))
-		
-	space.add(wheel_front_body, wheel_front_shape, rotation_wheel_front)
-	return wheel_front_shape 
+	fp = [(-3, -1), (3, -1), (3, 1), (-3, 1)]
+	mass = 1000
+	moment = pymunk.moment_for_poly(mass, fp)
+	wheel_body = pymunk.Body(mass, moment)
+	wheel_shape = pymunk.Poly(wheel_body, fp)
+	wheel_shape.group = 2
+	wheel_body.position = (-25, 15)
+	joint = pymunk.PivotJoint(robot.body, wheel_body, (-25, 15))
+	space.add(wheel_body, wheel_shape, joint )
+	return wheel_shape 
 
 def draw_wheel(screen, wheel):
-	body = wheel.body
-	pv1 = body.position + wheel.a.rotated(body.angle)
-	pv2 = body.position + wheel.b.rotated(body.angle)
-	pygame.draw.lines(screen, THECOLORS["red"], False, [pv1, pv2])
-	
+        ps = wheel.get_points()
+        ps.append(ps[0])
+        pygame.draw.lines(screen, THECOLORS["black"], False, ps)
 
-def kick_bounding_box(screen, robot):
+def kick_bounding_box(space, robot):
 	p = robot.get_points()
 	bb = []
 	bb.append((p[1][0], p[1][1]) )
-	bb.append((p[1][0]+6*cos(robot.body.angle), p[1][1]+6*sin(robot.body.angle)) )
-	bb.append((p[2][0]+6*cos(robot.body.angle), p[2][1]+6*sin(robot.body.angle)) )
+	bb.append((p[1][0]+10*cos(robot.body.angle), p[1][1]+10*sin(robot.body.angle)) )
+	bb.append((p[2][0]+10*cos(robot.body.angle), p[2][1]+10*sin(robot.body.angle)) )
 	bb.append((p[2][0], p[2][1]) )
+	shape = pymunk.Poly(robot.body, bb)
+	shape.group = 3 
+	space.add(shape)
+	return shape 
 
-	pygame.draw.lines(screen, THECOLORS["red"], False, bb)	
-	return bb
+def draw_kick_zone(screen, zone):
+	ps = zone.get_points()
+	pygame.draw.lines(screen, THECOLORS["red"], False, ps)
+	
 
+def reset(robot, wheel1, wheel2):
+	wheel1.body.angle = robot.body.angle
+	wheel2.body.angle = robot.body.angle
+	
+
+def drive(wheel1, wheel2):
+	wheel1.body.velocity =  (100*cos(wheel1.body.angle), 100*sin(wheel1.body.angle))
+	wheel2.body.velocity =  (100*cos(wheel2.body.angle), 100*sin(wheel2.body.angle))
+
+def stop(robot, wheel1, wheel2):
+	wheel1.body.velocity = (0, 0)
+	wheel2.body.velocity = (0, 0)
+	robot.body.velocity = (0, 0)
+	robot.body.angular_velocity = 0
+	wheel1.body.angular_velocity = 0
+	wheel2.body.angular_velocity = 0
+
+def startSpinRight(robot, wheel1, wheel2):
+	wheel1.body.angle = robot.body.angle + pi/4
+	wheel2.body.angle = robot.body.angle - 3*pi/4
+
+def startSpinLeft(robot, wheel1, wheel2):
+	wheel1.body.angle = robot.body.angle - 3*pi/4
+	wheel2.body.angle = robot.body.angle + pi/4
+
+def stopSpin(robot, wheel1, wheel2):
+	robot.angular_velocity = 0
+	wheel1.angular_velocity = 0
+	wheel2.angular_velocity = 0
+	reset(robot, wheel1, wheel2)
+	stop(robot, wheel1, wheel2)
+
+def kick(robot, ball, kickZone):
+	if kickZone.point_query(ball.body.position):
+		ball.body.apply_impulse((100*cos(robot.body.angle), 100*sin(robot.body.angle)), (0,0))
+
+def setRobotDirection(robot, wheel1, wheel2, angle):
+	wheel1.body.angle = robot.body.angle + radians(angle)
+	wheel2.body.angle = robot.body.angle + radians(angle)
+
+def turnLeftWheelByAmount(wheel, amount):
+	wheel.body.angle += radians(amount)
+	
+def turnRightWheelByAmount(wheel, amount):
+	wheel.body.angle += radians(amount)
+	
+def turnLeftWheelTo(robot, wheel, angle):
+	wheel.body.angle = robot.body.angle + radians(angle)
+	
+def turnRightWheelTo(robot, wheel, angle):
+	wheel.body.angle = robot.body.angle + radians(angle)
 
 if __name__ == '__main__':
 	sys.exit(main())
