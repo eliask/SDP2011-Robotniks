@@ -49,30 +49,11 @@ class Simulator(object):
 	self.walls = self.add_walls(self.space)
 	self.ball = self.add_ball(self.space)
 
-	### Initialisation of the robot
-	self.us = self.add_robot(self.space)
-	self.kickZone = self.kick_bounding_box(self.space, self.us)
-	self.wheel1 = self.add_wheel_right(self.space, self.us)
-	self.wheel2 = self.add_wheel_left(self.space, self.us)
-	self.us.body.position = (100,100)
-	self.wheel1.body.position = (115, 85)
-	self.wheel2.body.position = (85, 115)
-	self.cons1 = pymunk.SimpleMotor(self.us.body, self.wheel1.body, 0)
-	self.cons2 = pymunk.SimpleMotor(self.us.body, self.wheel2.body, 0)
-        # self.cons1.max_force = 0
-        # self.cons2.max_force = 0
-	self.space.add(self.cons1, self.cons2)
-
     def draw_ents(self):
         pygame.display.set_caption("fps: " + str(self.clock.get_fps()))
 
         self.draw_walls()
         self.draw_ball()
-        self.draw_robot(self.us)
-        self.draw_wheel(self.wheel1)
-        self.draw_wheel(self.wheel2)
-        self.draw_kick_zone(self.kickZone)
-
         map(lambda x: x.draw(), self.robots)
 
         # Update overlay after we've passed the "raw image" to vision
@@ -124,8 +105,7 @@ class Simulator(object):
             ai = ai1(self.world, real_interface)
             self.ai.append(ai)
             robotSprite = self.robots[0]
-            #self.robots[0] = ai
-            #del robotSprite
+            self.robots[0] = ai
             self.setRobotAI(self.robots[0], ai)
             self.log.debug("AI 1 started in the real world")
         elif ai1:
@@ -188,29 +168,7 @@ class Simulator(object):
         for event in pygame.event.get():
             if event.type == QUIT:
                 sys.exit(0)
-
             self.input.robotInput(event)
-
-            if event.type == KEYDOWN and event.key == K_s:
-                stop(self.us, self.wheel1, self.wheel2)
-            elif event.type == KEYDOWN and event.key == K_a:
-                self.wheel1.body.angle -= radians(5)
-                self.wheel2.body.angle -= radians(5)
-            elif event.type == KEYDOWN and event.key == K_d:
-                self.wheel1.body.angle += radians(5)
-                self.wheel2.body.angle += radians(5)
-            elif event.type == KEYDOWN and event.key == K_r:
-                reset(self.us, self.wheel1, self.wheel2)
-            elif event.type == KEYDOWN and event.key == K_SPACE:
-                kick(self.us, self.ball, self.kickZone)
-            elif event.type == KEYDOWN and event.key == K_w:
-                drive(self.wheel1, self.wheel2)
-            elif event.type == KEYDOWN and event.key == K_c:
-                startSpinRight(self.us, self.wheel1, self.wheel2)
-            elif event.type == KEYDOWN and event.key == K_z:
-                startSpinLeft(self.us, self.wheel1, self.wheel2)
-            elif event.type == KEYDOWN and event.key == K_x:
-                stopSpin(self.us, self.wheel1, self.wheel2)
 
     def make_robot(self, pos, colour, angle, ai):
         robot = Robot(pos, colour, self.space, self.scale, self.screen)
@@ -229,13 +187,13 @@ class Simulator(object):
 
         lines = [  ((offset, offset), (offset, goal_corner))
                   ,((offset, goal_corner), (0, goal_corner))
-                   ,((0, goal_corner), (0, goal_corner2))
+                  ,((0, goal_corner), (0, goal_corner2))
                   ,((0, goal_corner2), (offset, goal_corner2))
                   ,((offset, goal_corner2), (offset, y_corner))
                   ,((offset, y_corner), (x_corner, y_corner))
                   ,((x_corner, y_corner), (x_corner, goal_corner2))
                   ,((x_corner, goal_corner2), (x_corner2, goal_corner2))
-                   ,((x_corner2, goal_corner2), (x_corner2, goal_corner))
+                  ,((x_corner2, goal_corner2), (x_corner2, goal_corner))
                   ,((x_corner2, goal_corner), (x_corner, goal_corner))
                   ,((x_corner, goal_corner), (x_corner, offset))
                   ,((x_corner, offset), (offset, offset))
@@ -278,128 +236,6 @@ class Simulator(object):
     	pos = int(self.ball.body.position.x), int(self.ball.body.position.y)
     	pygame.draw.circle( self.screen, THECOLORS["red"], pos,
                             int(self.scale * World.BallDiameter/2.0) )
-
-    def add_robot(self, space):
-    	fp=[]; _fp = [(-1, -1), (1, -1), (1, 1), (-1, 1)]
-        for x,y in _fp:
-            fp.append( (self.scale*x*World.RobotLength/2.0,
-                        self.scale*y*World.RobotWidth/2.0) )
-
-    	mass = 	1000
-    	moment = pymunk.moment_for_poly(mass, fp)
-    	robot_body = pymunk.Body(mass, moment)
-
-    	robot_shape = pymunk.Poly(robot_body, fp)
-    	robot_shape.friction = 0.99
-    	robot_shape.group = 2
-    	space.add(robot_body, robot_shape)
-
-    	return robot_shape
-
-    def draw_robot(self, robot):
-    	### draw lines around the robot
-    	ps = robot.get_points()
-    	ps.append(ps[0])
-    	pygame.draw.lines(self.screen, THECOLORS["blue"], False, ps, 4)
-
-    def add_wheel(self, space, robot, pos):
-        wdist = 4.0 # Wheel distance from body center
-        fp = [(-3, -1), (3, -1), (3, 1), (-3, 1)]
-        mass = 1000
-        moment = pymunk.moment_for_poly(mass, fp)
-        wheel_body = pymunk.Body(mass, moment)
-        wheel_shape = pymunk.Poly(wheel_body, fp)
-        wheel_shape.group = 2
-    	wheel_body.position = (robot.body.position[0] + self.scale*wdist*pos[0],
-                               robot.body.position[1] + self.scale*wdist*pos[1])
-    	joint = pymunk.PivotJoint(robot.body, wheel_body, wheel_body.position)
-        space.add(wheel_body, wheel_shape, joint)
-        return wheel_shape
-
-    def add_wheel_right(self, space, robot):
-        return self.add_wheel(space, robot, (1, -1))
-
-    def add_wheel_left(self, space, robot):
-        return self.add_wheel(space, robot, (-1, 1))
-
-    def draw_wheel(self, wheel):
-        ps = wheel.get_points()
-        ps.append(ps[0])
-        pygame.draw.lines(self.screen, THECOLORS["black"], False, ps, 5)
-
-    def kick_bounding_box(self, space, robot):
-    	p = robot.get_points()
-    	bb = []
-    	bb.append((p[1][0], p[1][1]) )
-    	bb.append( (p[1][0]+10*cos(robot.body.angle),
-                    p[1][1]+10*sin(robot.body.angle)) )
-    	bb.append( (p[2][0]+10*cos(robot.body.angle),
-                    p[2][1]+10*sin(robot.body.angle)) )
-    	bb.append((p[2][0], p[2][1]) )
-    	shape = pymunk.Poly(robot.body, bb)
-    	shape.group = 3
-    	space.add(shape)
-    	return shape
-
-    def draw_kick_zone(self, zone):
-    	ps = zone.get_points()
-    	pygame.draw.lines(self.screen, THECOLORS["red"], False, ps, 3)
-
-
-def reset(robot, wheel1, wheel2):
-	wheel1.body.angle = robot.body.angle
-	wheel2.body.angle = robot.body.angle
-
-def kick(robot, ball, kickZone):
-	if kickZone.point_query(ball.body.position):
-		ball.body.apply_impulse((100*cos(robot.body.angle), 100*sin(robot.body.angle)), (0,0))
-
-## Old-style commands
-def drive(wheel1, wheel2):
-	wheel1.body.velocity =  (100*cos(wheel1.body.angle), 100*sin(wheel1.body.angle))
-	wheel2.body.velocity =  (100*cos(wheel2.body.angle), 100*sin(wheel2.body.angle))
-
-def stop(robot, wheel1, wheel2):
-	wheel1.body.velocity = (0, 0)
-	wheel2.body.velocity = (0, 0)
-	robot.body.velocity = (0, 0)
-	robot.body.angular_velocity = 0
-	wheel1.body.angular_velocity = 0
-	wheel2.body.angular_velocity = 0
-
-def startSpinRight(robot, wheel1, wheel2):
-	wheel1.body.angle = robot.body.angle + pi/4
-	wheel2.body.angle = robot.body.angle - 3*pi/4
-
-def startSpinLeft(robot, wheel1, wheel2):
-	wheel1.body.angle = robot.body.angle - 3*pi/4
-	wheel2.body.angle = robot.body.angle + pi/4
-
-	# wheel1.body.angle = robot.body.angle + 3*pi/4
-	# wheel2.body.angle = robot.body.angle - pi/4
-
-def stopSpin(robot, wheel1, wheel2):
-	robot.angular_velocity = 0
-	wheel1.angular_velocity = 0
-	wheel2.angular_velocity = 0
-	reset(robot, wheel1, wheel2)
-	stop(robot, wheel1, wheel2)
-
-def setRobotDirection(robot, wheel1, wheel2, angle):
-	wheel1.body.angle = robot.body.angle + radians(angle)
-	wheel2.body.angle = robot.body.angle + radians(angle)
-
-def turnLeftWheelByAmount(wheel, amount):
-	wheel.body.angle += radians(amount)
-
-def turnRightWheelByAmount(wheel, amount):
-	wheel.body.angle += radians(amount)
-
-def turnLeftWheelTo(robot, wheel, angle):
-	wheel.body.angle = robot.body.angle + radians(angle)
-
-def turnRightWheelTo(robot, wheel, angle):
-	wheel.body.angle = robot.body.angle + radians(angle)
 
 if __name__ == '__main__':
 	sys.exit(main())
