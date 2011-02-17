@@ -129,9 +129,6 @@ class Receiver extends Thread {
 		} catch (InterruptedException e){
 			Thread msgInterruptDisplay = new ScreenWriter("Msg Col Interupt",7);
 			msgInterruptDisplay.start();
-		} catch (java.io.IOException e){
-			Thread msgIOExeptionDisplay = new ScreenWriter("IOExeption at receiver",7);
-			msgIOExeptionDisplay.start();
 		}
 	}
 
@@ -148,22 +145,31 @@ class Receiver extends Thread {
 		openConnDisplay.start();
 	}
 
-	private static void collectMessage() throws InterruptedException, IOException{
+	private static void collectMessage() throws InterruptedException{
 		boolean atend = false;
 		while(atend == false){
-			int message = inputStream.readInt();
-			if (message >= (1<<26)){
-				atend = true;
-				Thread atendDisplay = new ScreenWriter(Integer.toString(message),7);
-				atendDisplay.start();
-				//System.exit();
-			} else if (message < (1<<26)){
-				Thread newMessageDisplay = new ScreenWriter(Integer.toString(message),6);
-				newMessageDisplay.start();
-				parseMessage(message);
-			} 
-			inputStream.close();
-			inputStream = connection.openDataInputStream();
+			try{
+				Bluetooth.getConnectionStatus();
+				int message = inputStream.readInt();
+				if (message >= (1<<26)){
+					atend = true;
+					Thread atendDisplay = new ScreenWriter(Integer.toString(message),7);
+					atendDisplay.start();
+					//System.exit();
+				} else if (message < (1<<26)){
+					Thread newMessageDisplay = new ScreenWriter(Integer.toString(message),6);
+					newMessageDisplay.start();
+					parseMessage(message);
+				} 
+				inputStream.close();
+				inputStream = connection.openDataInputStream();
+			} catch (IOException e) {
+				Thread errorConnection = new ScreenWriter("Error - connect back up", 7); 
+				errorConnection.start();
+				connection = Bluetooth.waitForConnection();
+				Thread connectedDisplay = new ScreenWriter("Connection Opened", 7); 
+				connectedDisplay.start();
+			}
 
 		}
 	}
