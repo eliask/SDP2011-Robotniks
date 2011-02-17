@@ -110,6 +110,6 @@ class Robot(SimRobotInterface):
         #pygame.draw.lines(self.screen, THECOLORS["black"], False, ps, 5)
 
         #Draw wheel direction markers
-        pos = wheel.body.position + [5*cos(wheel.body.angle),
-                                     5*sin(wheel.body.angle)]
+        pos = map(int, wheel.body.position + [5*cos(wheel.body.angle),
+                                              5*sin(wheel.body.angle)])
         pygame.draw.circle(self.screen, THECOLORS['yellow'], pos, 2)
