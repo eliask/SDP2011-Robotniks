@@ -61,11 +61,11 @@ class Robot(SimRobotInterface):
         space.add(wheel_body, wheel_shape, joint)
         return wheel_shape
 
-    def add_wheel_right(self, space):
-        return self.add_wheel(space, (1, -1))
-
     def add_wheel_left(self, space):
-        return self.add_wheel(space, (-1, 1))
+        return self.add_wheel(space, (-1, -1))
+
+    def add_wheel_right(self, space):
+        return self.add_wheel(space, (1, 1))
 
     def add_kickzone(self, space):
         return
