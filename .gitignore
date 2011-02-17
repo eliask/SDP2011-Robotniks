@@ -3,3 +3,4 @@ anomalities.txt
 .eprj
 .mplayer-store
 logs/*
+*.class
