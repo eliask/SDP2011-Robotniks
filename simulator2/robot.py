@@ -22,8 +22,10 @@ class Robot(SimRobotInterface):
 	self.wheel_left  = self.add_wheel_left(space)
 	self.wheel_right = self.add_wheel_right(space)
 
-	self.cons1 = pymunk.SimpleMotor(self.robot.body, self.wheel_left.body, 0)
-	self.cons2 = pymunk.SimpleMotor(self.robot.body, self.wheel_right.body, 0)
+	self.cons1 = pymunk.SimpleMotor(self.robot.body,
+                                        self.wheel_left.body, 0)
+	self.cons2 = pymunk.SimpleMotor(self.robot.body,
+                                        self.wheel_right.body, 0)
 	space.add(self.cons1, self.cons2)
 
         SimRobotInterface.__init__(self)
@@ -69,7 +71,10 @@ class Robot(SimRobotInterface):
         return
     	p = self.robot.get_points()
         K = self.scale * World.KickerReach
-        sine, cosine = K*cos(self.robot.body.angle), K*sin(self.robot.body.angle),
+        sine, cosine = \
+            K*cos(self.robot.body.angle), \
+            K*sin(self.robot.body.angle)
+
     	bb = [ p[1],
                p[1] + [sine, cosine],
                p[2] + [sine, cosine],

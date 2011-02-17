@@ -27,7 +27,7 @@ class RobotInterface(object):
         command_string = "%d,%d,%d,%d,%d,%d" \
             % ( int(self._reset), int(self._kick),
                 self._drive1, self._drive2, self._turn1, self._turn2 )
-        self.replay_logger.info( "%.3f\t%s" % (time_since_init, command_string) )
+        self.replay_logger.debug( "%.3f\t%s" % (time_since_init, command_string) )
 
     def initCommands(self):
         "Resets the commands to the defaults."
