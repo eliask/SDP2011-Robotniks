@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from simulator.simulator import *
+from simulator2.simulator2 import Simulator
 from simulator.pitch import *
 from strategy.strategies import *
 import common.world

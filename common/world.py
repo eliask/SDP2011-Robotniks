@@ -15,7 +15,8 @@ class World(object):
     BallDiameter = 4.5
     GoalLength   = 58.5
     RobotLength  = 20.0
-    RobotWidth   = 20.0
+    RobotWidth   = 18.0
+    KickerReach  = 5.0
 
     max_states   = 5000
     states = []
