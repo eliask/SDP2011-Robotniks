@@ -32,10 +32,11 @@ class Simulator(object):
                                                     World.PitchWidth])) )
 
     def __init__(self, **kwargs):
-        logging.debug("Simulator started with the arguments:")
+        self.log = logging.getLogger("simulator2")
+        self.log.debug("Simulator started with the arguments:")
         for k, v in kwargs.items():
             self.__setattr__(k, v)
-            logging.debug("\t%s = %s", k, v)
+            self.log.debug("\t%s = %s", k, v)
 
         self.robots=[]
 
@@ -57,8 +58,10 @@ class Simulator(object):
 	self.us.body.position = (100,100)
 	self.wheel1.body.position = (115, 85)
 	self.wheel2.body.position = (85, 115)
-	self.cons1 = pymunk.SimpleMotor(self.us.body, self.wheel1.body, 0)
-	self.cons2 = pymunk.SimpleMotor(self.us.body, self.wheel2.body, 0)
+	self.cons1 = pymunk.SimpleMotor(self.us.body, self.wheel1.body, 1)
+	self.cons2 = pymunk.SimpleMotor(self.us.body, self.wheel2.body, 1)
+        self.cons1.max_force = 0
+        self.cons2.max_force = 0
 	self.space.add(self.cons1, self.cons2)
 
     def draw_ents(self):
@@ -82,7 +85,7 @@ class Simulator(object):
             pygame.display.flip()
 
     def init_screen(self):
-        logging.debug("Creating simulator screen")
+        self.log.debug("Creating simulator screen")
         if self.headless:
             self.screen = pygame.Surface(self.Resolution)
         else:
@@ -94,7 +97,7 @@ class Simulator(object):
             self.overlay.set_alpha(100)
 
     def make_objects(self):
-        logging.debug("Creating game objects")
+        self.log.debug("Creating game objects")
 
         colours = ('blue', 'yellow')
         if random() < 0.5:
@@ -102,7 +105,7 @@ class Simulator(object):
         else:
             col2, col1 = colours
 
-        logging.info("Robot 1 is %s. Robot 2 is %s", col1, col2)
+        self.log.info("Robot 1 is %s. Robot 2 is %s", col1, col2)
         pos1 = self.scale * pymunk.Vec2d( (World.PitchLength/2.0 - 60,
                                            World.PitchWidth/2.0 + self.offset) )
         pos2 = self.scale * pymunk.Vec2d( (World.PitchLength/2.0 + 60,
@@ -110,8 +113,8 @@ class Simulator(object):
         self.make_robot(pos1, col1, 0, self.robot1[0])
         self.make_robot(pos2, col2, -pi, self.robot2[0])
 
-    def initAI(self):
-        logging.debug("Initialising AI")
+    def init_AI(self):
+        self.log.debug("Initialising AI")
 
         ai1, real1 = self.robot1
         ai2, real2 = self.robot2
@@ -125,12 +128,12 @@ class Simulator(object):
             #self.robots[0] = ai
             #del robotSprite
             self.setRobotAI(self.robots[0], ai)
-            logging.debug("AI 1 started in the real world")
+            self.log.debug("AI 1 started in the real world")
         elif ai1:
             self.ai.append( ai1(self.world, self.robots[0]) )
-            logging.debug("AI 1 started in the simulated world")
+            self.log.debug("AI 1 started in the simulated world")
         else:
-            logging.debug("No AI 1 present")
+            self.log.debug("No AI 1 present")
 
         if ai2 and real2:
             # TODO: reverse sides here
@@ -140,20 +143,21 @@ class Simulator(object):
             self.robots[1] = ai
             #del robotSprite
             self.setRobotAI(self.robots[1], ai)
-            logging.debug("AI 2 started in the real world")
+            self.log.debug("AI 2 started in the real world")
         elif ai2:
             self.ai.append( ai2(self.world, self.robots[1]) )
-            logging.debug("AI 2 started in the simulated world")
+            self.log.debug("AI 2 started in the simulated world")
         else:
-            logging.debug("No AI 2 present")
+            self.log.debug("No AI 2 present")
 
     def runAI(self):
-        #logging.debug("Running AI players")
+        #self.log.debug("Running AI players")
         for ai in self.ai:
             ai.run()
 
     def update_objects(self):
         self.space.step(1/self.tickrate)
+        map(lambda x:x.tick(), self.robots)
         self.ball.body.velocity.x /= 1.007
         self.ball.body.velocity.y /= 1.007
 
@@ -165,7 +169,7 @@ class Simulator(object):
         self.init_screen()
         self.make_objects()
         self.world.assignSides()
-        self.initAI()
+        self.init_AI()
         self.init_input()
         # by initialising the input after the AI, we can control even
         # AI robots with keyboard
@@ -179,13 +183,15 @@ class Simulator(object):
             self.runAI()
 
     def init_input(self):
-        #self.input = Input(self, self.robots[0], self.robots[1])
-        pass
+        self.input = Input(self, self.robots[0], self.robots[1])
 
     def handle_input(self):
         for event in pygame.event.get():
             if event.type == QUIT:
                 sys.exit(0)
+
+            self.input.robotInput(event)
+
             if event.type == KEYDOWN and event.key == K_s:
                 stop(self.us, self.wheel1, self.wheel2)
             elif event.type == KEYDOWN and event.key == K_a:
@@ -224,13 +230,13 @@ class Simulator(object):
 
         lines = [  ((offset, offset), (offset, goal_corner))
                   ,((offset, goal_corner), (0, goal_corner))
-                   #,((0, goal_corner), (0, goal_corner2))
+                   ,((0, goal_corner), (0, goal_corner2))
                   ,((0, goal_corner2), (offset, goal_corner2))
                   ,((offset, goal_corner2), (offset, y_corner))
                   ,((offset, y_corner), (x_corner, y_corner))
                   ,((x_corner, y_corner), (x_corner, goal_corner2))
                   ,((x_corner, goal_corner2), (x_corner2, goal_corner2))
-                  #,((x_corner2, goal_corner2), (x_corner2, goal_corner))
+                   ,((x_corner2, goal_corner2), (x_corner2, goal_corner))
                   ,((x_corner2, goal_corner), (x_corner, goal_corner))
                   ,((x_corner, goal_corner), (x_corner, offset))
                   ,((x_corner, offset), (offset, offset))
@@ -345,30 +351,9 @@ def reset(robot, wheel1, wheel2):
 	wheel1.body.angle = robot.body.angle
 	wheel2.body.angle = robot.body.angle
 
-
-## Robot commands
-def steer_angle_left(angle):
-        angle = radians(angle)
-
-def steer_angle_right(angle):
-        angle = radians(angle)
-
-wheel_max_v = 100
-def drive_left(speed):
-	max_v =  (wheel_max_v * cos(wheel1.body.angle),
-                  wheel_max_v * sin(wheel1.body.angle))
-	# wheel1.body.velocity =  (wheel_max_v * cos(wheel1.body.angle),
-        #                          wheel_max_v * sin(wheel1.body.angle))
-
-def drive_right(speed):
-        pass
-
 def kick(robot, ball, kickZone):
 	if kickZone.point_query(ball.body.position):
 		ball.body.apply_impulse((100*cos(robot.body.angle), 100*sin(robot.body.angle)), (0,0))
-
-def reset():
-        pass
 
 ## Old-style commands
 def drive(wheel1, wheel2):
