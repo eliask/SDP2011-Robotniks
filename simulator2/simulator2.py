@@ -20,7 +20,6 @@ class Simulator(object):
 
     # Options and arguments
     headless=False
-    pitch=None
     ai=[]
     robot1=None
     robot2=None
@@ -50,17 +49,15 @@ class Simulator(object):
 	self.ball = self.add_ball(self.space)
 
     def draw_ents(self):
-        pygame.display.set_caption("fps: " + str(self.clock.get_fps()))
+        pygame.display.set_caption( "FPS: %.1f" % self.clock.get_fps() )
 
         self.draw_walls()
         self.draw_ball()
+        # Draw the robots
         map(lambda x: x.draw(), self.robots)
 
-        # Update overlay after we've passed the "raw image" to vision
         self.screen.blit(self.overlay, (0,0))
-        # Make the overlay "blank" again. Should be completely
-        # transparent but I don't know how to do that
-        self.overlay.fill( (130,130,130,255))
+        self.overlay.fill((130,130,130,255))
         if not self.headless:
             pygame.display.flip()
 
