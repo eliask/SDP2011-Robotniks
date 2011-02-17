@@ -1,9 +1,9 @@
-from world import World
-from vision.preprocess import Preprocessor
-from vision.capture import *
-from vision.vision import Vision
-import os, tempfile
 from common.utils import *
+from vision.capture import *
+from vision.preprocess import Preprocessor
+from vision.vision import Vision
+from world import World
+import os, tempfile, pygame
 import vision.threshold
 
 class OpenCVPitch(Capture):

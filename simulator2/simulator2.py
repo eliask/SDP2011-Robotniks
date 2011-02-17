@@ -4,7 +4,6 @@
 from common.utils import *
 from communication.client import *
 from strategy.strategy import Strategy
-from ball import *
 from input import Input
 from math import *
 from pygame.color import THECOLORS
@@ -58,10 +57,10 @@ class Simulator(object):
 	self.us.body.position = (100,100)
 	self.wheel1.body.position = (115, 85)
 	self.wheel2.body.position = (85, 115)
-	self.cons1 = pymunk.SimpleMotor(self.us.body, self.wheel1.body, 1)
-	self.cons2 = pymunk.SimpleMotor(self.us.body, self.wheel2.body, 1)
-        self.cons1.max_force = 0
-        self.cons2.max_force = 0
+	self.cons1 = pymunk.SimpleMotor(self.us.body, self.wheel1.body, 0)
+	self.cons2 = pymunk.SimpleMotor(self.us.body, self.wheel2.body, 0)
+        # self.cons1.max_force = 0
+        # self.cons2.max_force = 0
 	self.space.add(self.cons1, self.cons2)
 
     def draw_ents(self):
