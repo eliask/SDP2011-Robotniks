@@ -1,25 +1,18 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from simulator.simulator import Simulator
-from simulator.pitch import *
+from simulator2.simulator2 import Simulator
 from strategy.strategies import *
 import common.world
 import simulator.world
 import getopt, sys
 import logging
 logging.basicConfig(level=logging.DEBUG)
+log = logging.getLogger("simulator2.launcher")
 
 def usage():
     print "Usage: simulator.py <options>"
     print "  -H, --headless  Run without graphical output from simulator"
-    print "  -V, --vision    Output simulated image to vision"
-    print "  -C, --camera    Use an actual camera for the pitch"
-    print "  -v, --video     Use a specified video"
-    print "  -i, --image     Use a specified image"
-    print "  -b, --black     The pitch will be solid black"
-    print "  -z, --crazy     The background won't be redrawn"
-    print "  -1, --once      Don't loop a video or don't try restarting camera"
     print "  -l, --list-strategies  Print the list of available strategies"
     print "  -s, --strategy1 Use specified strategy for robot 1"
     print "  -t, --strategy2 Use specified strategy for robot 2"
@@ -30,9 +23,8 @@ def usage():
 def main():
     try:
         opts, args = \
-            getopt.getopt( sys.argv[1:], "HVCv:i:bz1hls:t:STrc:",
-                           [ "headless", "vision", "camera", "video",
-                             "image", "black", "crazy", "once", "help",
+            getopt.getopt( sys.argv[1:], "Hhls:t:STrc:",
+                           [ "headless", "help",
                              "list-strategies", "strategy1", "strategy2",
                              "real1", "real2", "colour",
                              ] )
@@ -42,15 +34,7 @@ def main():
         usage()
         sys.exit(2)
 
-    inputs = { 'video'  : None,
-               'image'  : None,
-               'camera' : False,
-               'black'  : False,
-               'crazy'  : False,
-             }
-    once = False
     headless = False
-    vision = False
     strategy1, strategy2 = None, None
     real1 = real2 = None
     colour = 'blue'
@@ -58,20 +42,6 @@ def main():
     for opt, arg in opts:
         if opt in ("-H", "--headless"):
             headless = True
-        elif opt in ("-V", "--vision"):
-            vision = True
-        elif opt in ("-C", "--camera"):
-            inputs['camera'] = True
-        elif opt in ("-v", "--video"):
-            inputs['video'] = arg
-        elif opt in ("-i", "--image"):
-            inputs['image'] = arg
-        elif opt in ("-b", "--black"):
-            inputs['black'] = True
-        elif opt in ("-z", "--crazy"):
-            inputs['crazy'] = True
-        elif opt in ("-1", "--once"):
-            once = True
         elif opt in ("-l", "--list-strategies"):
             list_strategies()
             sys.exit()
@@ -110,11 +80,7 @@ def main():
     assert not (real1 and real2), \
         "How are we to run 2 physical robots??"
 
-    pitch = selectPitch(inputs, once)
-
-    sim = Simulator( pitch=pitch,
-                     vision=vision,
-                     headless=headless,
+    sim = Simulator( headless=headless,
                      world=world,
                      robot1=(ai1, real1),
                      robot2=(ai2, real2),
@@ -122,33 +88,6 @@ def main():
                      real_world=None, #(real1 or real2),
                      )
     sim.run()
-
-def selectPitch(inputs, once):
-    selectedInputs = [ k for k,v in inputs.items() if v ]
-    if len(selectedInputs) > 1:
-        print "Only one pitch input can be used at a time"
-        sys.exit(2)
-    elif len(selectedInputs) == 0:
-        # The default is to use a static background
-        name = 'image'
-        inputs['image'] = "vision/media/calibrated-background-cropped.png"
-    else:
-        name = selectedInputs[0]
-
-    if name == 'camera':
-        pitch = OpenCVPitch(once=once)
-    elif name == 'video':
-        pitch = OpenCVPitch(inputs['video'], once=once)
-    elif name == 'image':
-        pitch = StaticPitch(inputs['image'])
-    elif name == 'black':
-        pitch = SolidPitch()
-    elif name == 'crazy':
-        pitch = None
-    else:
-        assert False, "unknown pitch"
-
-    return pitch
 
 if __name__ == "__main__":
     main()
