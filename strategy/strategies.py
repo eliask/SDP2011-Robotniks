@@ -1,12 +1,12 @@
 import main
 import null
-import goThenKick
+import mlbridge
 
 "A list of strategies that can be used"
 
 strategies = { 'main' : main.Main,
                'null' : null.Null,
-               'go' : goThenKick.GoThenKick,
+               'ML'   : mlbridge.MLBridge,
              }
 
 def list_strategies():

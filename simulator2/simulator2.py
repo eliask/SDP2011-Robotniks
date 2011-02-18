@@ -3,6 +3,7 @@
 
 from common.utils import *
 from communication.client import *
+from copy import copy
 from strategy.strategy import Strategy
 from input import Input
 from math import *
@@ -37,6 +38,50 @@ class Simulator(object):
             self.log.debug("\t%s = %s", k, v)
 
         self.robots=[]
+
+    def set_state(state):
+        R = state.robot
+        self.prev['robot'] = {'pos':[R.pos_x, R.pos_y],
+                              'vel':[R.vel_x, R.vel_y],
+                              'ang_v':R.ang_v,
+                              'angle':R.angle,
+                              'left_angle':R.left_angle,
+                              'right_angle':R.right_angle,
+                              }
+
+        B = state.ball
+        self.prev['ball'] = {'pos':[B.ball_x, B.ball_y],
+                              'vel':[B.ball_vx, B.ball_vy],
+                              'ang_v':B.ang_v,
+                              }
+
+        self.load_state()
+
+    def save_state(self):
+        self.prev = {}
+        self.prev['ball'] = {'pos':list(self.ball.body.position),
+                             'vel':list(self.ball.body.velocity),
+                             'ang_v':self.ball.body.angular_velocity
+                             }
+        self.prev['robot'] = {'pos':list(self.robots[0].robot.body.position),
+                              'vel':list(self.robots[0].robot.body.velocity),
+                              'ang_v':self.robots[0].robot.body.angular_velocity,
+                              'angle':self.robots[0].robot.body.angle,
+                              'left_angle':self.robots[0].wheel_left.body.angle,
+                              'right_angle':self.robots[0].wheel_right.body.angle,
+                              }
+
+    def load_state(self):
+        self.ball.body.position = pymunk.Vec2d(self.prev['ball']['pos'])
+        self.ball.body.velocity = pymunk.Vec2d(self.prev['ball']['vel'])
+        self.ball.body.angular_velocity = self.prev['ball']['ang_v']
+
+        self.robots[0].robot.body.position = pymunk.Vec2d(self.prev['robot']['pos'])
+        self.robots[0].robot.body.velocity = pymunk.Vec2d(self.prev['robot']['vel'])
+        self.robots[0].robot.body.angular_velocity = self.prev['robot']['ang_v']
+        self.robots[0].robot.body.angle = self.prev['robot']['angle']
+        self.robots[0].wheel_left.body.angle = self.prev['robot']['left_angle']
+        self.robots[0].wheel_right.body.angle = self.prev['robot']['right_angle']
 
     def init_physics(self):
 	pymunk.init_pymunk()
@@ -90,6 +135,9 @@ class Simulator(object):
         self.make_robot(pos1, col1, 0, self.robot1[0])
         self.make_robot(pos2, col2, -pi, self.robot2[0])
 
+        self.world.setSelf(self.robots[0])
+        self.world.setBall(self.ball)
+
     def init_AI(self):
         self.log.debug("Initialising AI")
 
@@ -106,7 +154,7 @@ class Simulator(object):
             self.setRobotAI(self.robots[0], ai)
             self.log.debug("AI 1 started in the real world")
         elif ai1:
-            self.ai.append( ai1(self.world, self.robots[0]) )
+            self.ai.append( ai1(self.world, self.robots[0], self) )
             self.log.debug("AI 1 started in the simulated world")
         else:
             self.log.debug("No AI 1 present")
@@ -140,7 +188,7 @@ class Simulator(object):
     def run(self):
         pygame.init()
         self.clock = pygame.time.Clock()
-        self.tickrate = 50.0
+        self.tickrate = 15.0
         self.init_physics()
         self.init_screen()
         self.make_objects()
@@ -152,7 +200,7 @@ class Simulator(object):
         self.draw_ents()
 
         while True:
-            self.clock.tick(self.tickrate)
+            #self.clock.tick(self.tickrate)
             self.handle_input()
             self.update_objects()
             self.draw_ents()
@@ -221,7 +269,8 @@ class Simulator(object):
     	radius = 5
     	inertia = pymunk.moment_for_circle(mass, 0, radius)
     	body = pymunk.Body(mass, inertia)
-    	body.position = 384,212
+    	body.position = self.offset + self.scale/2.0 * \
+            pymunk.Vec2d(World.PitchLength, World.PitchWidth)
     	shape = pymunk.Circle(body, radius)
     	shape.elasticity = 0.1
     	shape.friction = 0.9

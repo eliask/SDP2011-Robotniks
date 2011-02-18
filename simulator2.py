@@ -4,7 +4,7 @@
 from simulator2.simulator2 import Simulator
 from strategy.strategies import *
 import common.world
-import simulator.world
+import simulator2.world as simworld
 import getopt, sys
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -75,7 +75,7 @@ def main():
     # if real1 or real2:
     #     world = common.world.World(colour)
     # else:
-    world = simulator.world.World(colour)
+    world = simworld.World(colour)
 
     assert not (real1 and real2), \
         "How are we to run 2 physical robots??"

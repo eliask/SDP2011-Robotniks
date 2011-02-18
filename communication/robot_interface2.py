@@ -23,18 +23,18 @@ class RealRobotInterface(interface.RobotInterface):
         logging.info( "Sent the robot the command:" )
         logging.info( "reset: %d" % int(self._reset) )
         logging.info( "kick: %d" % int(self._kick) )
-        logging.info( "drive1: %d %s" %
-                      ( self._drive1 & (Prec-1),
-                        {True:' Fwd',False:'Back'}[self._drive1&Prec > 0] ))
-        logging.info( "drive2: %d %s" %
-                      ( self._drive2 & (Prec-1),
-                        {True:' Fwd',False:'Back'}[self._drive2&Prec > 0] ))
-        logging.info( "turn1: %d %s" %
-                      ( self._turn1 & (Prec-1),
-                        {True:'CCW',False:' CW'}[self._turn1&Prec > 0] ))
-        logging.info( "turn2: %d %s" %
-                      ( self._turn2 & (Prec-1),
-                        {True:'CCW',False:' CW'}[self._turn2&Prec > 0] ))
+        logging.info( "drive_left: %d %s" %
+                      ( self._drive_left & (Prec-1),
+                        {True:' Fwd',False:'Back'}[self._drive_left&Prec > 0] ))
+        logging.info( "drive_right: %d %s" %
+                      ( self._drive_right & (Prec-1),
+                        {True:' Fwd',False:'Back'}[self._drive_right&Prec > 0] ))
+        logging.info( "steer_left: %d %s" %
+                      ( self._steer_left & (Prec-1),
+                        {True:'CCW',False:' CW'}[self._steer_left&Prec > 0] ))
+        logging.info( "steer_right: %d %s" %
+                      ( self._steer_right & (Prec-1),
+                        {True:'CCW',False:' CW'}[self._steer_right&Prec > 0] ))
 
     def encodeCommands(self):
         """Encodes commands into a message for transmission.
@@ -79,10 +79,10 @@ class RealRobotInterface(interface.RobotInterface):
 
         message |= self._reset << 0
         message |= self._kick << 1
-        message |= self._drive1 << 2
-        message |= self._drive2 << 5
-        message |= self._turn1 << 8
-        message |= self._turn2 << 11
+        message |= self._drive_left << 2
+        message |= self._drive_right << 5
+        message |= self._steer_left << 8
+        message |= self._steer_right << 11
 
         return message
 
@@ -120,26 +120,26 @@ class RealRobotInterface(interface.RobotInterface):
     """
     Sets the drive1 command to be sent with given speed setting.
     """
-    def drive1(self, setting):
-        self._drive1 = self.__drive(setting)
+    def drive_left(self, setting):
+        self._drive_left = self.__drive(setting)
 
     """
     Sets the drive2 command to be sent with given speed setting.
     """
-    def drive2(self, setting):
-        self._drive2 = self.__drive(setting)
+    def drive_right(self, setting):
+        self._drive_right = self.__drive(setting)
 
     """
     Sets the turn1 command to be sent with given speed setting.
     """
-    def turn1(self, setting):
-        self._turn1 = self.__drive(setting)
+    def steer_left(self, setting):
+        self._steer_left = self.__drive(setting)
 
     """
     Sets the drive2 command to be sent with given speed setting.
     """
-    def turn2(self, setting):
-        self._turn2 = self.__drive(setting)
+    def steer_right(self, setting):
+        self._steer_right = self.__drive(setting)
 
     """
     Sends the shutdown signal to the robot and closes the socket.

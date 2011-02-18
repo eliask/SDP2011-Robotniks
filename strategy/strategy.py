@@ -8,15 +8,16 @@ class Strategy(object):
     strategies. Not to be used directly.
     """
 
-    def __init__(self, world, interface):
+    def __init__(self, world, interface, sim=None):
+        self.sim = sim
         self.world = world
         self.interface = interface
 
-        logging.info( "Strategy %s started in the %s"
-                      % (self.__class__.__name__, world.name) )
+        logging.getLogger("strategy") \
+            .info( "Strategy %s started in the %s"
+                   % (self.__class__.__name__, world.name) )
 
     def __getattr__(self, name):
-        print name
         if hasattr(self.interface, name):
             func = getattr(self.interface, name)
             return lambda *args, **kwargs: \

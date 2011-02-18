@@ -10,17 +10,20 @@ class World(common.world.World):
         self.name = "Simulated World"
         self.ents = {}
 
-    def updatePredictions(self):
-        pass
+    def setSelf(self, robot):
+        self.me = robot
+    def setBall(self, ball):
+        self.ball = ball
 
-    def updateAttributes():
-        self.convertMeasurements()
-
-    def updateWorld():
-        pass
     def getSelf(self):
-        # TODO: resolve the actual self from user input somehow
-        return self.ents['blue']
+        robot = common.world.Robot()
+        robot.pos = self.me.robot.body.position
+        robot.velocity = self.me.robot.body.velocity
+        robot.orientation = self.me.robot.body.angle
+        robot.ang_v = self.me.robot.body.angular_velocity
+        robot.wheel_left = self.me.wheel_left
+        robot.wheel_right = self.me.wheel_right
+        return robot
 
     def getOpponent(self):
         return self.ents['yellow']
@@ -33,7 +36,12 @@ class World(common.world.World):
     # def getOpponent(self):
     #     return self.them
     def getBall(self):
-        return self.ents['ball']
+        ball = common.world.Ball()
+        ball.pos = self.ball.body.position
+        ball.velocity = self.ball.body.velocity
+        ball.ang_v = self.ball.body.angular_velocity
+        return ball
+
     def myPos(self):
         return self.getSelf().pos
     def opponentPos(self):
