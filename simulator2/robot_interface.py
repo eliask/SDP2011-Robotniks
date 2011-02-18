@@ -158,6 +158,15 @@ class SimRobotInterface(RobotInterface):
         self.steer_right_target = angle
         self.delta_right_prev = abs(delta)
 
+    def steer_left_incr(self, angle):
+        "A helper function for the UI _only_"
+        delta = radians(angle) + self.steer_left_target
+        self.steer_left(delta)
+    def steer_right_incr(self, angle):
+        "A helper function for the UI _only_"
+        delta = radians(angle) + self.steer_right_target
+        self.steer_right(delta)
+
     def kick(self):
         self._kick = True
         if self.kickzone.point_query(self.sim.ball.body.position):

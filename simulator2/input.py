@@ -17,12 +17,18 @@ class Input:
 
     def initKeymap(self, p1, p2):
         self.keymap = {
-            K_q : ( lambda:p1.drive_left(3),   lambda:p1.drive_left(0) ),
-            K_e : ( lambda:p1.drive_right(3),  lambda:p1.drive_right(0) ),
-            K_a : ( lambda:p1.steer_left(45), None ),
-            K_d : ( lambda:p1.steer_right(45), None ),
+            # "reversed" controls for intuitiveness
+            K_r : ( lambda:p1.drive_left(3),   lambda:p1.drive_left(0) ),
+            K_w : ( lambda:p1.drive_right(3),  lambda:p1.drive_right(0) ),
+            K_f : ( lambda:p1.drive_left(-3),   lambda:p1.drive_left(0) ),
+            K_s : ( lambda:p1.drive_right(-3),  lambda:p1.drive_right(0) ),
+
+            K_a : ( lambda:p1.steer_left_incr(45), None ),
+            K_q : ( lambda:p1.steer_left_incr(-45), None ),
+            K_d : ( lambda:p1.steer_right_incr(45), None ),
+            K_e : ( lambda:p1.steer_right_incr(-45), None ),
             K_SPACE : ( p1.kick,   None ),
-	    K_r : ( p1.reset, None ),
+	    #K_x : ( p1.reset, None ),
             }
 
     def robotInput(self, event):
