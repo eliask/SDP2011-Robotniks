@@ -92,29 +92,12 @@ class SimRobotInterface(RobotInterface):
         v = self.wheel_right.body.angular_velocity
         v *= self.friction
 
-    def cooldown(self, name, secs):
-        """Wait the specified amount of seconds until the next command
-        is possible.
-        """
-        return True
-
-        if name not in self.cooldowns:
-            self.cooldowns[name] = 0
-
-        if self.cooldowns[name] <= time.time():
-            self.cooldowns[name] = time.time() + secs
-            return True
-        else:
-            return False
-
     def reset(self):
         """Puts the robot's wheels in their default setting of 0 Deg
 
         The direction is relative to the robot's orientation.
         """
-        self._kick = True
-        if self.cooldown('reset', 0.5):
-            pass
+        self._reset = True
 
     def update_velocity(self, v, accel, angle):
         v[0] += cos(angle) * accel
@@ -122,16 +105,14 @@ class SimRobotInterface(RobotInterface):
         v *= self.friction
 
     def drive_left(self, speed):
-        self._drive1 = speed
-        self.log.debug("drive left %d", speed)
-        if self.cooldown('drive_left', 0.1):
-            self.drive_left_accel = self.accel * speed
+        self._drive_left = speed
+        self.log.debug("drive left: %d", speed)
+        self.drive_left_accel = self.accel * speed
 
     def drive_right(self, speed):
-        self._drive2 = speed
-        self.log.debug("drive right %d", speed)
-        if self.cooldown('drive_right', 0.1):
-            self.drive_right_accel = self.accel * speed
+        self._drive_right = speed
+        self.log.debug("drive right: %d", speed)
+        self.drive_right_accel = self.accel * speed
 
     def get_relative_angle(self, _angle, wheel_angle):
         angle = (_angle + self.robot.body.angle - wheel_angle) % (2*pi)
