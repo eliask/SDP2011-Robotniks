@@ -141,11 +141,11 @@ class SimRobotInterface(RobotInterface):
 
     def kick(self):
         self._kick = True
-        self.log.info("Robot uses kick!  It's super effective!")
-        return
-
-        if self.cooldown('kick', 1.5):
-            if self.kickzone.point_query(ball.body.position):
-                ball.body.apply_impulse((100*cos(robot.body.angle),
-                                         100*sin(robot.body.angle)), (0,0))
-
+        if self.kickzone.point_query(self.sim.ball.body.position):
+            # TODO: somehow the ball is not registered as being within
+            # the kickzone. Fix that, somehow.
+            self.log.info("Robot uses kick... it's super effective!")
+            self.sim.ball.body.apply_impulse( (100*cos(self.robot.body.angle),
+                                               100*sin(self.robot.body.angle)), (0,0))
+        else:
+            self.log.info("Robot uses kick... no effect")

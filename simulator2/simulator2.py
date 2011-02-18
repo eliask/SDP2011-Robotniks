@@ -216,7 +216,7 @@ class Simulator(object):
             self.input.robotInput(event)
 
     def make_robot(self, pos, colour, angle, ai):
-        robot = Robot(pos, colour, self.space, self.scale, self.screen)
+        robot = Robot(pos, colour, self)
         self.world.ents[colour] = robot
         self.robots.append(robot)
 
