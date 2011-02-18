@@ -188,7 +188,7 @@ class Simulator(object):
     def run(self):
         pygame.init()
         self.clock = pygame.time.Clock()
-        self.tickrate = 15.0
+        self.tickrate = 50.0
         self.init_physics()
         self.init_screen()
         self.make_objects()
@@ -200,7 +200,7 @@ class Simulator(object):
         self.draw_ents()
 
         while True:
-            #self.clock.tick(self.tickrate)
+            self.clock.tick(self.tickrate)
             self.handle_input()
             self.update_objects()
             self.draw_ents()
