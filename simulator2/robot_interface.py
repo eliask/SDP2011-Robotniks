@@ -21,7 +21,7 @@ class SimRobotInterface(RobotInterface):
     accel = 10
     ang_accel = 3
     friction = 0.8
-    epsilon = radians(10)
+    epsilon = radians(3)
 
     def __init__(self, *args):
         RobotInterface.__init__(self, *args)
@@ -31,14 +31,15 @@ class SimRobotInterface(RobotInterface):
         self.steer_left_accel  = 0
         self.steer_right_accel = 0
 
-        self.steer_left_until  = 0
-        self.steer_right_until = 0
-        self.prev_left_angle   = 0
-        self.prev_right_angle  = 0
+        self.steer_left_target  = 0
+        self.steer_right_target = 0
+        self.delta_left_prev    = 0
+        self.delta_right_prev   = 0
+
         self.cooldowns = {}
 
         self.log = logging.getLogger("simulator2.robot.%s" % self.colour)
-        self.log.setLevel(logging.INFO)
+        self.log.setLevel(logging.DEBUG)
 
     def tick(self, *args):
         RobotInterface.tick(self, *args)
@@ -52,28 +53,33 @@ class SimRobotInterface(RobotInterface):
 
         # print self.steer_left_accel
         # print self.wheel_right.body.velocity, self.wheel_left.body.velocity
-        # print self.wheel_left.body.angle
-        # print self.wheel_right.body.angle
+        # print degrees(self.wheel_left.body.angle) % 360
+        # print degrees(self.wheel_right.body.angle) % 360
 
         self.wheel_left.body.velocity *= self.friction
         self.wheel_right.body.velocity *= self.friction
 
-        #print self.steer_left_until, self.wheel_left.body.angle
+        delta_left = abs(
+            self.get_relative_angle(self.steer_left_target,
+                                    self.wheel_left.body.angle))
 
-        delta_left = abs(self.wheel_left.body.angle
-                         - self.prev_left_angle)
-        self.steer_left_until -= delta_left
-        self.prev_left_angle = self.wheel_left.body.angle
-
-        delta_right = abs(self.wheel_right.body.angle
-                          - self.prev_right_angle)
-        self.steer_right_until -= delta_right
-        self.prev_right_angle = self.wheel_right.body.angle
-
-        if self.steer_left_until <= self.epsilon:
+        diff = delta_left - self.delta_left_prev
+        #if delta_left <= self.epsilon or abs(diff) > pi/2:
+        if abs(diff) > pi/2:
+            print delta_left, diff
             self.steer_left_accel = 0
-        if self.steer_right_until <= self.epsilon:
+        self.delta_left_prev = delta_left
+
+        delta_right = abs(
+            self.get_relative_angle(self.steer_right_target,
+                                    self.wheel_right.body.angle))
+
+        diff = delta_right - self.delta_right_prev
+        #if delta_right <= self.epsilon or abs(diff) > pi/2:
+        if abs(diff) > pi/2:
+            print delta_right, diff
             self.steer_right_accel = 0
+        self.delta_right_prev = delta_right
 
         self.wheel_left.body.angular_velocity \
             += self.steer_left_accel
@@ -127,17 +133,30 @@ class SimRobotInterface(RobotInterface):
         if self.cooldown('drive_right', 0.1):
             self.drive_right_accel = self.accel * speed
 
+    def get_relative_angle(self, _angle, wheel_angle):
+        angle = (_angle + self.robot.body.angle - wheel_angle) % (2*pi)
+        if angle <= pi:
+            return angle
+        else:
+            return pi - angle
+
     def steer_left(self, angle):
-        self._turn1 = angle
-        angle = radians(angle)
-        self.steer_left_accel = copysign(self.ang_accel, angle)
-        self.steer_left_until = abs(angle)
+        self._steer_left = angle
+        self.log.debug("steer left: %d", -180+int(degrees(angle)%360))
+        delta = self.get_relative_angle(angle, self.wheel_left.body.angle)
+
+        self.steer_left_accel = copysign(self.ang_accel, delta)
+        self.steer_left_target = angle
+        self.delta_left_prev = abs(delta)
 
     def steer_right(self, angle):
-        self._turn2 = angle
-        angle = radians(angle)
-        self.steer_right_accel = copysign(self.ang_accel, angle)
-        self.steer_right_until = abs(angle)
+        self._steer_right = angle
+        self.log.debug("steer right: %d", -180+int(degrees(angle)%360))
+        delta = self.get_relative_angle(angle, self.wheel_right.body.angle)
+
+        self.steer_right_accel = copysign(self.ang_accel, delta)
+        self.steer_right_target = angle
+        self.delta_right_prev = abs(delta)
 
     def kick(self):
         self._kick = True
