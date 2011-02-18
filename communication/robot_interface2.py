@@ -4,10 +4,9 @@ import logging
 
 class RealRobotInterface(interface.RobotInterface):
 
-    """
-    Number of speed settings for each direction.  Zero is counted twice.
-    """
+    # Number of speed settings for each direction. Zero is counted twice.
     MotorPrecision = 4
+    SteerPrecision = 1<<9
 
     def __init__(self):
         super(RealRobotInterface, self).__init__()
@@ -19,62 +18,24 @@ class RealRobotInterface(interface.RobotInterface):
 
     def humanLogCommands(self):
         "Log commands in a (perhaps) more human-readable way"
-        Prec = self.MotorPrecision
         logging.info( "Sent the robot the command:" )
+
         logging.info( "reset: %d" % int(self._reset) )
         logging.info( "kick: %d" % int(self._kick) )
+
+        Prec = self.MotorPrecision
         logging.info( "drive_left: %d %s" %
                       ( self._drive_left & (Prec-1),
                         {True:' Fwd',False:'Back'}[self._drive_left&Prec > 0] ))
         logging.info( "drive_right: %d %s" %
                       ( self._drive_right & (Prec-1),
                         {True:' Fwd',False:'Back'}[self._drive_right&Prec > 0] ))
-        logging.info( "steer_left: %d %s" %
-                      ( self._steer_left & (Prec-1),
-                        {True:'CCW',False:' CW'}[self._steer_left&Prec > 0] ))
-        logging.info( "steer_right: %d %s" %
-                      ( self._steer_right & (Prec-1),
-                        {True:'CCW',False:' CW'}[self._steer_right&Prec > 0] ))
+
+        logging.info( "steer_left: %d" % self._steer_left )
+        logging.info( "steer_right: %d" % self._steer_right )
 
     def encodeCommands(self):
-        """Encodes commands into a message for transmission.
-.
-        The binary command encoding:
-        0      1     001     100   111    010     10
-        ^      ^     ^        ^     ^      ^       ^
-        |     kick   |        |   Turn     |  Two unused bits
-        don't    Move wheel1  |  wheel1 CW |    out of 16
-        reset      forward    | at speed 3 |
-                  at speed 1  |            |
-                        Stop/don't move    |
-                            wheel2         |
-                                     Turn wheel2 CCW
-                                       at speed 2
-
-        Here, wheel1 refers to the left wheel and wheel2 refers to the
-        right wheel. Moving wheels forward/backward simply refers to
-        driving the robot somewhere (unless the wheels are positioned
-        badly).
-
-        Note that the encoding has the property the the "stop
-        everything" command is encoded simply as 0.
-
-        reset = reset wheel positions if 1.
-        kick =  start kick if 1.
-
-        General steering commands for the 4 motors:
-        Note: X means "don't care" or "either 1 or 0"
-        for motor commands, X00 means stop;
-        0XX is for going forward at setting XX,
-        1XX is for going forward at setting XX,
-
-        Example: 010 is to go forward at speed setting 2/3
-                 111 is to go backward at speed setting 3/3
-                 100 and 000 both stop the robot.
-
-        Turning motors take as input the same commands, and
-        "forward" is interpreted as going counter-clockwise.
-        """
+        "Encodes commands into a message for transmission."
         message = 0L
 
         message |= self._reset << 0
@@ -82,68 +43,65 @@ class RealRobotInterface(interface.RobotInterface):
         message |= self._drive_left << 2
         message |= self._drive_right << 5
         message |= self._steer_left << 8
-        message |= self._steer_right << 11
+        message |= self._steer_right << 17
 
         return message
 
-    """
-    Sends the current commands, as a message, to the robot.
-    """
     def sendMessage(self):
+        "Sends the current commands to the robot."
         self.tick()
         message = self.encodeCommands()
         self.humanLogCommands()
         self.client_socket.send('%d\n' % message)
         self.initCommands()
 
-    """
-    Sets the reset command to be sent.
-    """
     def reset(self):
         self._kick = True
 
     def reset(self):
         self._reset = True
 
-    """
-    Calculates the appropriate value for a drive command given the speed
-    setting.
-    """
     def __drive(self, setting):
+        """
+        Calculates the appropriate value for a drive command given the
+        speed setting.
+        """
         Prec = self.MotorPrecision
         return int(setting < 0)*Prec | (setting & (Prec-1))
 
     def drive(self, setting):
-        "Drive forward using both wheels--more flexible control has not been implemented"
-        self._drive2 = self.__drive(setting)
+        """
+        Drive forward using both wheels--more flexible control has not
+        yet been implemented.
+        """
+        self._drive_right = self.__drive(setting)
 
-    """
-    Sets the drive1 command to be sent with given speed setting.
-    """
     def drive_left(self, setting):
         self._drive_left = self.__drive(setting)
 
-    """
-    Sets the drive2 command to be sent with given speed setting.
-    """
     def drive_right(self, setting):
         self._drive_right = self.__drive(setting)
 
-    """
-    Sets the turn1 command to be sent with given speed setting.
-    """
-    def steer_left(self, setting):
-        self._steer_left = self.__drive(setting)
+    def __steer(self, _angle):
+        """
+        Calculates the appropriate value for a drive command given the
+        speed setting.
+        """
+        Prec = self.SteerPrecision
+        angle = int(degrees(_angle)) % 360
+        return (angle & (Prec-1))
 
-    """
-    Sets the drive2 command to be sent with given speed setting.
-    """
-    def steer_right(self, setting):
-        self._steer_right = self.__drive(setting)
+    def steer_left(self, angle):
+        "Steer the left wheel to this absolute position, in radians"
+        self._steer_left = self.__steer(angle)
 
-    """
-    Sends the shutdown signal to the robot and closes the socket.
-    """
+    def steer_right(self, angle):
+        "Steer the right wheel to this absolute position, in radians"
+        self._steer_right = self.__steer(angle)
+
     def shutdownServer(self):
+        """
+        Sends the shutdown signal to the robot and closes the socket.
+        """
         self.sendMessage(-1)
         self.client_socket.close()

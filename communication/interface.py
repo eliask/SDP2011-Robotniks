@@ -26,17 +26,18 @@ class RobotInterface(object):
         time_since_init = time.time() - self.start_time
         command_string = "%d,%d,%d,%d,%d,%d" \
             % ( int(self._reset), int(self._kick),
-                self._drive1, self._drive2, self._turn1, self._turn2 )
+                self._drive_left, self._drive_right,
+                self._steer_left, self._steer_right )
         self.replay_logger.debug( "%.3f\t%s" % (time_since_init, command_string) )
 
     def initCommands(self):
         "Resets the commands to the defaults."
         self._reset = False
         self._kick  = False
-        self._drive1 = 0
-        self._drive2 = 0
-        self._turn1 = 0
-        self._turn2 = 0
+        self._drive_left = 0
+        self._drive_right = 0
+        self._steer_left = 0
+        self._steer_right = 0
 
     def tick(self):
         """Perform communication interface state update.
