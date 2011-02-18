@@ -68,22 +68,25 @@ class Robot(SimRobotInterface):
         return self.add_wheel(space, (1, 1))
 
     def add_kickzone(self, space):
-        return
-    	p = self.robot.get_points()
+        #return
+    	bb = self.get_kicker_points()
+    	shape = pymunk.Poly(self.robot.body, bb)
+    	shape.group = 2
+	shape.sensor = True
+    	space.add(shape)
+    	return shape
+
+    def get_kicker_points(self):
+	p = self.robot.get_points()
         K = self.scale * World.KickerReach
         sine, cosine = \
             K*cos(self.robot.body.angle), \
             K*sin(self.robot.body.angle)
-
     	bb = [ p[1],
                p[1] + [sine, cosine],
                p[2] + [sine, cosine],
                p[2] ]
-
-    	shape = pymunk.Poly(self.robot.body, bb)
-    	shape.group = 3
-    	space.add(shape)
-    	return shape
+	return bb 
 
     def draw(self):
         self.draw_outline()
@@ -99,8 +102,8 @@ class Robot(SimRobotInterface):
     	pygame.draw.lines(self.screen, THECOLORS["blue"], False, ps, 4)
 
     def draw_kickzone(self):
-        return
-    	ps = self.kickzone.get_points()
+        #return
+    	ps = self.get_kicker_points()
     	pygame.draw.lines(self.screen, THECOLORS["red"], False, ps, 3)
 
     def draw_wheel(self, wheel):
