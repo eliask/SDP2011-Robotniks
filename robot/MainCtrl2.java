@@ -236,7 +236,8 @@ class KickThread extends Thread{
 		while (true){
 			if (ControlCentre.getKickState()){
 				Movement.motor_kick.setSpeed(900);
-				Movement.motor_kick.rotate(720);
+				Movement.motor_kick.rotate((120*(5/3)));
+				Movement.motor_kick.rotate((-120*(5/3)));
 			}
 		}
 	}
@@ -340,7 +341,7 @@ class SteeringLeftThread extends Thread{
 			} else if (((getToAngle() - getCurrentSteeringAngle()) < 0) && ((getToAngle() - getCurrentSteeringAngle())>-180)){
 				motor_left.rotate((int)(Movement.rotConstant * ((getToAngle()-getCurrentSteeringAngle()))));
 			} else if ((getToAngle() - getCurrentSteeringAngle()) <= -180){
-				motor_left.rotate((int)(Movement.rotConstant * (-360 - (getToAngle() -getCurrentSteeringAngle()))));
+				motor_left.rotate((int)(Movement.rotConstant * (360 + (getToAngle() -getCurrentSteeringAngle()))));
 			}
 
 			setCurrentSteeringAngle((getToAngle() % 360)); 
@@ -389,7 +390,7 @@ class SteeringRightThread extends Thread{
 			} else if (((getToAngle() - getCurrentSteeringAngle()) < 0) && ((getToAngle() - getCurrentSteeringAngle())>-180)){
 				Movement.motor_right.rotate((int)(Movement.rotConstant * ((getToAngle()-getCurrentSteeringAngle()))));
 			} else if ((getToAngle() - getCurrentSteeringAngle()) <= -180){
-				Movement.motor_right.rotate((int)(Movement.rotConstant * (-360 - (getToAngle() - getCurrentSteeringAngle()))));
+				Movement.motor_right.rotate((int)(Movement.rotConstant * (360 + (getToAngle() - getCurrentSteeringAngle()))));
 			}
 
 			setCurrentSteeringAngle((getToAngle() % 360)); 
