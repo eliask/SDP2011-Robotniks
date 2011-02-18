@@ -33,6 +33,7 @@ public class BluetoothTester {
 	private static void collectMessage() throws InterruptedException{
 		while(keepConnOpen){
 			try {
+				Bluetooth.getConnectionStatus();
 				int message = inputStream.readInt();
 				writeToScreen("Got message");
 				// Do specific action
@@ -43,7 +44,9 @@ public class BluetoothTester {
 					sendMessage();
 				}
 			} catch (IOException e) {
-				writeToScreen("Error");
+				writeToScreen("Error - connect back up");
+				connection = Bluetooth.waitForConnection();
+				writeToScreen("Connected");
 			}
 		}
 	}
