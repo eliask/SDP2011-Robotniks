@@ -133,7 +133,7 @@ class Simulator(object):
         pos2 = self.scale * pymunk.Vec2d( (World.PitchLength/2.0 + 60,
                                            World.PitchWidth/2.0 + self.offset) )
         self.make_robot(pos1, col1, 0, self.robot1[0])
-        self.make_robot(pos2, col2, -pi, self.robot2[0])
+        #self.make_robot(pos2, col2, -pi, self.robot2[0])
 
         self.world.setSelf(self.robots[0])
         self.world.setBall(self.ball)
@@ -207,7 +207,7 @@ class Simulator(object):
             self.runAI()
 
     def init_input(self):
-        self.input = Input(self, self.robots[0], self.robots[1])
+        self.input = Input(self, self.robots[0], self.robots[0]) #self.robots[1])
 
     def handle_input(self):
         for event in pygame.event.get():
