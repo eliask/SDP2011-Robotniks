@@ -18,8 +18,6 @@ class SimRobotInterface(RobotInterface):
     knowing where we are "heading".
     """
 
-    max_speed = 100
-    max_ang_v = 10
     accel = 10
     ang_accel = 3
     friction = 0.8
@@ -83,13 +81,9 @@ class SimRobotInterface(RobotInterface):
             += self.steer_right_accel
 
         v = self.wheel_left.body.angular_velocity
-        if v > self.max_ang_v:
-            v *= self.max_ang_v / abs(v)
         v *= self.friction
 
         v = self.wheel_right.body.angular_velocity
-        if v > self.max_ang_v:
-            v *= self.max_ang_v / abs(v)
         v *= self.friction
 
     def cooldown(self, name, secs):
@@ -119,9 +113,6 @@ class SimRobotInterface(RobotInterface):
     def update_velocity(self, v, accel, angle):
         v[0] += cos(angle) * accel
         v[1] += sin(angle) * accel
-        v_mag = sqrt(sum( v**2 ))
-        if v_mag > self.max_speed:
-            v *= self.max_speed / v_mag
         v *= self.friction
 
     def drive_left(self, speed):
