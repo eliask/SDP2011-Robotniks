@@ -40,6 +40,7 @@ class SimRobotInterface(RobotInterface):
         self.cooldowns = {}
 
         self.log = logging.getLogger("simulator2.robot.%s" % self.colour)
+        self.log.setLevel(logging.INFO)
 
     def tick(self, *args):
         RobotInterface.tick(self, *args)
@@ -59,8 +60,7 @@ class SimRobotInterface(RobotInterface):
         self.wheel_left.body.velocity *= self.friction
         self.wheel_right.body.velocity *= self.friction
 
-        print self.steer_left_until, self.wheel_left.body.angle
-
+        #print self.steer_left_until, self.wheel_left.body.angle
 
         delta_left = abs(self.wheel_left.body.angle
                          - self.prev_left_angle)
