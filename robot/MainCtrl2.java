@@ -341,7 +341,7 @@ class SteeringLeftThread extends Thread{
 			} else if (((getToAngle() - getCurrentSteeringAngle()) < 0) && ((getToAngle() - getCurrentSteeringAngle())>-180)){
 				motor_left.rotate((int)(Movement.rotConstant * ((getToAngle()-getCurrentSteeringAngle()))));
 			} else if ((getToAngle() - getCurrentSteeringAngle()) <= -180){
-				motor_left.rotate((int)(Movement.rotConstant * (-360 - (getToAngle() -getCurrentSteeringAngle()))));
+				motor_left.rotate((int)(Movement.rotConstant * (360 + (getToAngle() -getCurrentSteeringAngle()))));
 			}
 
 			setCurrentSteeringAngle((getToAngle() % 360)); 
@@ -390,7 +390,7 @@ class SteeringRightThread extends Thread{
 			} else if (((getToAngle() - getCurrentSteeringAngle()) < 0) && ((getToAngle() - getCurrentSteeringAngle())>-180)){
 				Movement.motor_right.rotate((int)(Movement.rotConstant * ((getToAngle()-getCurrentSteeringAngle()))));
 			} else if ((getToAngle() - getCurrentSteeringAngle()) <= -180){
-				Movement.motor_right.rotate((int)(Movement.rotConstant * (-360 - (getToAngle() - getCurrentSteeringAngle()))));
+				Movement.motor_right.rotate((int)(Movement.rotConstant * (360 + (getToAngle() - getCurrentSteeringAngle()))));
 			}
 
 			setCurrentSteeringAngle((getToAngle() % 360)); 
