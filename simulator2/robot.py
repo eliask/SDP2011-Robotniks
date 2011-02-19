@@ -92,10 +92,10 @@ class Robot(SimRobotInterface):
         sine, cosine = \
             K*cos(self.robot.body.angle), \
             K*sin(self.robot.body.angle)
-    	bb = [ p[1],
-               p[1] + [sine, cosine],
-               p[2] + [sine, cosine],
-               p[2] ]
+    	bb = [ p[1] - self.robot.body.position,
+               p[1] - self.robot.body.position + [sine, cosine],
+               p[2] - self.robot.body.position +[sine, cosine],
+               p[2] - self.robot.body.position]
 	return bb
 
     def draw(self):
@@ -107,12 +107,14 @@ class Robot(SimRobotInterface):
     def draw_outline(self):
     	ps = self.robot.get_points()
     	ps.append(ps[0])
-        #pygame.gfxdraw.filled_polygon(self.sim.screen, ps, THECOLORS['blue'])
-	pygame.draw.lines(self.sim.screen, THECOLORS["blue"], False, ps, 4)
+        pygame.gfxdraw.filled_polygon(self.sim.screen, ps, THECOLORS['blue'])
+	#pygame.draw.lines(self.sim.screen, THECOLORS["blue"], False, ps, 4)
 
     def draw_kickzone(self):
         #return
-    	ps = self.get_kicker_points()
+    	#ps = self.get_kicker_points()
+	#pygame.draw.lines(self.sim.screen, THECOLORS["red"], False, ps, 3)
+	ps = self.kickzone.get_points()
 	pygame.draw.lines(self.sim.screen, THECOLORS["red"], False, ps, 3)
 
     def draw_wheel(self, wheel):
