@@ -185,7 +185,7 @@ class SimRobotInterface(RobotInterface):
             # TODO: somehow the ball is not registered as being within
             # the kickzone. Fix that, somehow.
             self.log.info("Robot uses kick... it's super effective!")
-            self.sim.ball.body.apply_impulse( (100*cos(self.robot.body.angle),
-                                               100*sin(self.robot.body.angle)), (0,0))
+            self.sim.ball.body.apply_impulse( (50*cos(self.robot.body.angle),
+                                               50*sin(self.robot.body.angle)), (0,0))
         else:
             self.log.info("Robot uses kick... no effect")

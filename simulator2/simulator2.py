@@ -274,7 +274,7 @@ class Simulator(object):
                               THECOLORS["black"], False, [pv1,pv2])
 
     def add_ball(self, space):
-	mass = 1000
+	mass = 1
     	radius = 5
 	inertia = pymunk.moment_for_circle(mass, 0.999, radius)
     	body = pymunk.Body(mass, inertia)
