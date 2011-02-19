@@ -1,14 +1,18 @@
 import main
 import main2
 import null
-import mlbridge
+
+try:
+    from mlbridge import MLBridge
+except ImportError:
+    MLBridge = None
 
 "A list of strategies that can be used"
 
 strategies = { 'main' : main.Main,
                'main2' : main2.Main,
                'null' : null.Null,
-               'ML'   : mlbridge.MLBridge,
+               'ML'   : MLBridge,
              }
 
 def list_strategies():
