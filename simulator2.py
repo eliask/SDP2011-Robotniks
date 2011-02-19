@@ -23,10 +23,10 @@ def usage():
 def main():
     try:
         opts, args = \
-            getopt.getopt( sys.argv[1:], "Hhls:t:STrc:",
+            getopt.getopt( sys.argv[1:], "Hhls:t:STrc:1:",
                            [ "headless", "help",
                              "list-strategies", "strategy1", "strategy2",
-                             "real1", "real2", "colour",
+                             "real1", "real2", "colour", "arg1",
                              ] )
     except getopt.GetoptError, err:
         # print help information and exit:
@@ -38,6 +38,7 @@ def main():
     strategy1, strategy2 = None, None
     real1 = real2 = None
     colour = 'blue'
+    arg1 = None
 
     for opt, arg in opts:
         if opt in ("-H", "--headless"):
@@ -55,6 +56,8 @@ def main():
             real2 = True
         elif opt in ("-c", "--colour"):
             colour = arg
+        elif opt in ("-1", "--arg1"):
+            arg1 = arg
         elif opt in ("-h", "--help"):
             usage()
             sys.exit()
@@ -84,6 +87,7 @@ def main():
                      world=world,
                      robot1=(ai1, real1),
                      robot2=(ai2, real2),
+                     ai_args=[arg1],
                      colour=colour,
                      real_world=None, #(real1 or real2),
                      )

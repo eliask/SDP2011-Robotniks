@@ -14,7 +14,11 @@ class MLBridge(Strategy):
         self.log = logging.getLogger("strategy.mlbridge")
         self.log.setLevel(logging.INFO)
 
-        self.p = Popen('ML/ml', stdin=PIPE, stdout=PIPE)
+        cmd = ['ML/ml']
+        if self.arg:
+            cmd.append( self.arg )
+        self.p = Popen(cmd, stdin=PIPE, stdout=PIPE)
+
         self.chooseTarget()
         self.log.debug("Reading the list of actions")
         self.get_actions_list()
@@ -136,8 +140,8 @@ class MLBridge(Strategy):
         state.robot.vel_y = me.velocity[1]
         state.robot.angle = me.orientation
         state.robot.ang_v = me.ang_v
-        state.robot.left_angle = me.wheel_left.body.angle
-        state.robot.right_angle = me.wheel_right.body.angle
+        state.robot.left_angle = me.left_angle
+        state.robot.right_angle = me.right_angle
 
         ball = self.world.getBall()
         state.ball.pos_x = ball.pos[0]

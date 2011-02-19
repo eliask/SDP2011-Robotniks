@@ -38,6 +38,7 @@ class Simulator(object):
             self.__setattr__(k, v)
             self.log.debug("\t%s = %s", k, v)
 
+        self.prev = {}
         self.robots=[]
 
     def set_state(self, state):
@@ -61,7 +62,6 @@ class Simulator(object):
         self.load_state()
 
     def save_state(self):
-        self.prev = {}
         self.prev['ball'] = {'pos':list(self.ball.body.position),
                              'vel':list(self.ball.body.velocity),
                              'ang_v':self.ball.body.angular_velocity
@@ -160,7 +160,7 @@ class Simulator(object):
             self.setRobotAI(self.robots[0], ai)
             self.log.debug("AI 1 started in the real world")
         elif ai1:
-            self.ai.append( ai1(self.world, self.robots[0], self) )
+            self.ai.append( ai1(self.ai_args[0], self.world, self.robots[0], self) )
             self.log.debug("AI 1 started in the simulated world")
         else:
             self.log.debug("No AI 1 present")

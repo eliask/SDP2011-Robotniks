@@ -47,6 +47,7 @@ class Input:
         except (IndexError, KeyError, AttributeError):
             raise
 
+        return
         if self.button_down:
             self.sim.world.ents['ball'].pos = pygame.mouse.get_pos()
             self.sim.world.ents['ball'].velocity = np.array([0,0])
