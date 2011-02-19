@@ -1,3 +1,4 @@
+from math import *
 from pygame.locals import *
 import common.world
 
@@ -21,8 +22,8 @@ class World(common.world.World):
         robot.velocity = self.me.robot.body.velocity
         robot.orientation = self.me.robot.body.angle
         robot.ang_v = self.me.robot.body.angular_velocity
-        robot.wheel_left = self.me.wheel_left
-        robot.wheel_right = self.me.wheel_right
+        robot.left_angle = self.me.wheel_left.body.angle % (2*pi)
+        robot.right_angle = self.me.wheel_right.body.angle % (2*pi)
         return robot
 
     def getOpponent(self):
