@@ -42,30 +42,41 @@ class Robot(SimRobotInterface):
         robot_body.position = pos
 
     	robot_shape = pymunk.Poly(robot_body, fp)
-    	robot_shape.friction = 0.99
+	robot_shape.friction = 0.8
     	robot_shape.group = 2
     	space.add(robot_body, robot_shape)
         return robot_shape
 
+    def wheel_pos(self, _wpos):
+        angle = self.robot.body.angle
+        wpos = pymunk.Vec2d(*_wpos)
+        wpos.rotate(angle)
+        wdist = 4.0 # Wheel distance from body center (cm)
+        pos = self.robot.body.position + self.sim.scale*wdist*wpos
+        return pos
+
+    def left_wheel_pos(self):
+        return self.wheel_pos((-1, -1))
+    def right_wheel_pos(self):
+        return self.wheel_pos((1, 1))
+
     def add_wheel(self, space, pos):
-        wdist = 4.0 # Wheel distance from body center
         fp = [(-5, -3), (5, -3), (5, 3), (-5, 3)]
         mass = 1000
         moment = pymunk.moment_for_poly(mass, fp)
         wheel_body = pymunk.Body(mass, moment)
         wheel_shape = pymunk.Poly(wheel_body, fp)
         wheel_shape.group = 2
-	wheel_body.position = (self.robot.body.position[0] + self.sim.scale*wdist*pos[0],
-                               self.robot.body.position[1] + self.sim.scale*wdist*pos[1])
+	wheel_body.position = pos
     	joint = pymunk.PivotJoint(self.robot.body, wheel_body, wheel_body.position)
         space.add(wheel_body, wheel_shape, joint)
         return wheel_shape
 
     def add_wheel_left(self, space):
-        return self.add_wheel(space, (-1, -1))
+        return self.add_wheel(space, self.left_wheel_pos())
 
     def add_wheel_right(self, space):
-        return self.add_wheel(space, (1, 1))
+        return self.add_wheel(space, self.right_wheel_pos())
 
     def add_kickzone(self, space):
     	bb = self.get_kicker_points()

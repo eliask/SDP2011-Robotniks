@@ -8,10 +8,10 @@ cimport numpy as np
 import logging
 
 LOG = logging.getLogger("ML")
-logging.basicConfig(stream = sys.stderr, level=logging.INFO)
+logging.basicConfig(stream = sys.stderr, level=logging.DEBUG)
 
 StateShape=12
-NumFeatures=StateShape-6 + 7
+NumFeatures=StateShape-4 + 11
 class State(object): pass
 
 dt = 1/25.0
@@ -25,11 +25,12 @@ def main():
                        0,0,0,0,
                        0,0,0,0,])
 
-    print cPickle.dumps(enum_actions())
+    sys.stdout.write(cPickle.dumps(enum_actions()))
+    print
     print "END"
     sys.stdout.flush()
 
-    fitted_value_iteration2(state0, 70)
+    fitted_value_iteration2(state0, 40)
 
 class Model(object):
     def predict(self, state, action):
@@ -58,7 +59,7 @@ class StrategyBridge(Model):
 
         cdef np.ndarray[np.float64_t, ndim=1] new_state
         new_state = np.zeros(StateShape)
-        new_state = get_state()
+        new_state, _ = get_state()
         # new_state[0:2] = state[0:2] + state[2:4] #pos
         # new_state[2:4] = state[2:4] #velocity
         # new_state[4] = state[4] + state[5] #orient
@@ -104,13 +105,15 @@ def state_reward(np.ndarray[np.float64_t, ndim=1] state):
     # cdef float reward = float( sys.stdin.readline().strip() )
     # return reward
 
+    ### Spend at most about 0.5 extra seconds correcting our orientation
+    state_orient = state[4]
+    #angle = atan2(goal_pos - state_pos(state))
+    angle = abs(goal.orientation - state_orient)
     D = dist(state_pos(state), goal.pos)
     if dist(state_pos(state), goal.pos) < 10:
-        # Spend at most about 0.5 extra seconds correcting our orientation
-        state_orient = state[4]
-        reward = 100 - 0.5 * abs(goal.orientation - state_orient)/pi
+        reward = 1 - 1 * angle / pi
     else:
-        reward = -D/100.0
+        reward = -D - angle
 
     LOG.info("reward: %.4f", reward)
     return reward
@@ -129,16 +132,21 @@ def linear_regression(features, values):
              str(result), str(residues), str(rank), str(sing))
     return result
 
-Motors = ('drive1', 'drive2', 'turn1', 'turn2')
-Settings = range(-1,2) #2401 total; on/off has 81
-def list_actions():
-    return [(motor, setting) for motor in Motors for setting in Settings]
+Motors = ('driveL', 'driveR', 'steerL', 'steerR')
+DriveSettings = range(-1,2) #2401 total; on/off has 81
+SteerSettings = range(0,360,45)+[1,-1] # 8 directions + to-goal + away-from-goal
+SteerSettings = range(0,360,45)+[1] # 8 directions + none
+#SteerSettings = [1,-1] # 8 directions + to-goal + away-from-goal
 
-def _I(x):
-    if x == 0: return [[]]
-    return [ [d]+rest for d in Settings for rest in _I(x-1) ]
+def _I(x, settings, _rest=[[]]):
+    if x == 0: return _rest
+    return [ [d]+rest for d in settings for rest in _I(x-1, settings, _rest) ]
 def enum_actions():
-    return map(np.array, _I(4))
+    steer = _I(2, SteerSettings)
+    combined = _I(2, DriveSettings, steer)
+    return map(np.array, combined)
+
+ACTIONS = enum_actions()
 
 def take_action(action):
     s=''
@@ -153,7 +161,7 @@ epsilon = 1
 def choose_action(state, policy_params):
     max_eu = -inf
     #print "PREDICT"
-    for a in enum_actions():
+    for a in ACTIONS:
         #next = get_next_state(Bridge, state, a)
         eu = state_value(get_next_state(Bridge, state, a), policy_params)
         #LOG.info("EU: %f  A:%s", eu, str(a))
@@ -164,12 +172,12 @@ def choose_action(state, policy_params):
     # LOG.debug("Action: " + str(best_action))
 
     if rnd.random() < epsilon:
-        return random.sample(enum_actions(), 1)[0]
+        return random.sample(ACTIONS, 1)[0]
     return best_action
 
 def get_state():
     WS = ML_pb2.WorldState()
-    LOG.debug("Waiting for line")
+    #LOG.debug("Waiting for line")
     msg = ""
     while True:
         line = sys.stdin.readline()
@@ -177,14 +185,15 @@ def get_state():
             msg += line
         else:
             break
-
+    #LOG.debug("Received world state")
+    #LOG.debug("WS1: " + msg)
     WS.ParseFromString( msg[:-1] )
     # lines = map(float, [ for _ in range(6)])
     # x,y, vx,vy, o,vo = lines
     cdef np.ndarray[np.float64_t, ndim=1] new_state
     new_state = np.zeros(StateShape)
     R = WS.robot; B = WS.ball
-    LOG.debug("POS: %d,%d", R.pos_x, R.pos_y)
+    #LOG.debug("POS: %d,%d", R.pos_x, R.pos_y)
     new_state[0:2] = R.pos_x, R.pos_y
     new_state[2:4] = R.vel_x, R.vel_y
     new_state[4] = R.angle
@@ -195,20 +204,26 @@ def get_state():
     new_state[8:10] = B.pos_x, B.pos_y
     new_state[10:12] = B.vel_x, B.vel_y
 
+    # goal.pos[0] = WS.target.pos_x
+    # goal.pos[1] = WS.target.pos_y
+    # goal.orientation = WS.target.angle
+
     # new_state[0:2] = x,y
     # new_state[2:4] = vx,vy
     # new_state[4] = o
     # new_state[5] = vo
-    return new_state
+    return new_state, msg[:-1]
 
 def execute_policy(policy_params, max_time):
     "Call the simulator"
     print 'RESET'
+    sys.stdout.flush()
     states = []
     rewards = []
     cdef int t
     for t from 0 <= t < max_time:
-        state = get_state()
+        state, state_s = get_state()
+        pass_state(msg=state_s) #for protobuf testing
         action = choose_action(state, policy_params)
         take_action(action)
         states.append( state )
@@ -221,8 +236,8 @@ def execute_policy(policy_params, max_time):
 MAX_EU=-1e1000
 goal = State()
 goal.pos = [0,0]
-goal.pos[0] = rnd.randint(60,560)
-goal.pos[1] = rnd.randint(80,360)
+goal.pos[0] = 300.0 #rnd.randint(60,560)
+goal.pos[1] = 180.0 #rnd.randint(80,360)
 goal.orientation = 2*pi*rnd.random() - pi
 
 def fitted_value_iteration2(state0, max_time):
@@ -234,7 +249,7 @@ def fitted_value_iteration2(state0, max_time):
         while True:
             trial, rewards = execute_policy(policy_params, max_time)
             LOG.info("Policy: "+ str(policy_params) )
-            LOG.info("Iteration: %d", N); N+=1
+            LOG.info("Fitted value iteration: %d", N); N+=1
             policy_params = fitted_value_iteration(trial, rewards, policy_params)
     finally:
         name = time.strftime('logs/%Y%m%d-%H%M-%S.policy')
@@ -249,12 +264,17 @@ def features(np.ndarray[np.float64_t, ndim=1] state):
     vx,vy = state[2], state[3]
     o = state[4]
     vo = state[5]
+    wL, wR = state[6], state[7]
+    dwL = o - wL
+    dwR = o - wR
+
     dx, dy = goal.pos[0]-x, goal.pos[1]-y
     do = atan2(dy, dx)
     Dist2 = dx**2 + dy**2
     cdef np.ndarray[np.float64_t, ndim=1] F
     F = np.array([x,y,vx,vy,o,vo,
-                  #w1,w2,d1,d2,o**2,
+                  dx,dy,
+                  wL,wR, dwL,dwR,
                   do, do**2, sin(do), cos(do), tan(do), exp(do),
                   Dist2]) #+ state[10:].tolist())
     return F
@@ -265,17 +285,53 @@ def state_value(np.ndarray[np.float64_t, ndim=1] state,
     cdef np.ndarray[np.float64_t, ndim=1] F = features(state)
     return np.dot(F, policyT)
 
+def pass_state(state=None, msg=None):
+    "Tell MLBridge the wanted state of the world"
+
+    if state is not None:
+        WS = ML_pb2.WorldState()
+        WS.robot.pos_x = state[0]
+        WS.robot.pos_y = state[1]
+        WS.robot.vel_x = state[2]
+        WS.robot.vel_y = state[3]
+        WS.robot.angle = state[4]
+        WS.robot.ang_v = state[5]
+        WS.robot.left_angle = state[6]
+        WS.robot.right_angle = state[7]
+
+        WS.ball.pos_x = state[8]
+        WS.ball.pos_y = state[9]
+        WS.ball.vel_x = state[10]
+        WS.ball.vel_y = state[11]
+
+        # WS.target.pos_x = goal.pos[0]
+        # WS.target.pos_y = goal.pos[1]
+
+        msg = WS.SerializeToString()
+    else:
+        assert msg is not None
+        #LOG.debug("msg = " + msg)
+
+    #LOG.debug("WS2: " + msg)
+    print msg
+    print "END"
+    sys.stdout.flush()
+
+def norm(arr):
+    return max(arr)
+
 def fitted_value_iteration(states, rewards, policy_params):
     policyT = np.transpose(policy_params)
     model = Bridge
     inf = 1e1000
-    discount = 0.99
+    discount = 0.2
     values = []
-    actions = enum_actions()
     for i, state in enumerate(states):
-        LOG.debug("Fitted value iteration: %d", i)
+        print "CONT"
+        LOG.debug("FVI state t=%d", i)
+        pass_state(state)
         values.append(-inf)
-        for action in actions:
+        for action in ACTIONS:
             next_state = get_next_state(model, state, action)
 
             q_action = discount * state_value(next_state, policyT)
@@ -284,11 +340,13 @@ def fitted_value_iteration(states, rewards, policy_params):
                 values[i] = rewards[i] + q_action
 
         if values[i] + rewards[i] > MAX_EU:
-            LOG.info("REW:"+str(rewards[i]))
+            LOG.info("Max reward: %.6f", rewards[i])
             MAX_EU = values[i]
 
     print "END"
+    sys.stdout.flush()
     policy_params = linear_regression( map(features, states), values )
+    policy_params /= norm(policy_params)
     return policy_params
 
 

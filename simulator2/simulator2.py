@@ -19,16 +19,17 @@ import sys, logging
 
 class Simulator(object):
 
+    speed = 8
+    scale = 3 # pixel/cm
+    offset = 4.0
+    Resolution = map( int, scale*(2*offset+np.array([World.PitchLength,
+                                                    World.PitchWidth])) )
+
     # Options and arguments
     headless=False
     ai=[]
     robot1=None
     robot2=None
-
-    scale = 3 # pixel/cm
-    offset = 4.0
-    Resolution = map( int, scale*(2*offset+np.array([World.PitchLength,
-                                                    World.PitchWidth])) )
 
     def __init__(self, **kwargs):
         self.log = logging.getLogger("simulator2")
@@ -39,7 +40,7 @@ class Simulator(object):
 
         self.robots=[]
 
-    def set_state(state):
+    def set_state(self, state):
         R = state.robot
         self.prev['robot'] = {'pos':[R.pos_x, R.pos_y],
                               'vel':[R.vel_x, R.vel_y],
@@ -50,10 +51,12 @@ class Simulator(object):
                               }
 
         B = state.ball
-        self.prev['ball'] = {'pos':[B.ball_x, B.ball_y],
-                              'vel':[B.ball_vx, B.ball_vy],
+        self.prev['ball'] = {'pos':[B.pos_x, B.pos_y],
+                              'vel':[B.vel_x, B.vel_y],
                               'ang_v':B.ang_v,
                               }
+
+        self.goal = state.target
 
         self.load_state()
 
@@ -83,26 +86,26 @@ class Simulator(object):
         self.robots[0].wheel_left.body.angle = self.prev['robot']['left_angle']
         self.robots[0].wheel_right.body.angle = self.prev['robot']['right_angle']
 
+        self.robots[0].wheel_left.body.position = self.robots[0].left_wheel_pos()
+        self.robots[0].wheel_right.body.position = self.robots[0].right_wheel_pos()
+        self.robots[0].stop_steer()
+
     def init_physics(self):
 	pymunk.init_pymunk()
 	self.space = pymunk.Space()
 	self.space.gravity = (0,0)
-	#space.damping = 0.6
-
-	### Adding the object to the space
-	self.walls = self.add_walls(self.space)
-	self.ball = self.add_ball(self.space)
 
     def draw_ents(self):
         pygame.display.set_caption( "FPS: %.1f" % self.clock.get_fps() )
+
+        self.screen.blit(self.overlay, (0,0))
+        self.overlay.fill((130,130,130,255))
 
         self.draw_walls()
         self.draw_ball()
         # Draw the robots
         map(lambda x: x.draw(), self.robots)
 
-        self.screen.blit(self.overlay, (0,0))
-        self.overlay.fill((130,130,130,255))
         if not self.headless:
             pygame.display.flip()
 
@@ -120,6 +123,9 @@ class Simulator(object):
 
     def make_objects(self):
         self.log.debug("Creating game objects")
+
+	self.walls = self.add_walls(self.space)
+	self.ball = self.add_ball(self.space)
 
         colours = ('blue', 'yellow')
         if random() < 0.5:
@@ -179,11 +185,14 @@ class Simulator(object):
         for ai in self.ai:
             ai.run()
 
-    def update_objects(self):
+    def timestep(self):
         self.space.step(1/self.tickrate)
         map(lambda x:x.tick(), self.robots)
-        self.ball.body.velocity.x /= 1.007
-        self.ball.body.velocity.y /= 1.007
+        self.ball.body.velocity *= 0.997
+
+    def update_objects(self):
+        for _ in range(self.speed):
+            self.timestep()
 
     def run(self):
         pygame.init()
@@ -251,7 +260,7 @@ class Simulator(object):
         static_lines = map(get_static_line, lines)
 
         for line in static_lines:
-            line.elasticity = 0.3
+            line.elasticity = 0.75
             line.group = 1
         space.add_static(static_lines)
         return static_lines
@@ -265,15 +274,15 @@ class Simulator(object):
                               THECOLORS["black"], False, [pv1,pv2])
 
     def add_ball(self, space):
-    	mass = 1
+	mass = 1000
     	radius = 5
-    	inertia = pymunk.moment_for_circle(mass, 0, radius)
+	inertia = pymunk.moment_for_circle(mass, 0.999, radius)
     	body = pymunk.Body(mass, inertia)
     	body.position = self.offset + self.scale/2.0 * \
             pymunk.Vec2d(World.PitchLength, World.PitchWidth)
     	shape = pymunk.Circle(body, radius)
-    	shape.elasticity = 0.1
-    	shape.friction = 0.9
+	shape.elasticity = 0.6
+	#shape.friction = 1
     	shape.group = 3
     	space.add(body, shape)
     	return shape

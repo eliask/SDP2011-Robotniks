@@ -39,10 +39,10 @@ class SimRobotInterface(RobotInterface):
         self.cooldowns = {}
 
         self.log = logging.getLogger("simulator2.robot.%s" % self.colour)
-        self.log.setLevel(logging.DEBUG)
+        self.log.setLevel(logging.INFO)
 
     def tick(self, *args):
-        RobotInterface.tick(self, *args)
+        #RobotInterface.tick(self, *args)
 
         self.update_velocity( self.wheel_left.body.velocity,
                               self.drive_left_accel,
@@ -66,7 +66,6 @@ class SimRobotInterface(RobotInterface):
         diff = delta_left - self.delta_left_prev
         #if delta_left <= self.epsilon or abs(diff) > pi/2:
         if abs(diff) > pi/2:
-            print delta_left, diff
             self.steer_left_accel = 0
         self.delta_left_prev = delta_left
 
@@ -77,7 +76,6 @@ class SimRobotInterface(RobotInterface):
         diff = delta_right - self.delta_right_prev
         #if delta_right <= self.epsilon or abs(diff) > pi/2:
         if abs(diff) > pi/2:
-            print delta_right, diff
             self.steer_right_accel = 0
         self.delta_right_prev = delta_right
 
@@ -122,7 +120,10 @@ class SimRobotInterface(RobotInterface):
             return pi - angle
 
     def steer_left(self, angle):
-        self._steer_left = angle
+        if self.drive_left_accel > 0:
+            return
+
+        self._steer_left = degrees(angle) % 360
         self.log.debug("steer left: %d", -180+int(degrees(angle)%360))
         delta = self.get_relative_angle(angle, self.wheel_left.body.angle)
 
@@ -131,7 +132,10 @@ class SimRobotInterface(RobotInterface):
         self.delta_left_prev = abs(delta)
 
     def steer_right(self, angle):
-        self._steer_right = angle
+        if self.drive_right_accel > 0:
+            return
+
+        self._steer_right = degrees(angle) % 360
         self.log.debug("steer right: %d", -180+int(degrees(angle)%360))
         delta = self.get_relative_angle(angle, self.wheel_right.body.angle)
 
@@ -147,6 +151,33 @@ class SimRobotInterface(RobotInterface):
         "A helper function for the UI _only_"
         delta = radians(angle) + self.steer_right_target
         self.steer_right(delta)
+
+    def macro_steer(self, fn, angle):
+        if abs(angle) == 1:
+            return
+            goal = pymunk.Vec2d(self.sim.goal_x, self.sim.goal_y)
+            delta = goal - self.robot.body.position
+            _angle = atan2(delta[1], delta[0]) - self.robot.body.angle
+            print "ANGLE:", _angle, atan2(*delta)
+            print "ASD:", self.get_relative_angle( atan2(delta[1], delta[0]), 0)
+            fn(_angle) # * angle)
+        fn( radians(angle) )
+
+    def macro_steer_left(self, angle):
+        self.macro_steer(self.steer_left, angle)
+    def macro_steer_right(self, angle):
+        self.macro_steer(self.steer_right, angle)
+
+    def stop_steer(self):
+        """A helper function for reinforcement learning purposes.
+
+        The reinfrocement learning software can randomly re-initialise
+        the robot's position and pose. Since the wheels can be in any
+        orientation as a result, we want to stop the otherwise
+        automatic steering movement and "start from scratch".
+        """
+        self.steer_left_accel = 0
+        self.steer_right_accel = 0
 
     def kick(self):
         self._kick = True
