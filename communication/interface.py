@@ -47,6 +47,14 @@ class RobotInterface(object):
         """
         self.recordCommands()
 
+    def drive_both(self, setting):
+        self.drive_left(setting)
+        self.drive_right(setting)
+
+    def steer_both(self, angle):
+        self.steer_left(angle)
+        self.steer_right(angle)
+
     def reset(self): pass
     def drive(self): pass
     def stop(self): pass

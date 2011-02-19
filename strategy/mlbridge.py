@@ -14,7 +14,11 @@ class MLBridge(Strategy):
         self.log = logging.getLogger("strategy.mlbridge")
         self.log.setLevel(logging.INFO)
 
-        self.p = Popen('ML/ml', stdin=PIPE, stdout=PIPE)
+        cmd = ['ML/ml']
+        if self.arg:
+            cmd.append( self.arg )
+        self.p = Popen(cmd, stdin=PIPE, stdout=PIPE)
+
         self.chooseTarget()
         self.log.debug("Reading the list of actions")
         self.get_actions_list()
