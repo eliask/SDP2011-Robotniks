@@ -1,6 +1,5 @@
 import cv
-from capture import Capture, CaptureFailure
-from mplayer_capture import MPlayerCapture
+from capture import Capture, EndOfCapture
 from simcapture import SimCapture
 from preprocess import Preprocessor
 from features import FeatureExtraction
@@ -26,9 +25,7 @@ class Vision():
         if simulator:
             self.capture = SimCapture(simulator)
         else:
-            #required on DICE:
-            self.capture = MPlayerCapture(self.rawSize, filename, once)
-            #self.capture = Capture(self.rawSize, filename, once)
+            self.capture = Capture(self.rawSize, filename, once)
 
         self.headless = headless
 
@@ -123,7 +120,7 @@ class Vision():
 
             while not self.gui.quit and self.N < until:
                 self.processFrame()
-        except CaptureFailure:
+        except EndOfCapture:
             pass
 
         self.runtimeInfo()
