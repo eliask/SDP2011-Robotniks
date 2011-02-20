@@ -123,8 +123,6 @@ class Simulator(object):
             pygame.display.set_caption('SDP 9 Simulator')
             self.screen = pygame.display.get_surface()
             self.overlay = pygame.Surface(self.Resolution)
-            self.overlay.convert_alpha()
-            self.overlay.set_alpha(100)
 
     def make_objects(self):
         self.log.debug("Creating game objects")
