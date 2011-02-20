@@ -20,15 +20,17 @@ class KickTest(Strategy):
             logging.warn("couldn't find ball: %s", e)
             return
 
-        #print self.me.pos, ballPos
+
         if self.me.pos[0] == 0 or ballPos[0] == 0:
             self.stop()
             print "POS 0"
             return
-
-        if self.canKick(ballPos):
-            self.kick()
+	
+	if self.canKick(ballPos):
+		self.kick()
 
     def canKick(self, target_pos):
-        if dist(self.me.pos, target_pos) < 20:
-            return True
+	if dist(self.me.pos, target_pos) < 50:
+		angle_diff = (self.me.orientation % (2*pi)) - abs(atan2(self.me.pos[1] - target_pos[1], (self.me.pos[0] - target_pos[0])) + pi )
+		if angle_diff < radians(13):	
+			return True
