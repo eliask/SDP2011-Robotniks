@@ -3,7 +3,7 @@ import null
 import kicktest
 
 try:
-    import main2
+    from main2 import Main2
     from mlbridge import MLBridge
 except ImportError:
     MLBridge = None
@@ -11,8 +11,8 @@ except ImportError:
 "A list of strategies that can be used"
 
 strategies = { 'main' : main.Main,
-               'main2' : main2.Main,
-               'kicktest'   : kicktest.KickTest,
+               'main2' : Main2,
+               'kicktest' : kicktest.KickTest,
                'null' : null.Null,
                'ML'   : MLBridge,
              }

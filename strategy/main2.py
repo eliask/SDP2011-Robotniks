@@ -6,13 +6,7 @@ from strategy import *
 import mlbridge
 import logging
 
-class Main(mlbridge.MLBridge):
-    """The main strategy class
-
-    """
-    std = True
-    spinning = False
-    driving = False
+class Main2(mlbridge.MLBridge):
     move_angle = 0
     N = 0
 
@@ -21,8 +15,6 @@ class Main(mlbridge.MLBridge):
         self.reset()
 
     def run(self):
-        "Run strategy off of the current state of the World."
-
         self.N += 1
         if self.N == 40:
             self.maybe_reset_world()
@@ -65,12 +57,11 @@ class Main(mlbridge.MLBridge):
         #print dest
         logging.debug("Distance to ball: %.3f" % _dist)
         epsilon = 50
+
         # TODO: implement the canKick predicate instead
         if _dist < epsilon:
-            self.driving=False
             return True
         else:
-            self.driving = True
             self.drive_both(3)
             return False
 
@@ -95,29 +86,4 @@ class Main(mlbridge.MLBridge):
                 (d_right < radians(20) or d_right > radians(340)):
             return True
 
-        return False
-
-        # Since we are facing x = 0, we choose the turning direction
-        # by seeing whether the destination is above or below us
-
-        # self.world.pointer = self.me.pos + \
-        #     np.array((cos(closest), sin(closest))) * (dest - self.me.pos)
-
-        epsilon = 10
-        if abs(y) < epsilon:
-            self.stopSpin()
-            self.spinning = False
-            return True
-        if self.spinning:
-            self.std = True
-            self.drive()
-            return False
-
-        if y > 0:
-            #self.spinning = not self.spinning
-            self.startSpinLeft()
-        else:
-            self.startSpinRight()
-
-        self.spinning = True
         return False
