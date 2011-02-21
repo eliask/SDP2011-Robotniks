@@ -96,6 +96,9 @@ class Simulator(object):
 	self.space.gravity = (0,0)
 
     def draw_ents(self):
+        if self.headless:
+            return
+
         pygame.display.set_caption( "FPS: %.1f" % self.clock.get_fps() )
 
         self.screen.blit(self.overlay, (0,0))
@@ -106,8 +109,7 @@ class Simulator(object):
         # Draw the robots
         map(lambda x: x.draw(), self.robots)
 
-        if not self.headless:
-            pygame.display.flip()
+        pygame.display.flip()
 
     def init_screen(self):
         self.log.debug("Creating simulator screen")
@@ -219,6 +221,8 @@ class Simulator(object):
         self.input = Input(self, self.robots[0], self.robots[0]) #self.robots[1])
 
     def handle_input(self):
+        if self.headless:
+            return
         for event in pygame.event.get():
             if event.type == QUIT:
                 sys.exit(0)
