@@ -115,7 +115,6 @@ public class Server {
 	class KeepAlive implements Runnable {
 
 		public void run(){
-			try{
 				while(!finished){
 					commandSent = false;
 					try{
@@ -124,13 +123,13 @@ public class Server {
 						// nobody cares
 					}
 					if(!commandSent){
-						sendMessage(0);
+						try{
+							sendMessage(0);
+						}catch(IOException e){
+							restart = true;
+						}
 					}
 				}
-			}catch(IOException e){
-				restart = true;
-				System.err.println("connection lost.");
-			}
 		}
 	}
 
@@ -168,14 +167,21 @@ public class Server {
 				while((i = is.read()) != -1){
 					c = (char) i;
 					if (c == '\n') {
-						int z = Integer.parseInt(num);
-						if(z == -1){
-							restart = true;
-							break;
+						try{
+							int z = Integer.parseInt(num);
+							if(z == -1){
+								restart = false;
+								break;
+							}
+							try{
+								sendMessage(z);
+								System.out.println(socket.getInetAddress().toString() + ":  " + z);
+							}catch(IOException e){
+								restart = true;
+							}
+						}catch(NumberFormatException e){
+							System.err.println("invalid message found?");
 						}
-						sendMessage(z);
-						System.out.println(socket.getInetAddress().toString()
-										   + ":  " + z);
 						num = "";
 					} else { // c != '\n'
 						num += new Character(c).toString();
