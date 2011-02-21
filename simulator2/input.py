@@ -39,14 +39,16 @@ class Input:
             elif event.type == KEYUP:
                 _, stop = self.keymap.get(event.key, (None, None))
                 if stop: stop()
-            elif event.type == KEYDOWN:
-                self.commandInput(event)
             elif event.type == MOUSEBUTTONDOWN:
                 self.mouseInput(event)
 
         except (IndexError, KeyError, AttributeError):
             raise
 
+        if event.type == KEYDOWN:
+            self.commandInput(event)
+
+        return
         if self.button_down:
             self.sim.world.ents['ball'].pos = pygame.mouse.get_pos()
             self.sim.world.ents['ball'].velocity = np.array([0,0])
@@ -65,15 +67,26 @@ class Input:
             return
 
         if '0' <= char <= '9':
-            if len(self.command_string) == 0 and char in "12":
+            Len = len(self.command_string)
+            if (Len == 0 and char in "12") or Len > 0:
                 self.command_string += char
+                Len += 1
 
-            if len(self.command_string) == 4:
+            if Len == 4:
                 robot_num = int( self.command_string[0] )
                 angle = radians(int( self.command_string[1:] ))
+                num = int( self.command_string[1:] )
+                self.command_string = ''
+
+                print "Command id:%d val:%d" % (robot_num, num)
+                if robot_num == 1:
+                    self.sim.apf_scale = num
+                else:
+                    self.sim.apf_dist = num
+
+                return
                 if robot_num == 1:
                     self.p1.setRobotDirection(angle)
                 elif robot_num == 2:
                     self.p2.setRobotDirection(angle)
 
-                self.command_string = ''

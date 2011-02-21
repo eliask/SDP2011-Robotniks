@@ -10,8 +10,16 @@ import logging
 LOG = logging.getLogger("ML")
 logging.basicConfig(stream = sys.stderr, level=logging.DEBUG)
 
+LOG_DIR = 'logs/ML/'
+RL_log = logging.getLogger('replay_logger')
+
+start_time = time.time()
+handler = logging.FileHandler( LOG_DIR +
+    time.strftime("%Y%m%d-%H%M%S", time.localtime(start_time)), "w" )
+RL_log.addHandler(handler)
+
 StateShape=12
-NumFeatures=StateShape-4 + 11
+NumFeatures=StateShape-4 + 3
 class State(object): pass
 
 dt = 1/25.0
@@ -110,10 +118,10 @@ def state_reward(np.ndarray[np.float64_t, ndim=1] state):
     #angle = atan2(goal_pos - state_pos(state))
     angle = abs(goal.orientation - state_orient)
     D = dist(state_pos(state), goal.pos)
-    if dist(state_pos(state), goal.pos) < 10:
+    if dist(state_pos(state), goal.pos) < 20:
         reward = 1 - 1 * angle / pi
     else:
-        reward = -D - angle
+        reward = -D/10.0 - angle
 
     LOG.info("reward: %.4f", reward)
     return reward
@@ -135,7 +143,7 @@ def linear_regression(features, values):
 Motors = ('driveL', 'driveR', 'steerL', 'steerR')
 DriveSettings = range(-1,2) #2401 total; on/off has 81
 SteerSettings = range(0,360,45)+[1,-1] # 8 directions + to-goal + away-from-goal
-SteerSettings = range(0,360,45)+[1] # 8 directions + none
+SteerSettings = range(0,360,45*2)+[1] # 8 directions + none
 #SteerSettings = [1,-1] # 8 directions + to-goal + away-from-goal
 
 def _I(x, settings, _rest=[[]]):
@@ -228,7 +236,7 @@ def execute_policy(policy_params, max_time):
         take_action(action)
         states.append( state )
         rewards.append( state_reward(state ) )
-        LOG.debug("Policy at t=%d", t)
+        #LOG.debug("Policy at t=%d", t)
 
     #LOG.info("exec_policy" + str(states) + str(rewards))
     return states, rewards
@@ -243,14 +251,21 @@ goal.orientation = 2*pi*rnd.random() - pi
 def fitted_value_iteration2(state0, max_time):
     print max_time
     sys.stdout.flush()
-    policy_params = np.zeros(NumFeatures)
+
+    if len(sys.argv) > 1:
+        policy_params = cPickle.load(open(sys.argv[1], 'r'))
+    else:
+        policy_params = np.zeros(NumFeatures)
+
     N=0
     try:
         while True:
             trial, rewards = execute_policy(policy_params, max_time)
             LOG.info("Policy: "+ str(policy_params) )
             LOG.info("Fitted value iteration: %d", N); N+=1
+            prev = policy_params
             policy_params = fitted_value_iteration(trial, rewards, policy_params)
+            LOG.info("Value fn difference: %.6f", sum(policy_params) - sum(prev) )
     finally:
         name = time.strftime('logs/%Y%m%d-%H%M-%S.policy')
         h = open(name, 'w')
@@ -272,11 +287,15 @@ def features(np.ndarray[np.float64_t, ndim=1] state):
     do = atan2(dy, dx)
     Dist2 = dx**2 + dy**2
     cdef np.ndarray[np.float64_t, ndim=1] F
-    F = np.array([x,y,vx,vy,o,vo,
-                  dx,dy,
-                  wL,wR, dwL,dwR,
-                  do, do**2, sin(do), cos(do), tan(do), exp(do),
-                  Dist2]) #+ state[10:].tolist())
+    F = np.array([
+            #x,y,
+            vx,vy,
+            o,vo,
+            dx,dy,
+            wL,wR, dwL,dwR,
+            do, #do**2, sin(do), cos(do), tan(do), exp(do),
+            ])
+    #Dist2]) #+ state[10:].tolist())
     return F
 
 def state_value(np.ndarray[np.float64_t, ndim=1] state,

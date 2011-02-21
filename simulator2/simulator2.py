@@ -13,13 +13,14 @@ from random import *
 from robot import Robot
 from world import World
 import common.world
-import pygame
-import pymunk
+import pygame, pymunk
+import numpy as np
 import sys, logging
+from strategy.apf import *
 
 class Simulator(object):
 
-    speed = 8
+    speed = 2
     scale = 3 # pixel/cm
     offset = 4.0
     Resolution = map( int, scale*(2*offset+np.array([World.PitchLength,
@@ -31,6 +32,9 @@ class Simulator(object):
     robot1=None
     robot2=None
 
+    apf_scale = -0.1*scale
+    apf_dist = 60*scale
+
     def __init__(self, **kwargs):
         self.log = logging.getLogger("simulator2")
         self.log.debug("Simulator started with the arguments:")
@@ -38,6 +42,7 @@ class Simulator(object):
             self.__setattr__(k, v)
             self.log.debug("\t%s = %s", k, v)
 
+        self.prev = {}
         self.robots=[]
 
     def set_state(self, state):
@@ -61,7 +66,6 @@ class Simulator(object):
         self.load_state()
 
     def save_state(self):
-        self.prev = {}
         self.prev['ball'] = {'pos':list(self.ball.body.position),
                              'vel':list(self.ball.body.velocity),
                              'ang_v':self.ball.body.angular_velocity
@@ -104,6 +108,7 @@ class Simulator(object):
         self.screen.blit(self.overlay, (0,0))
         self.overlay.fill((130,130,130,255))
 
+        self.draw_field()
         self.draw_walls()
         self.draw_ball()
         # Draw the robots
@@ -120,8 +125,6 @@ class Simulator(object):
             pygame.display.set_caption('SDP 9 Simulator')
             self.screen = pygame.display.get_surface()
             self.overlay = pygame.Surface(self.Resolution)
-            self.overlay.convert_alpha()
-            self.overlay.set_alpha(100)
 
     def make_objects(self):
         self.log.debug("Creating game objects")
@@ -162,7 +165,7 @@ class Simulator(object):
             self.setRobotAI(self.robots[0], ai)
             self.log.debug("AI 1 started in the real world")
         elif ai1:
-            self.ai.append( ai1(self.world, self.robots[0], self) )
+            self.ai.append( ai1(self.ai_args[0], self.world, self.robots[0], self) )
             self.log.debug("AI 1 started in the simulated world")
         else:
             self.log.debug("No AI 1 present")
@@ -278,7 +281,7 @@ class Simulator(object):
                               THECOLORS["black"], False, [pv1,pv2])
 
     def add_ball(self, space):
-	mass = 1000
+	mass = 1
     	radius = 5
 	inertia = pymunk.moment_for_circle(mass, 0.999, radius)
     	body = pymunk.Body(mass, inertia)
@@ -291,8 +294,33 @@ class Simulator(object):
     	space.add(body, shape)
     	return shape
 
+    def draw_field(self):
+	ball = map(int, self.ball.body.position)
+        offset = 100
+        X = range(ball[0]-offset, ball[0]+offset, 10)
+        Y = range(ball[1]-offset, ball[1]+offset, 10)
+
+        goal = self.offset+self.scale*World.PitchLength, \
+            self.offset+self.scale*World.PitchWidth/2.0
+
+        def pf(pos):
+            return ball_apf( pos, ball, goal, 5*self.apf_scale, self.apf_dist,
+                             self.scale*World.BallDiameter/2.0 )
+            return tangential_field(1, ball, pos, self.apf_scale, self.apf_dist)
+            return attractive_field( ball, pos, self.apf_scale, self.apf_dist )
+
+        for x in X:
+            for y in Y:
+                pos = x,y
+                v = pf(pos)
+                delta = map(lambda x:int(round(x)), (pos[0]+v[0], pos[1]+v[1]))
+                if delta != map(lambda x:int(round(x)), pos):
+                    pygame.draw.line(self.screen, THECOLORS['yellow'], pos, delta, 1)
+                    pygame.draw.circle(self.screen, THECOLORS['orange'], delta, 1)
+
+
     def draw_ball(self):
-    	pos = int(self.ball.body.position.x), int(self.ball.body.position.y)
+	pos = map(int, self.ball.body.position)
     	pygame.draw.circle( self.screen, THECOLORS["red"], pos,
                             int(self.scale * World.BallDiameter/2.0) )
 

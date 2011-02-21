@@ -8,7 +8,8 @@ class Strategy(object):
     strategies. Not to be used directly.
     """
 
-    def __init__(self, world, interface, sim=None):
+    def __init__(self, arg, world, interface, sim=None):
+        self.arg = arg
         self.sim = sim
         self.world = world
         self.interface = interface

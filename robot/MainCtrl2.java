@@ -1,4 +1,5 @@
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 
 // Lejos imports
@@ -119,6 +120,7 @@ class Receiver extends Thread {
 	// Defines variables used for the managing bluetooth connection
 	private static BTConnection connection;
 	private static DataInputStream inputStream;
+	private static DataOutputStream outputStream;
 
 	public Receiver(){
 	}
@@ -141,13 +143,17 @@ class Receiver extends Thread {
 		Thread connectedDisplay = new ScreenWriter("Connected", 7); 
 		connectedDisplay.start();
 		inputStream = connection.openDataInputStream();
+		outputStream = connection.openDataOutputStream();
 		Thread openConnDisplay = new ScreenWriter("Connection Opened", 7);
 		openConnDisplay.start();
 	}
 
 	private static void collectMessage() throws InterruptedException{
 		boolean atend = false;
+        int N = 0;
 		while(atend == false){
+			N = N+1; //% 100;
+			LCD.drawString("N:"+Integer.toString(N), 0, 2);
 			try{
 				Bluetooth.getConnectionStatus();
 				int message = inputStream.readInt();
@@ -191,6 +197,11 @@ class Receiver extends Thread {
 
 	}
 
+
+	private static void sendBackMessage(int messageBack) throws IOException{
+		outputStream.writeInt(messageBack);
+		outputStream.flush();
+	}
 }
 
 class ScreenWriter extends Thread{
@@ -234,10 +245,14 @@ class KickThread extends Thread{
 
 	public void run(){
 		while (true){
-			if (ControlCentre.getKickState()){
+			boolean kick = ControlCentre.getKickState();
+			if (kick) {
+				LCD.drawString("K,",0,1);
 				Movement.motor_kick.setSpeed(900);
 				Movement.motor_kick.rotate((120*(5/3)));
 				Movement.motor_kick.rotate((-120*(5/3)));
+			} else {
+				LCD.drawString("_,",0,1);
 			}
 		}
 	}
@@ -249,7 +264,10 @@ class DriveLeftThread extends Thread{
 
 	public void run(){
 		while(true){
-			switch(ControlCentre.getTargetDriveLeftVal()){
+			int target = ControlCentre.getTargetDriveLeftVal();
+			LCD.drawString(Integer.toString(target)+",",2,1);
+
+			switch(target){
 			case 0:
 				Movement.port_comlight.passivate();
 				break;
@@ -285,7 +303,9 @@ class DriveRightThread extends Thread{
 
 	public void run(){
 		while (true){
-			switch(ControlCentre.getTargetDriveRightVal()){
+			int target = ControlCentre.getTargetDriveRightVal();
+			LCD.drawString(Integer.toString(target)+",",4,1);
+			switch(target){
 			case 0:
 				Movement.port_comlight.passivate();
 				break;
@@ -331,8 +351,7 @@ class SteeringLeftThread extends Thread{
 		while(true){
 			setToAngle(ControlCentre.getTargetSteeringAngleLeft());
 
-			LCD.drawString("LeftWheel: " + Integer.toString(getToAngle()) + "             ",0 ,1);
-
+			LCD.drawString(Integer.toString(getToAngle()), 6 ,1);
 
 			if (((getToAngle() - getCurrentSteeringAngle())>0) && ((getToAngle() - getCurrentSteeringAngle())<180)){
 				motor_left.rotate((int)(Movement.rotConstant * (getToAngle() - getCurrentSteeringAngle())));
@@ -381,7 +400,7 @@ class SteeringRightThread extends Thread{
 		while(true){
 			setToAngle(ControlCentre.getTargetSteeringAngleRight());
 
-			LCD.drawString("RightWheel: " + Integer.toString(getToAngle()) + "           ",0 ,2);	    
+			LCD.drawString(Integer.toString(getToAngle()), 10 ,1);
 
 			if (((getToAngle() - getCurrentSteeringAngle())>0) && ((getToAngle() - getCurrentSteeringAngle())<180)){
 				Movement.motor_right.rotate((int)(Movement.rotConstant * (getToAngle() - getCurrentSteeringAngle())));
