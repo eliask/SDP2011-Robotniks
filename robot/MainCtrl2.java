@@ -1,4 +1,5 @@
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 
 // Lejos imports
@@ -119,6 +120,7 @@ class Receiver extends Thread {
 	// Defines variables used for the managing bluetooth connection
 	private static BTConnection connection;
 	private static DataInputStream inputStream;
+	private static DataOutputStream outputStream;
 
 	public Receiver(){
 	}
@@ -141,6 +143,7 @@ class Receiver extends Thread {
 		Thread connectedDisplay = new ScreenWriter("Connected", 7); 
 		connectedDisplay.start();
 		inputStream = connection.openDataInputStream();
+		outputStream = connection.openDataOutputStream();
 		Thread openConnDisplay = new ScreenWriter("Connection Opened", 7);
 		openConnDisplay.start();
 	}
@@ -191,6 +194,11 @@ class Receiver extends Thread {
 
 	}
 
+
+	private static void sendBackMessage(int messageBack) throws IOException{
+		outputStream.writeInt(messageBack);
+		outputStream.flush();
+	}
 }
 
 class ScreenWriter extends Thread{
