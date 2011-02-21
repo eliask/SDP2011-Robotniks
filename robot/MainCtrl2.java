@@ -150,7 +150,10 @@ class Receiver extends Thread {
 
 	private static void collectMessage() throws InterruptedException{
 		boolean atend = false;
+        int N = 0;
 		while(atend == false){
+			N = N+1; //% 100;
+			LCD.drawString("N:"+Integer.toString(N), 0, 2);
 			try{
 				Bluetooth.getConnectionStatus();
 				int message = inputStream.readInt();
