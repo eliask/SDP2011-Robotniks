@@ -194,7 +194,7 @@ class Receiver extends Thread {
 		ControlCentre.setTargetSteeringAngleRight(motor_sright);
 		ControlCentre.setTargetDriveLeftVal(motor_dleft);
 		ControlCentre.setTargetDriveRightVal(motor_dright);
-		notifyAll();
+
 	}
 
 
@@ -245,9 +245,6 @@ class KickThread extends Thread{
 
 	public void run(){
 		while (true){
-			try {
-				wait();
-			} catch (InterruptedException e) {}
 			boolean kick = ControlCentre.getKickState();
 			if (kick) {
 				LCD.drawString("K,",0,1);
@@ -267,10 +264,6 @@ class DriveLeftThread extends Thread{
 
 	public void run(){
 		while(true){
-			try {
-				wait();
-			} catch (InterruptedException e) {}
-
 			int target = ControlCentre.getTargetDriveLeftVal();
 			LCD.drawString(Integer.toString(target)+",",2,1);
 
@@ -310,13 +303,8 @@ class DriveRightThread extends Thread{
 
 	public void run(){
 		while (true){
-			try {
-				wait();
-			} catch (InterruptedException e) {}
-
 			int target = ControlCentre.getTargetDriveRightVal();
 			LCD.drawString(Integer.toString(target)+",",4,1);
-
 			switch(target){
 			case 0:
 				Movement.port_comlight.passivate();
@@ -361,10 +349,6 @@ class SteeringLeftThread extends Thread{
 		Movement.motor_left.smoothAcceleration(true);
 
 		while(true){
-			try {
-				wait();
-			} catch (InterruptedException e) {}
-
 			setToAngle(ControlCentre.getTargetSteeringAngleLeft());
 
 			LCD.drawString(Integer.toString(getToAngle()), 6 ,1);
@@ -414,10 +398,6 @@ class SteeringRightThread extends Thread{
 		Movement.motor_right.smoothAcceleration(true);
 
 		while(true){
-			try {
-				wait();
-			} catch (InterruptedException e) {}
-
 			setToAngle(ControlCentre.getTargetSteeringAngleRight());
 
 			LCD.drawString(Integer.toString(getToAngle()), 10 ,1);
