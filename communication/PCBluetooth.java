@@ -29,7 +29,7 @@ public class PCBluetooth {
 
         // Try connect
         NXTInfo nxtInfo = new NXTInfo(0, name,address);
-        System.out.format("Connecting to %s", nxtInfo.name);
+        System.out.format("Connecting to %s... ", nxtInfo.name);
 
         boolean connected = false;
             connected = communicator.open(nxtInfo);
@@ -38,7 +38,7 @@ public class PCBluetooth {
         if (!connected) {
             System.out.println("Failed");
         } else {
-            System.out.format("Connected to %s", nxtInfo.name);
+            System.out.format("Connected to %s\n", nxtInfo.name);
             try {
                 blueOutStream = new DataOutputStream(communicator.getOutputStream());
             } catch (Exception e) {
