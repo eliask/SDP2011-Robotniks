@@ -132,6 +132,10 @@ class Receiver extends Thread {
 			Thread msgInterruptDisplay = new ScreenWriter("Msg Col Interupt",7);
 			msgInterruptDisplay.start();
 		}
+		try{
+			Thread.sleep(100);
+		}catch(InterruptedException e){
+		}
 	}
 
 	//Aims to establish a conection over Bluetooth
@@ -254,6 +258,10 @@ class KickThread extends Thread{
 			} else {
 				LCD.drawString("_,",0,1);
 			}
+		try{
+			Thread.sleep(100);
+		}catch(InterruptedException e){
+		}
 		}
 	}
 }
@@ -293,6 +301,10 @@ class DriveLeftThread extends Thread{
 				Movement.port_comlight.activate();
 				break;
 			}
+		try{
+			Thread.sleep(100);
+		}catch(InterruptedException e){
+		}
 		}
 	}
 }
@@ -331,6 +343,10 @@ class DriveRightThread extends Thread{
 				Movement.port_comlight.activate();
 				break;
 			}
+		try{
+			Thread.sleep(100);
+		}catch(InterruptedException e){
+		}
 		}
 	}
 }
@@ -364,6 +380,10 @@ class SteeringLeftThread extends Thread{
 			}
 
 			setCurrentSteeringAngle((getToAngle() % 360)); 
+		try{
+			Thread.sleep(100);
+		}catch(InterruptedException e){
+		}
 		}
 	}
 
@@ -413,6 +433,10 @@ class SteeringRightThread extends Thread{
 			}
 
 			setCurrentSteeringAngle((getToAngle() % 360)); 
+		try{
+			Thread.sleep(100);
+		}catch(InterruptedException e){
+		}
 		}
 	}
 
