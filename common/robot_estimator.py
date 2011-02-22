@@ -9,23 +9,22 @@ class RobotEstimator(Kalman):
     - Max kicker launch speed (1)
     """
 
-    # p_x, p_y, v_x, v_y, a_x, a_y, orient, motor dir
-    transitionM = [ [ 1, 0, 0, 0, 0, 0, 0, D ], # orientation
-                    [ 0, 1, 0, D, 0, 0, 0, 0 ], # p_x
-                    [ 0, 0, 1, 0, D, 0, 0, 0 ], # p_y
-                    [ 0, 0, 0, 1, 0, D, 0, 0 ], # v_x
-                    [ 0, 0, 0, 0, 1, 0, D, 0 ], # v_y
-                    [ 0, 0, 0, 0, 0, 1, 0, 0 ], # a_x
-                    [ 0, 0, 0, 0, 0, 0, 1, 0 ], # a_y
-                    [ 0, 0, 0, 0, 0, 0, 0, 1 ], # angular velocity (delta ^)
+    # p_x, p_y, v_x, v_y, orient, motor dir
+    transitionM = [ [ 1, 0, 0, 0, 0, D ], # orientation
+                    [ 0, 1, 0, D, 0, 0 ], # p_x
+                    [ 0, 0, 1, 0, D, 0 ], # p_y
+                    [ 0, 0, 0, 1, 0, 0 ], # v_x
+                    [ 0, 0, 0, 0, 1, 0 ], # v_y
+                    [ 0, 0, 0, 0, 0, 1 ], # angular velocity (delta ^)
                     ]
 
     def __init__(self):
         # We measure: p_x, p_y, orientation
         # ( We control: motor direction, etc. )
-        Kalman.__init__(self, 8,3,0, self.transitionM)
+        Kalman.__init__(self, 6,3,0, self.transitionM)
 
     def getPos(self):
+        #return map(float, (self.measurement[1], self.measurement[2]))
         return map(float, (self.prediction[1], self.prediction[2]))
 
     def getVelocity(self):
@@ -49,9 +48,9 @@ class RobotEstimator(Kalman):
             best_match = robots_sorted[0]
             pos = entCenter(best_match)
 
-            self.measurement[0] = pos[0]
-            self.measurement[1] = pos[1]
+            self.measurement[1] = pos[0]
+            self.measurement[2] = pos[1]
             if 'orient' in best_match:
-                self.measurement[2] = best_match['orient']
+                self.measurement[0] = best_match['orient']
 
         self.correct(self.measurement)

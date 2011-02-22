@@ -1,6 +1,7 @@
 import interface
 import socket
 import logging
+from math import *
 
 class RealRobotInterface(interface.RobotInterface):
 
@@ -15,6 +16,11 @@ class RealRobotInterface(interface.RobotInterface):
             socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.client_socket.connect(("localhost", 6879))
         logging.info("Connected to robot interface server")
+
+        self.steer_left_target = 0
+        self.steer_right_target = 0
+        self.steer_left_until = 0
+        self.steer_right_until = 0
 
     def humanLogCommands(self):
         "Log commands in a (perhaps) more human-readable way"
@@ -53,7 +59,7 @@ class RealRobotInterface(interface.RobotInterface):
         message = self.encodeCommands()
         self.humanLogCommands()
         self.client_socket.send('%d\n' % message)
-        self.initCommands()
+        #self.initCommands()
 
     def reset(self):
         self._kick = True
@@ -94,10 +100,12 @@ class RealRobotInterface(interface.RobotInterface):
     def steer_left(self, angle):
         "Steer the left wheel to this absolute position, in radians"
         self._steer_left = self.__steer(angle)
+        self.steer_left_target = angle
 
     def steer_right(self, angle):
         "Steer the right wheel to this absolute position, in radians"
         self._steer_right = self.__steer(angle)
+        self.steer_right_target = angle
 
     def shutdownServer(self):
         """
@@ -105,3 +113,4 @@ class RealRobotInterface(interface.RobotInterface):
         """
         self.sendMessage(-1)
         self.client_socket.close()
+

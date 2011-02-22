@@ -13,10 +13,17 @@ class World(object):
     PitchWidth   = 121.5
     PitchLength  = 224.0
     BallDiameter = 4.5
+    BallRadius   = BallDiameter/2.0
     GoalLength   = 58.5
     RobotLength  = 20.0
     RobotWidth   = 18.0
     KickerReach  = 5.0
+    PitchDim     = PitchLength, PitchWidth
+
+    TopWall      = 0.0
+    BottomWall   = PitchWidth
+    LeftWall     = 0.0
+    RightWall    = PitchLength
 
     max_states   = 5000
     states = []
@@ -53,8 +60,8 @@ class World(object):
         self.pointer = None
 
         self.est_ball.update( ents['balls'], dt )
-        self.est_yellow.update( [ents['yellow']], dt )
-        self.est_blue.update( [ents['blue']], dt )
+        self.est_yellow.update( ents['yellow'], dt )
+        self.est_blue.update( ents['blue'], dt )
 
         self.convertMeasurements()
         self.assignSides()
@@ -66,10 +73,14 @@ class World(object):
 
     def __getRobot(self, est):
         robot = Robot()
-        robot.pos = estimator.getPos()
-        robot.velocity = estimator.getVelocity()
-        robot.orientation = estimator.getOrientation()
+        robot.pos = est.getPos()
+        robot.velocity = est.getVelocity()
+        robot.orientation = est.getOrientation()
         return robot
+
+    def getGoalPos(self):
+        # TODO: hardcoded right goal
+        return World.PitchLength, World.PitchWidth/2.0
 
     def getSelf(self):
         return self.__getRobot( self.us )
@@ -77,7 +88,6 @@ class World(object):
         return self.__getRobot( self.them )
 
     def getBall(self):
-
         ball = Ball()
         ball.pos =      self.est_ball.getPos()
         ball.velocity = self.est_ball.getVelocity()
