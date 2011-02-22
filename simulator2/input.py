@@ -28,6 +28,7 @@ class Input:
             K_d : ( lambda:p1.steer_right_incr(45), None ),
             K_e : ( lambda:p1.steer_right_incr(-45), None ),
             K_SPACE : ( p1.kick,   None ),
+            K_RETURN : ( self.command,   None ),
 	    #K_x : ( p1.reset, None ),
             }
 
@@ -60,33 +61,36 @@ class Input:
         elif event.button == 3:
             self.button_down = False
 
+    def command(self):
+        N = int( self.command_string[0] )
+        num = float( self.command_string[1:] )
+        self.command_string = ''
+
+        print "Command id:%d val:%d" % (N, num)
+        from strategy import apf
+        if N == 1:
+            apf.scaleT1 = num
+            #self.sim.apf_scale = num
+        elif N == 2:
+            apf.scaleT2 = num
+            #self.sim.apf_dist = num
+        elif N == 3:
+            apf.scaleA = num
+        elif N == 4:
+            apf.offset = num
+
+        return
+        angle = radians(int( self.command_string[1:] ))
+        if N == 1:
+            self.p1.setRobotDirection(angle)
+        elif N == 2:
+            self.p2.setRobotDirection(angle)
+
     def commandInput(self, event):
         try:
             char = chr(event.key)
         except ValueError:
             return
 
-        if '0' <= char <= '9':
-            Len = len(self.command_string)
-            if (Len == 0 and char in "12") or Len > 0:
-                self.command_string += char
-                Len += 1
-
-            if Len == 4:
-                robot_num = int( self.command_string[0] )
-                angle = radians(int( self.command_string[1:] ))
-                num = int( self.command_string[1:] )
-                self.command_string = ''
-
-                print "Command id:%d val:%d" % (robot_num, num)
-                if robot_num == 1:
-                    self.sim.apf_scale = num
-                else:
-                    self.sim.apf_dist = num
-
-                return
-                if robot_num == 1:
-                    self.p1.setRobotDirection(angle)
-                elif robot_num == 2:
-                    self.p2.setRobotDirection(angle)
-
+        if '0' <= char <= '9' or char == '.':
+            self.command_string += char

@@ -82,10 +82,10 @@ class MLBridge(Strategy):
     def maybe_reset_world(self):
         "Reset the simulator world if the robot is stuck somewhere"
         state = self.construct_state()
-        state.robot.pos_x = random.randint(120,560)
-        state.robot.pos_y = random.randint(100,300)
-        state.robot.vel_x = random.randint(0,30)
-        state.robot.vel_y = random.randint(0,30)
+        state.robot.pos_x = random.randint(30, int(World.PitchLength-30))
+        state.robot.pos_y = random.randint(30, int(World.PitchWidth-30))
+        state.robot.vel_x = random.randint(0,10)
+        state.robot.vel_y = random.randint(0,10)
         state.robot.angle = radians(random.randint(0,359))
         #state.robot.ang_v = random.random()
         state.robot.left_angle = radians(random.randint(0,359))
@@ -114,11 +114,13 @@ class MLBridge(Strategy):
 
     def chooseTarget(self):
         "Choose a new target for moving"
-        self.sim.goal_x = random.randint(60,560)
-        self.sim.goal_y = random.randint(80,360)
+        # self.sim.goal_x = random.randint(60,560)
+        # self.sim.goal_y = random.randint(80,360)
+        self.sim.goal_x = random.randint(20, int(World.PitchLength-20))
+        self.sim.goal_y = random.randint(20, int(World.PitchWidth-20))
 
-        self.sim.goal_x = 300 #rnd.randint(60,560)
-        self.sim.goal_y = 180 #rnd.randint(80,360)
+        self.sim.goal_x = World.PitchLength/2.0 #300 #rnd.randint(60,560)
+        self.sim.goal_y = World.PitchWidth/2.0 #180 #rnd.randint(80,360)
         self.sim.goal_orient = 2*pi*random.random() - pi
 
     def giveReward(self, state):

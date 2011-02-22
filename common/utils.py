@@ -20,7 +20,7 @@ def entDimString(ent):
 def entPosString(ent):
     return pos2string(entCenter(ent))
 def pos2string(pos):
-    return "(%d, %d)" % (pos[0], pos[1])
+    return "(%.1f, %.1f)" % (pos[0], pos[1])
 def dim2string(dim):
     return "%dx%d" % (dim[0], dim[1])
 
@@ -147,9 +147,25 @@ def enum(*sequential, **named):
 def dist(src, dest):
     return sqrt( sum((src-dest)**2) )
 
+def angleDiffWithin(angle, epsilon):
+    return angle < epsilon or angle > 2*pi - epsilon
+
+def ang_mag(angle):
+    "Return the 'distance' of the angle from 0"
+    angle %= 2*pi
+    if angle <= pi:
+        return angle
+    else:
+        return 2*pi - angle
+
 def getAnglePi(angle):
     "Return an angle in [-pi, pi]"
-    return angle % -pi
+    angle %= 2*pi
+    if angle <= pi:
+        new = angle
+    else:
+        new = pi - angle
+
     assert -pi <= new <= pi, \
         "Angle not within specifications: %f" % new
     return new

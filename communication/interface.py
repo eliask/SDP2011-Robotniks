@@ -1,5 +1,6 @@
 import time
 import logging
+from math import *
 
 REPLAY_LOG_DIRECTORY = "logs/communication/replay/"
 
@@ -54,6 +55,19 @@ class RobotInterface(object):
     def steer_both(self, angle):
         self.steer_left(angle)
         self.steer_right(angle)
+
+    def steer_left_incr(self, angle):
+        "A helper function for the UI _only_"
+        delta = radians(angle) + self.steer_left_target
+        if self.steer_left_until < time.time():
+            self.steer_left_until = time.time() + 0.6
+            self.steer_left(delta)
+    def steer_right_incr(self, angle):
+        "A helper function for the UI _only_"
+        delta = radians(angle) + self.steer_right_target
+        if self.steer_right_until < time.time():
+            self.steer_right_until = time.time() + 0.6
+            self.steer_right(delta)
 
     def reset(self): pass
     def drive(self): pass

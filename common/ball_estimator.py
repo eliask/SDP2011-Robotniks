@@ -4,16 +4,14 @@ from kalman import *
 
 class BallEstimator(Kalman):
 
-    transitionM = [ [ 1, 0, D, 0, 0, 0 ], # p_x
-                    [ 0, 1, 0, D, 0, 0 ], # p_y
-                    [ 0, 0, 1, 0, D, 0 ], # v_x
-                    [ 0, 0, 0, 1, 0, D ], # v_y
-                    [ 0, 0, 0, 0, 0, 0 ], # a_x
-                    [ 0, 0, 0, 0, 0, 0 ], # a_y
+    transitionM = [ [ 1, 0, D, 0 ], # p_x
+                    [ 0, 1, 0, D ], # p_y
+                    [ 0, 0, 1, 0 ], # v_x
+                    [ 0, 0, 0, 1 ], # v_y
                     ]
 
     def __init__(self):
-        Kalman.__init__(self, 6,2,0, self.transitionM)
+        Kalman.__init__(self, 4,2,0, self.transitionM)
 
     def getPos(self):
         return map(float, (self.prediction[0], self.prediction[1]))
