@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from common.utils import *
-from communication.client import *
+from communication.robot_interface2 import *
 from copy import copy
 from strategy.strategy import Strategy
 from input import Input
@@ -20,6 +20,7 @@ from strategy.apf import *
 
 class Simulator(object):
 
+    tickrate = 2.0
     speed = 2
     scale = 3 # pixel/cm
     offset = 4.0
@@ -32,7 +33,7 @@ class Simulator(object):
     robot1=None
     robot2=None
 
-    apf_scale = -0.1*scale
+    apf_scale = 0.1*scale
     apf_dist = 60*scale
 
     def __init__(self, **kwargs):
@@ -45,10 +46,15 @@ class Simulator(object):
         self.prev = {}
         self.robots=[]
 
+    def convertPos(self, pos):
+        return map(lambda x:self.scale*(x+self.offset), pos)
+    def convertVel(self, vel):
+        return map(lambda x:x*self.scale, vel)
+
     def set_state(self, state):
         R = state.robot
-        self.prev['robot'] = {'pos':[R.pos_x, R.pos_y],
-                              'vel':[R.vel_x, R.vel_y],
+        self.prev['robot'] = {'pos':self.convertPos([R.pos_x, R.pos_y]),
+                              'vel':self.convertVel([R.vel_x, R.vel_y]),
                               'ang_v':R.ang_v,
                               'angle':R.angle,
                               'left_angle':R.left_angle,
@@ -56,8 +62,8 @@ class Simulator(object):
                               }
 
         B = state.ball
-        self.prev['ball'] = {'pos':[B.pos_x, B.pos_y],
-                              'vel':[B.vel_x, B.vel_y],
+        self.prev['ball'] = {'pos':self.convertPos([B.pos_x, B.pos_y]),
+                              'vel':self.convertVel([B.vel_x, B.vel_y]),
                               'ang_v':B.ang_v,
                               }
 
@@ -66,16 +72,20 @@ class Simulator(object):
         self.load_state()
 
     def save_state(self):
-        self.prev['ball'] = {'pos':list(self.ball.body.position),
-                             'vel':list(self.ball.body.velocity),
-                             'ang_v':self.ball.body.angular_velocity
+        ball = self.world.getBall()
+        self.prev['ball'] = {'pos':list(ball.pos),
+                             'vel':list(bal.velocity),
+                             'ang_v':ball.ang_v,
                              }
-        self.prev['robot'] = {'pos':list(self.robots[0].robot.body.position),
-                              'vel':list(self.robots[0].robot.body.velocity),
-                              'ang_v':self.robots[0].robot.body.angular_velocity,
-                              'angle':self.robots[0].robot.body.angle,
-                              'left_angle':self.robots[0].wheel_left.body.angle,
-                              'right_angle':self.robots[0].wheel_right.body.angle,
+
+
+        robot = self.world.getSelf()
+        self.prev['robot'] = {'pos':list(robot.pos),
+                              'vel':list(robot.velocity),
+                              'ang_v':robot.ang_v,
+                              'angle':robot.orientation,
+                              'left_angle':robot.left_angle,
+                              'right_angle':robot.right_angle,
                               }
 
     def load_state(self):
@@ -109,7 +119,10 @@ class Simulator(object):
         self.draw_walls()
         self.draw_ball()
         # Draw the robots
-        map(lambda x: x.draw(), self.robots)
+        try:
+            map(lambda x: x.draw(), self.robots)
+        except:
+            pass
 
         if not self.headless:
             pygame.display.flip()
@@ -158,12 +171,12 @@ class Simulator(object):
             #meta_interface = MetaInterface(real_interface, self.robots[0])
             ai = ai1(self.world, real_interface)
             self.ai.append(ai)
-            robotSprite = self.robots[0]
+            #robotSprite = self.robots[0]
             self.robots[0] = ai
-            self.setRobotAI(self.robots[0], ai)
+            #self.setRobotAI(self.robots[0], ai)
             self.log.debug("AI 1 started in the real world")
         elif ai1:
-            self.ai.append( ai1(self.ai_args[0], self.world, self.robots[0], self) )
+            self.ai.append( ai1(self.world, self.robots[0], self.ai_args[0], self) )
             self.log.debug("AI 1 started in the simulated world")
         else:
             self.log.debug("No AI 1 present")
@@ -187,6 +200,7 @@ class Simulator(object):
         #self.log.debug("Running AI players")
         for ai in self.ai:
             ai.run()
+            ai.sendMessage()
 
     def timestep(self):
         self.space.step(1/self.tickrate)
@@ -197,10 +211,17 @@ class Simulator(object):
         for _ in range(self.speed):
             self.timestep()
 
+        if self.ball.body.position.x < 0 \
+                or self.ball.body.position.y < 0 \
+                or self.ball.body.position.x > self.Resolution[0] \
+                or self.ball.body.position.y > self.Resolution[1]:
+
+            self.ball.body.position = pymunk.Vec2d(self.Resolution[0]/2.0,
+                                                   self.Resolution[1]/2.0)
+
     def run(self):
         pygame.init()
         self.clock = pygame.time.Clock()
-        self.tickrate = 50.0
         self.init_physics()
         self.init_screen()
         self.make_objects()
@@ -291,17 +312,16 @@ class Simulator(object):
     	return shape
 
     def draw_field(self):
-	ball = map(int, self.ball.body.position)
-        offset = 100
-        X = range(ball[0]-offset, ball[0]+offset, 10)
-        Y = range(ball[1]-offset, ball[1]+offset, 10)
+    	ball = map(int, self.ball.body.position)
+        offset = 70
+        X = range(max(0,ball[0]-offset), min(self.Resolution[0],ball[0]+offset), 15)
+        Y = range(max(0,ball[1]-offset), min(self.Resolution[1],ball[1]+offset), 15)
 
         goal = self.offset+self.scale*World.PitchLength, \
             self.offset+self.scale*World.PitchWidth/2.0
 
         def pf(pos):
-            return ball_apf( pos, ball, goal, 5*self.apf_scale, self.apf_dist,
-                             self.scale*World.BallDiameter/2.0 )
+            return all_apf( pos, ball, goal, World.BallRadius, self.scale )
             return tangential_field(1, ball, pos, self.apf_scale, self.apf_dist)
             return attractive_field( ball, pos, self.apf_scale, self.apf_dist )
 
@@ -316,7 +336,7 @@ class Simulator(object):
 
 
     def draw_ball(self):
-	pos = map(int, self.ball.body.position)
+    	pos = map(int, self.ball.body.position)
     	pygame.draw.circle( self.screen, THECOLORS["red"], pos,
                             int(self.scale * World.BallDiameter/2.0) )
 

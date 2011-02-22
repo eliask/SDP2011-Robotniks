@@ -189,3 +189,6 @@ class SimRobotInterface(RobotInterface):
                                                50*sin(self.robot.body.angle)), (0,0))
         else:
             self.log.info("Robot uses kick... no effect")
+
+    def sendMessage(self):
+        pass
