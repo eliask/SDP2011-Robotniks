@@ -31,6 +31,7 @@ class RobotEstimator(Kalman):
         return map(float, (self.prediction[3], self.prediction[4]))
 
     def getOrientation(self):
+        return float(self.measurement[0])
         return float(self.prediction[0])
 
     def update(self, robots, dt):

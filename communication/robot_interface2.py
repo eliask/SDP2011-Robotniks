@@ -2,6 +2,7 @@ import interface
 import socket
 import logging
 from math import *
+import time
 
 class RealRobotInterface(interface.RobotInterface):
 
@@ -21,6 +22,8 @@ class RealRobotInterface(interface.RobotInterface):
         self.steer_right_target = 0
         self.steer_left_until = 0
         self.steer_right_until = 0
+
+        self.wait_until = 0
 
     def humanLogCommands(self):
         "Log commands in a (perhaps) more human-readable way"
@@ -58,7 +61,10 @@ class RealRobotInterface(interface.RobotInterface):
         self.tick()
         message = self.encodeCommands()
         self.humanLogCommands()
-        self.client_socket.send('%d\n' % message)
+        
+        if self.wait_until < time.time():
+            self.wait_until = time.time() + 0.1
+            self.client_socket.send('%d\n' % message)
         #self.initCommands()
 
     def reset(self):

@@ -1,25 +1,27 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from vision.vision import *
+from vision2.vision import *
 from common.world import *
 from strategy.strategies import *
-from communication.client import *
+from communication.robot_interface2 import *
 import sys
 
-args = len(sys.argv)
-colour = sys.argv[1]
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
-ai_name = 'main'
+args = len(sys.argv)
+if args != 3:
+    print "Usage: vision.py <colour> [ai]"
+    sys.exit(2)
+
+colour = sys.argv[1]
 world = World(colour)
 v = Vision(world)
-if args > 2:
-    ai_name = sys.argv[2]
-elif args < 2:
-    print "Usage: vision.py <colour> [ai name]"
-    sys.exit(2)
+ai_name = sys.argv[2]
 
 ai = strategies[ai_name]( world, RealRobotInterface() )
 while True:
     v.processFrame()
     ai.run()
+    ai.sendMessage()
