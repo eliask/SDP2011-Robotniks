@@ -12,7 +12,7 @@ class GUI:
     images = {}
     active = 'standard'
     overlay = True
-    histogram = True
+    histogram = False
     hist_visibility = 0.3
     Font = cv.InitFont(cv.CV_FONT_HERSHEY_SIMPLEX, 0.4, 0.4, 0, 1, 8)
     channel = 0 # display all channels by default
@@ -56,6 +56,7 @@ class GUI:
               ("yellow T", T.yellowT, T.Tyellow),
               ("blue T", T.blueT, T.Tblue),
               ("dirmarker", T.dirmarker, T.Tdirmarker),
+              ("white", T.white, T.Twhite),
             ]
 
     def setCropRect(self, rect):
@@ -95,7 +96,7 @@ class GUI:
                 threshold.updateValues()
 
             name, thresh, vals = self.thresholds[self.curThreshold]
-            logging.info("Thresholding image for: %s", name)
+            logging.info("Thresholding imag for: %s", name)
             print ("Thresholding image for: %s" % name)
             self.image = thresh(self.image)
 
@@ -235,11 +236,11 @@ class GUI:
         c = cv.WaitKey(5)
         k = chr(c % 0x100)
 
-        if k == '\x1b': #ESC
+        if k == 27: #ESC
             self.quit = True
 
         elif k == 's':
-            filename = time.strftime('snapshots/%Y%m%d-%H%M%S.png')
+            filename = time.strftime('snapshots/%Y%m%d-%H%M%S.jpg')
             cv.SaveImage(filename, self.image)
             logging.info("Screenshot saved at %s", filename)
 

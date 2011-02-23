@@ -17,6 +17,9 @@ class Main2(mlbridge.MLBridge):
         Strategy.__init__(self, *args)
         self.reset()
         self.log = logging.getLogger('strategy.main2')
+        self.left_angle = 0
+        self.right_angle = 0
+        self.until_turned = 0
 
     def run(self):
         self.N += 1
@@ -32,12 +35,12 @@ class Main2(mlbridge.MLBridge):
             self.log.warn("couldn't find self: %s", e)
             return
 
-        ballPos = self.world.getBall().pos # are we there yet?
-        try:
-            ballPos = self.world.getBall().pos # are we there yet?
-        except Exception, e:
-            self.log.warn("couldn't find ball: %s", e)
-            return
+        ballPos = np.array(self.world.getBall().pos) # are we there yet?
+        # try:
+        #     ballPos = self.world.getBall().pos # are we there yet?
+        # except Exception, e:
+        #     self.log.warn("couldn't find ball: %s", e)
+        #     return
 
         #print self.me.pos, ballPos
         if self.me.pos[0] == 0 or ballPos[0] == 0:
@@ -83,12 +86,14 @@ class Main2(mlbridge.MLBridge):
         #print _dist
         #print dest
         self.log.debug("Distance to target: %.3f" % _dist)
-        epsilon = 25
+        epsilon = 30*3.5
 
         self.drive_both(3)
         # TODO: implement the canKick predicate instead
         if _dist < epsilon:
-            return self.orientToKick()
+            if self.orientToKick():
+                self.drive_both(3)
+            return True
         else:
             self.drive_both(3)
             return False
@@ -99,19 +104,23 @@ class Main2(mlbridge.MLBridge):
 
         dx,dy = dest - self.me.pos
         angle = atan2(dy,dx)
-
         orient = self.me.orientation
         delta = angle - orient
-        # print "Set angle:", getAnglePi(angle - self.me.left_angle), \
-        #     getAnglePi(angle - self.me.right_angle)
         self.steer_both(delta)
 
-        #print "LEFT,RIGHT:", delta, angle, self.me.left_angle, self.me.right_angle
+        d_left = delta - self.left_angle
+        d_right = delta - self.right_angle
 
-        d_left = abs(angle - self.me.left_angle)
-        d_right = abs(angle - self.me.right_angle)
-        if angleDiffWithin(d_left, radians(20)) and \
-                angleDiffWithin(d_right, radians(20)):
+        if self.until_turned < time.time():
+            self.until_turned = time.time() + 0.2*delta
+            d_left = d_right = 0
+            self.left_angle = angle
+            self.right_angle = angle
+
+        self.left_angle = self.right_angle = delta
+
+        if angleDiffWithin(abs(d_left), radians(20)) and \
+                angleDiffWithin(abs(d_right), radians(20)):
             return True
         else:
             self.drive_both(0)
@@ -128,7 +137,7 @@ class Main2(mlbridge.MLBridge):
         self.log.debug( "Difference between orientation and kicking angle: %.1f",
                         degrees(delta) )
 
-        if angleDiffWithin(delta, radians(20)):
+        if angleDiffWithin(delta, radians(60)):
             self.turning_start = 0
             self.drive_both(0)
             return True

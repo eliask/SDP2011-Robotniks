@@ -25,13 +25,17 @@ def tangential_field(direction, *args):
     return repulsive_field(*args, offset=[direction*pi/2]*2)
 
 def all_apf(pos, *args):
-    return ball_apf(pos, *args) + wall_apf(pos)
+    return ball_apf(pos, *args) + wall_apf(pos) + random_apf()
 
-def wall_apf(pos, offset=0):
-    top = repulsive_field((0,World.TopWall+offset), pos, [0,1], 20)
-    bottom = repulsive_field((0,World.BottomWall+offset), pos, [0,1], 20)
-    left = repulsive_field((World.LeftWall+offset,0), pos, [1,0], 20)
-    right = repulsive_field((World.RightWall+offset,0), pos, [1,0], 20)
+def random_apf(scale=0.2):
+    return (scale*np.random.random(), scale*np.random.random())
+
+def wall_apf(pos, offset=0, scale=1):
+    offset = 40
+    top = repulsive_field((0,World.TopWall+offset), pos, [0,scale], offset)
+    bottom = repulsive_field((0,World.BottomWall+offset), pos, [0,scale], -offset)
+    left = repulsive_field((World.LeftWall+offset,0), pos, [scale,0], -offset)
+    right = repulsive_field((World.RightWall+offset,0), pos, [scale,0], offset)
     return 100*(top+bottom+left+right)
 
 scaleT1 = 0.5

@@ -75,6 +75,10 @@ class Base(object):
         return self.threshold(frame, self.Tdirmarker, magic=True)
 
     @classmethod
+    def white(self, frame):
+        return self.threshold(frame, self.Twhite, magic=True)
+
+    @classmethod
     def threshold(self, frame, record, op=cv.And, magic=False):
         """Threshold a frame using a record of min/max thresholds
 
@@ -83,8 +87,8 @@ class Base(object):
         colorspace, min, max = record
 
         tmp = cv.CloneImage(frame)
-        if False and magic:
-            cv.Smooth(tmp, tmp, cv.CV_GAUSSIAN, 11)
+        if magic:
+            cv.Smooth(tmp, tmp, cv.CV_GAUSSIAN, 3)
         # Work in the correct colorspace
         self.colorspaceConv[colorspace](tmp)
 
@@ -117,4 +121,5 @@ class AltRaw(Base):
     Tyellow    = [ 'hsv', [14,   54,  220 ], [ 45, 255, 255] ]
     Tball      = [ 'bgr', [36,   16,  164 ], [110, 100, 255] ]
     Tdirmarker = [ 'bgr', [50,   65,   55 ], [110, 150, 100] ]
+    Twhite     = [ 'bgr', [200, 200,  200 ], [255, 255, 255] ]
 

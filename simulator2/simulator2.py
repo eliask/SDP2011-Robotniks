@@ -20,7 +20,7 @@ from strategy.apf import *
 
 class Simulator(object):
 
-    tickrate = 2.0
+    tickrate = 25.0
     speed = 2
     scale = 3 # pixel/cm
     offset = 4.0
@@ -118,7 +118,7 @@ class Simulator(object):
         self.screen.blit(self.overlay, (0,0))
         self.overlay.fill((130,130,130,255))
 
-        self.draw_field()
+        #self.draw_field()
         self.draw_walls()
         self.draw_ball()
         # Draw the robots
