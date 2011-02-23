@@ -11,8 +11,6 @@ import pygame
 class Main2(mlbridge.MLBridge):
     turning_start = 0
     N = 0
-    # apf_scale = 0.5
-    # apf_dist = 60
 
     def __init__(self, *args):
         Strategy.__init__(self, *args)
@@ -22,12 +20,21 @@ class Main2(mlbridge.MLBridge):
         self.right_angle = 0
         self.until_turned = 0
 
+        self.lock_until = 0
+        self.post_lock = lambda:None
+
     def run(self):
         self.N += 1
         if self.N == 1e100:
             self.maybe_reset_world()
             self.turning_start = 0
             self.N = 0
+
+        if self.lock_until > time.time():
+            return
+        else:
+            self.post_lock()
+            self.post_lock = lambda:None
 
         try:
             self.me = self.world.getSelf() # Find out where I am
@@ -63,14 +70,30 @@ class Main2(mlbridge.MLBridge):
 
             return np.array(v)
 
-        self.moveTo(self.me.pos + 100*pf(self.me.pos))
+        self.moveTo(self.me.pos + 10*pf(self.me.pos))
 
-	if self.canKick(ballPos):
-		self.kick()
+        if self.reachesGoal():
+            print "REACH"
+            self.dash()
 
         #self.sendMessage()
         return
         self.scoreGoal(ballPos)
+
+    def reachesGoal(self):
+        _,Y = self.world.getResolution()
+        X,_ = self.world.getGoalPos()
+        y1 = 1/3.0 * Y
+        y2 = 2/3.0 * Y
+        points = [self.me.pos, (X,y1), (X,y2)]
+
+        ball = self.world.getBall().pos
+        if dist(self.me.pos, np.array(ball)) > 100 or X-ball[0] > 100:
+            return False
+        if ball[0] >= self.me.pos:
+            return False
+
+        return pointInConvexPolygon(points, ball)
 
     def canKick(self, target_pos):
 	if dist(self.me.pos, target_pos) < 20:
@@ -96,13 +119,14 @@ class Main2(mlbridge.MLBridge):
         #print _dist
         #print dest
         self.log.debug("Distance to target: %.3f" % _dist)
-        epsilon = 30*3.5
+        epsilon = 100
 
         self.drive_both(3)
         # TODO: implement the canKick predicate instead
         if _dist < epsilon:
-            if self.orientToKick():
-                self.drive_both(3)
+            # if self.orientToKick():
+            #     self.drive_both(3)
+            print "WITHIN DIST"
             return True
         else:
             self.drive_both(3)
@@ -137,6 +161,12 @@ class Main2(mlbridge.MLBridge):
             self.drive_both(0)
             return False
 
+    def dash(self):
+        if True or self.orientToKick():
+            self.lock_until = time.time() + 1.8
+            self.post_lock = self.kick
+            self.drive_both(3)
+
     def orientToKick(self):
         self.log.debug("orientToKick()")
 
@@ -148,9 +178,10 @@ class Main2(mlbridge.MLBridge):
         self.log.debug( "Difference between orientation and kicking angle: %.1f",
                         degrees(delta) )
 
-        if angleDiffWithin(delta, radians(40)):
+        if angleDiffWithin(delta, radians(30)):
             self.turning_start = 0
             self.drive_both(0)
+            print "ORIENTED"
             return True
         else:
             if self.turning_start == 0:

@@ -85,7 +85,8 @@ class World(object):
     def getGoalPos(self):
         # XXX: hardcoded right goal
         #World.PitchLength, World.PitchWidth/2.0
-        return self.resolution[0], self.resolution[1]/2.0
+        return 0, self.resolution[1]/2.0
+        #return self.resolution[0], self.resolution[1]/2.0
 
     def getSelf(self):
         return self.__getRobot( self.us )
