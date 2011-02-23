@@ -21,11 +21,13 @@ class World(common.world.World):
         self.ball = ball
 
     def convertPos(self, pos):
+        return pos
         new = np.array(pos / self.scale - self.offset)
         assert (new <= np.array(self.PitchDim)+10).all()
         return new
 
     def convertVel(self, vel):
+        return vel
         return np.array(vel / self.scale)
 
     def getSelf(self):

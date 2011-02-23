@@ -6,6 +6,7 @@ from strategy import *
 import apf
 import mlbridge
 import logging
+import pygame
 
 class Main2(mlbridge.MLBridge):
     turning_start = 0
@@ -49,8 +50,17 @@ class Main2(mlbridge.MLBridge):
             return
 
         def pf(pos):
-            v = apf.all_apf( pos, ballPos, self.world.getGoalPos(),
-                              World.BallRadius )
+            v = apf.all_apf( pos, self.world.getResolution(), ballPos,
+                             self.world.getGoalPos(), World.BallRadius )
+
+            if self.sim:
+                pos = self.me.pos
+                v2 = np.array(v) * 5
+                delta = map(lambda x:int(round(x)), (pos[0]+v2[0], pos[1]+v2[1]))
+                #print pos, delta
+                pygame.draw.line(self.sim.screen, (123,0,222,130), pos, delta, 10)
+                #pygame.draw.circle(self.sim.screen, (255,50,255,130), delta, 6)
+
             return np.array(v)
 
         self.moveTo(self.me.pos + 100*pf(self.me.pos))
@@ -107,20 +117,21 @@ class Main2(mlbridge.MLBridge):
         orient = self.me.orientation
         delta = angle - orient
         self.steer_both(delta)
+        print "steer_both(%.1f)" % degrees(delta)
 
         d_left = delta - self.left_angle
         d_right = delta - self.right_angle
+        #print delta
 
         if self.until_turned < time.time():
-            self.until_turned = time.time() + 0.2*delta
+            self.until_turned = time.time() + 0.6
+            self.left_angle = self.right_angle = delta
+            #print self.until_turned
             d_left = d_right = 0
-            self.left_angle = angle
-            self.right_angle = angle
-
-        self.left_angle = self.right_angle = delta
 
         if angleDiffWithin(abs(d_left), radians(20)) and \
                 angleDiffWithin(abs(d_right), radians(20)):
+            #print d_left, d_right
             return True
         else:
             self.drive_both(0)
@@ -137,7 +148,7 @@ class Main2(mlbridge.MLBridge):
         self.log.debug( "Difference between orientation and kicking angle: %.1f",
                         degrees(delta) )
 
-        if angleDiffWithin(delta, radians(60)):
+        if angleDiffWithin(delta, radians(40)):
             self.turning_start = 0
             self.drive_both(0)
             return True

@@ -30,6 +30,7 @@ class Vision():
                                 self.simulator, crop=crop)
         self.featureEx = FeatureExtraction(self.pre.cropSize)
         self.gui = GUI(self.world, self.pre.cropSize, self.threshold, self)
+        self.world.setResolution(self.pre.cropSize)
 
     def formatTime(self, t):
         return time.strftime('%H:%M:%S', time.localtime(t)) \

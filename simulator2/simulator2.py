@@ -47,8 +47,10 @@ class Simulator(object):
         self.robots=[]
 
     def convertPos(self, pos):
+        return pos
         return map(lambda x:self.scale*(x+self.offset), pos)
     def convertVel(self, vel):
+        return vel
         return map(lambda x:x*self.scale, vel)
 
     def set_state(self, state):
@@ -116,9 +118,8 @@ class Simulator(object):
         pygame.display.set_caption( "FPS: %.1f" % self.clock.get_fps() )
 
         self.screen.blit(self.overlay, (0,0))
-        self.overlay.fill((130,130,130,255))
 
-        #self.draw_field()
+        self.draw_field()
         self.draw_walls()
         self.draw_ball()
         # Draw the robots
@@ -127,10 +128,9 @@ class Simulator(object):
         except:
             pass
 
-        pygame.display.flip()
-
     def init_screen(self):
         self.log.debug("Creating simulator screen")
+        self.world.setResolution(self.Resolution)
         if self.headless:
             self.screen = pygame.Surface(self.Resolution)
         else:
@@ -138,6 +138,7 @@ class Simulator(object):
             pygame.display.set_caption('SDP 9 Simulator')
             self.screen = pygame.display.get_surface()
             self.overlay = pygame.Surface(self.Resolution)
+            self.overlay.fill((130,130,130,255))
 
     def make_objects(self):
         self.log.debug("Creating game objects")
@@ -232,7 +233,6 @@ class Simulator(object):
         self.init_input()
         # by initialising the input after the AI, we can control even
         # AI robots with keyboard
-        self.draw_ents()
 
         while True:
             self.clock.tick(self.tickrate)
@@ -240,6 +240,7 @@ class Simulator(object):
             self.update_objects()
             self.draw_ents()
             self.runAI()
+            pygame.display.flip()
 
     def init_input(self):
         self.input = Input(self, self.robots[0], self.robots[0]) #self.robots[1])
@@ -317,15 +318,15 @@ class Simulator(object):
 
     def draw_field(self):
     	ball = map(int, self.ball.body.position)
-        offset = 70
-        X = range(max(0,ball[0]-offset), min(self.Resolution[0],ball[0]+offset), 15)
-        Y = range(max(0,ball[1]-offset), min(self.Resolution[1],ball[1]+offset), 15)
+        offset = 4000
+        X = range(max(0,ball[0]-offset), min(self.Resolution[0],ball[0]+offset), 30)
+        Y = range(max(0,ball[1]-offset), min(self.Resolution[1],ball[1]+offset), 30)
 
         goal = self.offset+self.scale*World.PitchLength, \
             self.offset+self.scale*World.PitchWidth/2.0
 
         def pf(pos):
-            return all_apf( pos, ball, goal, World.BallRadius, self.scale )
+            return all_apf( pos, self.Resolution, ball, goal, World.BallRadius )
             return tangential_field(1, ball, pos, self.apf_scale, self.apf_dist)
             return attractive_field( ball, pos, self.apf_scale, self.apf_dist )
 

@@ -24,28 +24,38 @@ def repulsive_field(target, pos, scale, max_dist, offset=[0,0]):
 def tangential_field(direction, *args):
     return repulsive_field(*args, offset=[direction*pi/2]*2)
 
-def all_apf(pos, *args):
-    return ball_apf(pos, *args) + wall_apf(pos) + random_apf()
+def repulsive_field_vertical(Y, pos, scale, max_dist):
+    dist = max(0, max_dist - abs(pos[1] - Y)) #**2
+    return np.array((0, -scale*dist))
+
+def repulsive_field_horizontal(X, pos, scale, max_dist):
+    dist = max(0, max_dist - abs(pos[0] - X))
+    return np.array((-scale*dist, 0))
+
+def all_apf(pos, end, *args):
+    return ball_apf(pos, *args) + wall_apf(pos, end) + random_apf()
 
 def random_apf(scale=0.2):
     return (scale*np.random.random(), scale*np.random.random())
 
-def wall_apf(pos, offset=0, scale=1):
-    offset = 40
-    top = repulsive_field((0,World.TopWall+offset), pos, [0,scale], offset)
-    bottom = repulsive_field((0,World.BottomWall+offset), pos, [0,scale], -offset)
-    left = repulsive_field((World.LeftWall+offset,0), pos, [scale,0], -offset)
-    right = repulsive_field((World.RightWall+offset,0), pos, [scale,0], offset)
-    return 100*(top+bottom+left+right)
+def wall_apf(pos, (X,Y), offset=0, scale=1):
+    max_dist = 75
+    scale *= 0.3
+    top = repulsive_field_vertical(0, pos, -scale, max_dist)
+    bottom = repulsive_field_vertical(Y, pos, scale, max_dist)
+
+    left = repulsive_field_horizontal(0, pos, -scale, max_dist)
+    right = repulsive_field_horizontal(X, pos, scale, max_dist)
+
+    return top+bottom+left+right
 
 scaleT1 = 0.5
 scaleT2 = 0.5
 scaleA = 0.01
 offset = -0.5
 
-def ball_apf(pos, ball_pos, goal_pos, radius, res_scale=1):
-    S = res_scale
-    max_dist = S*50
+def ball_apf(pos, ball_pos, goal_pos, radius):
+    S=3; max_dist = S*50
 
     # Eliminate outliers
     if dist(pos, ball_pos) < S*radius: return [0,0]

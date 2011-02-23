@@ -50,6 +50,11 @@ class World(object):
         self.est_yellow = RobotEstimator()
         self.est_blue   = RobotEstimator()
 
+    def getResolution(self):
+        return self.resolution
+    def setResolution(self, res):
+        self.resolution = res
+
     def openLog(self):
         self.log = open('anomalities.txt', 'a')
 
@@ -63,7 +68,6 @@ class World(object):
         self.est_yellow.update( ents['yellow'], dt )
         self.est_blue.update( ents['blue'], dt )
 
-        self.convertMeasurements()
         self.assignSides()
         self.updateStates()
 
@@ -79,8 +83,9 @@ class World(object):
         return robot
 
     def getGoalPos(self):
-        # TODO: hardcoded right goal
-        return World.PitchLength, World.PitchWidth/2.0
+        # XXX: hardcoded right goal
+        #World.PitchLength, World.PitchWidth/2.0
+        return self.resolution[0], self.resolution[1]/2.0
 
     def getSelf(self):
         return self.__getRobot( self.us )
@@ -106,11 +111,6 @@ class World(object):
         else:
             self.us   = self.est_yellow
             self.them = self.est_blue
-
-    def convertMeasurements(self):
-        "Convert image measures to real-world measures"
-        for ent in self.ents:
-            pass
 
 class ReversedWorld(World):
     "See us as the other robot - useful if we have two AIs"
