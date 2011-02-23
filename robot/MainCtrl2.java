@@ -21,6 +21,7 @@ public class MainCtrl2 {
 		Thread driveRightThread = new DriveRightThread();
 		Thread steeringLeftThread = new SteeringLeftThread();
 		Thread steeringRightThread = new SteeringRightThread();
+		Thread counterThread = new CounterThread();
 
 		mainReceiver.start();
 		kickThread.start();
@@ -28,6 +29,7 @@ public class MainCtrl2 {
 		driveRightThread.start();
 		steeringLeftThread.start();
 		steeringRightThread.start();
+		counterThread.start();
 	}   
 }
 
@@ -132,6 +134,10 @@ class Receiver extends Thread {
 			Thread msgInterruptDisplay = new ScreenWriter("Msg Col Interupt",7);
 			msgInterruptDisplay.start();
 		}
+		try{
+			Thread.sleep(100);
+		}catch(InterruptedException e){
+		}
 	}
 
 	//Aims to establish a conection over Bluetooth
@@ -155,24 +161,32 @@ class Receiver extends Thread {
 			N = N+1; //% 100;
 			LCD.drawString("N:"+Integer.toString(N), 0, 2);
 			try{
-				Bluetooth.getConnectionStatus();
-				int message = inputStream.readInt();
+				//Bluetooth.getConnectionStatus();
+			        int message = inputStream.readInt();
+				LCD.drawString("N:"+Integer.toString(N), 6, 3);
 				if (message >= (1<<26)){
+				    LCD.drawString("end"+Integer.toString(N), 5, 3);
 					atend = true;
-					Thread atendDisplay = new ScreenWriter(Integer.toString(message),7);
-					atendDisplay.start();
+					//Thread atendDisplay = new ScreenWriter(Integer.toString(message),7);
+					LCD.drawString(Integer.toString(message),0,7);
+					//atendDisplay.start();
 					//System.exit();
+					LCD.drawString("stopped" + message, 0, 2);
 				} else if (message < (1<<26)){
-					Thread newMessageDisplay = new ScreenWriter(Integer.toString(message),6);
-					newMessageDisplay.start();
+				    //Thread newMessageDisplay = new ScreenWriter(Integer.toString(message),6);
+					LCD.drawString("display"+Integer.toString(N), 5, 4);
+					//newMessageDisplay.start();
+					LCD.drawString(Integer.toString(message), 0, 6);
+					LCD.drawString("parse"+Integer.toString(N), 5, 4);
 					parseMessage(message);
+					LCD.drawString("parsed"+Integer.toString(N), 5, 4);
 				} 
-				inputStream.close();
-				inputStream = connection.openDataInputStream();
+				//inputStream.close();
+				//inputStream = connection.openDataInputStream();
 			} catch (IOException e) {
 				Thread errorConnection = new ScreenWriter("Error - connect back up", 7); 
 				errorConnection.start();
-				connection = Bluetooth.waitForConnection();
+				//connection = Bluetooth.waitForConnection();
 				Thread connectedDisplay = new ScreenWriter("Connection Opened", 7); 
 				connectedDisplay.start();
 			}
@@ -238,6 +252,20 @@ class ScreenWriter extends Thread{
 	}
 }
 
+class CounterThread extends Thread{
+    public void run(){
+	int count = 0;
+	while (true){
+	    LCD.drawString(Integer.toString(count++), 0,4);
+	    count %= 1000;
+	    try{
+		Thread.sleep(100);
+	    }catch(InterruptedException e){
+	    }
+	}
+    }
+}
+
 class KickThread extends Thread{
 
 	public KickThread(){
@@ -254,6 +282,10 @@ class KickThread extends Thread{
 			} else {
 				LCD.drawString("_,",0,1);
 			}
+		try{
+			Thread.sleep(100);
+		}catch(InterruptedException e){
+		}
 		}
 	}
 }
@@ -293,6 +325,10 @@ class DriveLeftThread extends Thread{
 				Movement.port_comlight.activate();
 				break;
 			}
+		try{
+			Thread.sleep(100);
+		}catch(InterruptedException e){
+		}
 		}
 	}
 }
@@ -331,6 +367,10 @@ class DriveRightThread extends Thread{
 				Movement.port_comlight.activate();
 				break;
 			}
+		try{
+			Thread.sleep(100);
+		}catch(InterruptedException e){
+		}
 		}
 	}
 }
@@ -364,6 +404,10 @@ class SteeringLeftThread extends Thread{
 			}
 
 			setCurrentSteeringAngle((getToAngle() % 360)); 
+		try{
+			Thread.sleep(100);
+		}catch(InterruptedException e){
+		}
 		}
 	}
 
@@ -413,6 +457,10 @@ class SteeringRightThread extends Thread{
 			}
 
 			setCurrentSteeringAngle((getToAngle() % 360)); 
+		try{
+			Thread.sleep(100);
+		}catch(InterruptedException e){
+		}
 		}
 	}
 
