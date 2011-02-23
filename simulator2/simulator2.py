@@ -33,9 +33,6 @@ class Simulator(object):
     robot1=None
     robot2=None
 
-    apf_scale = 0.1*scale
-    apf_dist = 60*scale
-
     def __init__(self, **kwargs):
         self.log = logging.getLogger("simulator2")
         self.log.debug("Simulator started with the arguments:")
@@ -54,6 +51,7 @@ class Simulator(object):
         return map(lambda x:x*self.scale, vel)
 
     def set_state(self, state):
+        "Set the current state of the ball and the robot"
         R = state.robot
         self.prev['robot'] = {'pos':self.convertPos([R.pos_x, R.pos_y]),
                               'vel':self.convertVel([R.vel_x, R.vel_y]),
@@ -74,6 +72,7 @@ class Simulator(object):
         self.load_state()
 
     def save_state(self):
+        "Save the current state of the ball and the robot"
         ball = self.world.getBall()
         self.prev['ball'] = {'pos':list(ball.pos),
                              'vel':list(bal.velocity),
@@ -91,6 +90,7 @@ class Simulator(object):
                               }
 
     def load_state(self):
+        "Restore a previously saved simulator state"
         self.ball.body.position = pymunk.Vec2d(self.prev['ball']['pos'])
         self.ball.body.velocity = pymunk.Vec2d(self.prev['ball']['vel'])
         self.ball.body.angular_velocity = self.prev['ball']['ang_v']
@@ -122,6 +122,7 @@ class Simulator(object):
         self.draw_field()
         self.draw_walls()
         self.draw_ball()
+
         # Draw the robots
         try:
             map(lambda x: x.draw(), self.robots)
@@ -259,6 +260,7 @@ class Simulator(object):
         self.robots.append(robot)
 
     def add_walls(self, space):
+        "Create the physical walls of the pitch"
         body = pymunk.Body(pymunk.inf, pymunk.inf)
 
         offset = self.offset
@@ -303,6 +305,7 @@ class Simulator(object):
                               THECOLORS["black"], False, [pv1,pv2])
 
     def add_ball(self, space):
+        "Create the physical ball"
 	mass = 1
     	radius = 5
 	inertia = pymunk.moment_for_circle(mass, 0.999, radius)
@@ -317,6 +320,7 @@ class Simulator(object):
     	return shape
 
     def draw_field(self):
+        "Draw the potential field"
     	ball = map(int, self.ball.body.position)
         offset = 4000
         X = range(max(0,ball[0]-offset), min(self.Resolution[0],ball[0]+offset), 30)
@@ -327,8 +331,6 @@ class Simulator(object):
 
         def pf(pos):
             return all_apf( pos, self.Resolution, ball, goal, World.BallRadius )
-            return tangential_field(1, ball, pos, self.apf_scale, self.apf_dist)
-            return attractive_field( ball, pos, self.apf_scale, self.apf_dist )
 
         for x in X:
             for y in Y:

@@ -25,5 +25,8 @@ class Strategy(object):
                 func(*args, **kwargs)
         raise AttributeError(name)
 
+    def draw(self):
+        pass
+
     def run(self):
         raise NotImplemented, "Base AI class - DO NOT USE"

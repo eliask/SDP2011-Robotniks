@@ -10,8 +10,7 @@ except ImportError:
 
 "A list of strategies that can be used"
 
-strategies = { 'main' : main.Main,
-               'main2' : Main2,
+strategies = { 'main2' : Main2,
                'kicktest' : kicktest.KickTest,
                'null' : null.Null,
                'ML'   : MLBridge,

@@ -17,6 +17,12 @@ def constainedMove(dest, destAngle, avoid):
     pass
 
 def computeGoalKicks():
+    """Return the best directions to kick the ball towards
+
+    Currently this is incomplete. Some thought is required as to what
+    constitutes a good position. If there are multiple possible kicks
+    side by side, the "aximum margin" kick should usually be chosen.
+    """
     ball = self.ents['ball']
     targetGoal = Magic
 
@@ -65,7 +71,7 @@ def createRay(scorefn, pos0, pos, angle, maxBounces):
             return scorefn(pos0, (hitX, pos[1]))
         else:
             hitY = Pitch.top + imagX / tan(angle)
-
+2
     pos = hitX, hitY
     score = scorefn(pos0, pos)
     if abs(score) == 1:

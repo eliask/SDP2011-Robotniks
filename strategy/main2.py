@@ -1,34 +1,26 @@
-from communication.interface import *
 from common.utils import *
 from common.world import *
+from communication.interface import *
 from math import *
 from strategy import *
 import apf
-import mlbridge
 import logging
 import pygame
 
-class Main2(mlbridge.MLBridge):
+class Main2(Strategy):
     turning_start = 0
-    N = 0
-    # apf_scale = 0.5
-    # apf_dist = 60
 
     def __init__(self, *args):
         Strategy.__init__(self, *args)
         self.reset()
         self.log = logging.getLogger('strategy.main2')
+
+        # Variables for tracking the robot's internal state
         self.left_angle = 0
         self.right_angle = 0
         self.until_turned = 0
 
     def run(self):
-        self.N += 1
-        if self.N == 1e100:
-            self.maybe_reset_world()
-            self.turning_start = 0
-            self.N = 0
-
         try:
             self.me = self.world.getSelf() # Find out where I am
             self.log.debug("My position: %s", pos2string(self.me.pos))
@@ -50,42 +42,56 @@ class Main2(mlbridge.MLBridge):
             return
 
         def pf(pos):
+            """Calculate the potential field gradient at point
+
+            The gradient of the potential field tells us which
+            direction we should be going towards.
+            """
             v = apf.all_apf( pos, self.world.getResolution(), ballPos,
                              self.world.getGoalPos(), World.BallRadius )
 
             if self.sim:
+                # If in the simulator, visualise "intended movement direction"
                 pos = self.me.pos
                 v2 = np.array(v) * 5
                 delta = map(lambda x:int(round(x)), (pos[0]+v2[0], pos[1]+v2[1]))
                 #print pos, delta
-                pygame.draw.line(self.sim.screen, (123,0,222,130), pos, delta, 10)
+                pygame.draw.line(self.sim.screen, (123,0,222,130), pos, delta, 4)
                 #pygame.draw.circle(self.sim.screen, (255,50,255,130), delta, 6)
 
             return np.array(v)
 
+        # Move towards the pseudo-target (which we get by adding the
+        # gradient to our current position)
         self.moveTo(self.me.pos + 100*pf(self.me.pos))
 
+        # Kick the ball if we are in front of it
 	if self.canKick(ballPos):
 		self.kick()
 
-        #self.sendMessage()
-        return
-        self.scoreGoal(ballPos)
-
     def canKick(self, target_pos):
+        """Are we right in front of the ball, being able to kick it?
+
+        Note: Somewhat inaccurate atm. Adjusting the constants might work.
+        """
 	if dist(self.me.pos, target_pos) < 20:
             angle_diff = self.me.orientation % (2*pi)
             - pi - abs( atan2(self.me.pos[1] - target_pos[1],
                               (self.me.pos[0] - target_pos[0])) )
 
-            if angle_diff < radians(13):
-                return True
+            return angle_diff < radians(13)
 
     def scoreGoal(self, ballPos):
         if self.moveTo( ballPos ): # are we there yet?
             self.kick()
 
     def moveTo(self, dest):
+        """Move to the destination
+
+        moveTo requires than the wheels are both pointing towards the
+        wanted destination. If they are, turning is stopped and
+        driving commands are issued.
+        """
         if not self.turnTo(dest):
             #self.drive_both(0)
             return False
@@ -96,7 +102,7 @@ class Main2(mlbridge.MLBridge):
         #print _dist
         #print dest
         self.log.debug("Distance to target: %.3f" % _dist)
-        epsilon = 30*3.5
+        epsilon = 100
 
         self.drive_both(3)
         # TODO: implement the canKick predicate instead
@@ -109,6 +115,13 @@ class Main2(mlbridge.MLBridge):
             return False
 
     def turnTo(self, dest):
+        """Turn to make the _wheels_ face the destination.
+
+        This makes the robot turn its wheels until the estimated
+        orientation of both wheels is about the same as the angle to
+        the destination. While the wheels are turning, the robot will
+        not drive.
+        """
         angle = atan2(dest[1], dest[0])
         self.log.debug("turnTo(%.1f)", degrees(angle))
 
@@ -138,6 +151,10 @@ class Main2(mlbridge.MLBridge):
             return False
 
     def orientToKick(self):
+        """Orient the robot's body to face the ball.
+
+        The robot will first orient the wheels to a position that allows
+        """
         self.log.debug("orientToKick()")
 
         ball = self.world.getBall().pos

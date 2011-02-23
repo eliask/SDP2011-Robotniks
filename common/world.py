@@ -8,7 +8,6 @@ class Robot(object): pass
 class Ball(object):  pass
 
 class World(object):
-
     # Lengths are in millimetres
     PitchWidth   = 121.5
     PitchLength  = 224.0
