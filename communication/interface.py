@@ -11,17 +11,20 @@ class RobotInterface(object):
     robot interfaces, and to record all commands sent to the robot.
     """
 
-    def __init__(self):
+    def __init__(self, log=True):
         # Set up the replay logger.
         self.start_time = time.time()
-        self.replay_logger = logging.getLogger('replay_logger')
-        self.replay_logger.setLevel(logging.DEBUG)
+        if log:
+            self.replay_logger = logging.getLogger('replay_logger')
+            self.replay_logger.setLevel(logging.DEBUG)
+            handler = logging.FileHandler(REPLAY_LOG_DIRECTORY + \
+                time.strftime("%Y%m%d-%H%M%S", \
+                time.localtime(self.start_time)), "w")
+            self.replay_logger.addHandler(handler)
+        else:
+            self.replay_logger = None
 
         self.initCommands()
-
-        handler = logging.FileHandler(REPLAY_LOG_DIRECTORY +
-            time.strftime("%Y%m%d-%H%M%S", time.localtime(self.start_time)), "w")
-        self.replay_logger.addHandler(handler)
 
     def recordCommands(self):
         time_since_init = time.time() - self.start_time
@@ -29,7 +32,10 @@ class RobotInterface(object):
             % ( int(self._reset), int(self._kick),
                 self._drive_left, self._drive_right,
                 self._steer_left, self._steer_right )
-        self.replay_logger.debug( "%.3f\t%s" % (time_since_init, command_string) )
+
+        if self.replay_logger:
+            self.replay_logger.debug(
+                "%.3f\t%s" % (time_since_init, command_string) )
 
     def initCommands(self):
         "Resets the commands to the defaults."

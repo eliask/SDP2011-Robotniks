@@ -10,8 +10,8 @@ class RealRobotInterface(interface.RobotInterface):
     MotorPrecision = 4
     SteerPrecision = 1<<9
 
-    def __init__(self):
-        super(RealRobotInterface, self).__init__()
+    def __init__(self, *args):
+        interface.RobotInterface.__init__(self, *args)
         logging.info("Physical robot interface 2 started")
         self.client_socket = \
             socket.socket(socket.AF_INET, socket.SOCK_STREAM)
