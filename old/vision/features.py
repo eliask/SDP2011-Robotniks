@@ -97,12 +97,12 @@ class FeatureExtraction:
             ent['dirmarker'] = self.detectDirMarker(ent, frame)
 
             ent['side'] = None
-            ent['T'] = self.detectYellow(frame)
+            ent['T'], img = self.detectYellow(frame)
             if ent['T']:
                 yellow = ent
                 ent['side'] = 'yellow'
             else:
-                ent['T'] = self.detectBlue(frame)
+                ent['T'], img = self.detectBlue(frame)
                 if ent['T']:
                     blue = ent
                     ent['side'] = 'blue'
@@ -112,6 +112,16 @@ class FeatureExtraction:
                                   *entDimPos(ent) )
                     neither.append(ent)
 
+            self.convertRobotCoordinates(ent)
+            # cv.ShowImage("R"+str(ent['side']), frame)
+            if ent['T']:
+                center = tuple(-entCenter(ent) + entCenter(ent['T']))
+                print "robot:",center
+                radius = 10
+                if img:
+                    circle = cv.Circle(img, center, radius, (0,0,0,0), -1)
+                    cv.ShowImage(ent['side'], img)
+
         # TODO: Reconstruct robots based on recognised Ts.
         # This is a realistic scenario as varying lighting
         # levels can make the body invisible after thresholding
@@ -119,6 +129,23 @@ class FeatureExtraction:
         #self.eliminateRobots(ents, blue, yellow, neither)
         cv.ResetImageROI(frame)
         self.assignPlayers(ents)
+
+    def convertRobotCoordinates(self, robot):
+        if robot['T']:
+            self.convertCoordinates(robot, robot['T'])
+        if robot['dirmarker']:
+            self.convertCoordinates(robot, robot['dirmarker'])
+
+    def convertCoordinates(self, ent, sub):
+        "Convert relative coordinates to absolute"
+        # The sub-entity's bounding rectangle's coordinates are
+        # relative to the parent entity.
+        w,h = entRect(sub)[2:]
+        sub['rect'] = list( entRect(ent)[:2] + entRect(sub)[:2] )
+
+        sub['rect'] += [w,h]
+        sub['box'] = ( entCenter(ent) + entCenter(sub),
+                       entDim(sub), entAngle(sub) )
 
     def assignPlayers(self, ents):
         "Create the entities 'blue' and 'yellow'"
@@ -144,22 +171,33 @@ class FeatureExtraction:
                 neither[0]['side'] = 'yellow'
 
     def detectYellow(self, sub):
-        yellow = self.segment(self.threshold.yellowT(sub))
+        img = self.threshold.yellowT(sub)
+        yellow = self.segment(cv.CloneImage(img))
+        moments = cv.Moments(img, 1)
+        asd = cv.GetCentralMoment(moments, 0,0)
+        print "STUFF:",asd
+        #yellow = self.segment(self.threshold.yellowT(sub))
+        img=None
+
         for Y in yellow:
             if self.sizeMatch(Y, 'T'):
                 logging.info( "found a yellow T of size %s at %s",
                               *entDimPos(Y) )
-                return Y
-        return None
+                return Y, img
+        return None, None
 
     def detectBlue(self, sub):
+        #img = self.threshold.blueT(sub)
+        # blue = self.segment(cv.CloneImage(img))
         blue = self.segment(self.threshold.blueT(sub))
+        img=None
+
         for B in blue:
             if self.sizeMatch(B, 'T'):
                 logging.debug( "found a blue T of size %s at %s",
                                *entDimPos(B) )
-                return B
-        return None
+                return B, img
+        return None, None
 
     def detectDirMarker(self, robot, sub):
         dirs = self.segment(self.threshold.dirmarker(sub))

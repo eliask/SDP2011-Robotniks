@@ -219,8 +219,8 @@ class AltRaw(Base):
         # self.Tblue[1] = [min(ppB, B[98]), G[25], R[0]]
         # self.Tblue[2] = [255, 255, R[50]]
 
-        self.Tblue[1] = [100,0,V[0]]
-        self.Tblue[2] = [230, 255, 255]
+        # self.Tblue[1] = [100,0,V[0]]
+        # self.Tblue[2] = [230, 255, 255]
 
         # self.Tyellow[1] = [0, 5+max(ppG, R[99]), 5+max(ppR, R[99])]
         # self.Tyellow[2] = [255, 255, 255]
@@ -229,12 +229,12 @@ class AltRaw(Base):
         self.Tball[2] = [17, 255, 255]
 
         # prim
-        self.Tdirmarker[1] = [B[15], G[20], R[15]]
-        self.Tdirmarker[2] = [B[35], G[35], R[35]]
+        # self.Tdirmarker[1] = [B[15], G[20], R[15]]
+        # self.Tdirmarker[2] = [B[35], G[35], R[35]]
 
-        # alt
-        self.Tdirmarker[1] = [B[30], G[30], R[30]]
-        self.Tdirmarker[2] = [B[50], G[40], R[50]]
+        # # alt
+        # self.Tdirmarker[1] = [B[30], G[30], R[30]]
+        # self.Tdirmarker[2] = [B[50], G[40], R[50]]
 
         # self.Tforeground[1] = [0, 0, V[10]]
         # self.Tforeground[1] = [255, 255, 255]

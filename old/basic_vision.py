@@ -1,5 +1,6 @@
 import cv
 from vision.mplayer_capture import MPlayerCapture
+from vision.capture import Capture
 from vision.preprocess import Preprocessor
 from common.gui import GUI
 import vision.threshold
@@ -13,7 +14,8 @@ class BasicVision():
     def __init__(self):
         logging.info('Initialising vision')
         #required on DICE:
-        self.capture = MPlayerCapture(self.rawSize)
+        #self.capture = MPlayerCapture(self.rawSize)
+        self.capture = Capture(self.rawSize)
 
         world = World('blue') # arbitrary colour
         world.pointer=None

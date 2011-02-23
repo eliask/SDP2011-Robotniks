@@ -110,11 +110,6 @@ class Base(object):
         return out
 
 class PrimaryRaw(Base):
-    Tblue     = [ 'hsv', [17,   66,  117 ], [ 39, 227, 255] ]
-    Tyellow   = [ 'hsv', [80,  100,  140 ], [200, 210, 255] ]
-    Tball     = [ 'bgr', [36,   16,  164 ], [110, 100, 255] ]
-
-class AltRaw(Base):
     Tblue      = [ 'hsv', [80,  100,  140 ], [200, 210, 255] ]
     Tblue      = [ 'bgr', [170,  40,   45 ], [255, 210, 255] ]
     Tyellow    = [ 'hsv', [17,   66,  117 ], [ 39, 227, 255] ] #smoothing
@@ -123,3 +118,9 @@ class AltRaw(Base):
     Tdirmarker = [ 'bgr', [50,   65,   55 ], [110, 150, 100] ]
     Twhite     = [ 'bgr', [200, 200,  200 ], [255, 255, 255] ]
 
+class AltRaw(Base):
+    Tblue      = [ 'bgr', [160,  40,   45 ], [255, 210, 165] ]
+    Tyellow    = [ 'hsv', [14,   54,  220 ], [ 45, 255, 255] ]
+    Tball      = [ 'bgr', [50,   50,  130 ], [130, 122, 255] ]
+    Tdirmarker = [ 'bgr', [50,   65,   55 ], [110, 150, 100] ]
+    Twhite     = [ 'bgr', [200, 200,  200 ], [255, 255, 255] ]
