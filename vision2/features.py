@@ -13,9 +13,7 @@ class FeatureExtraction:
             }
 
     def __init__(self, size, threshold=None):
-        self.gray16 = cv.CreateImage(size, cv.IPL_DEPTH_16S, 1)
         self.gray8 = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
-        self.Itmp = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
         self.threshold = threshold
 
     def features(self, Iobjects, threshold):
