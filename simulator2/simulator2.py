@@ -124,10 +124,7 @@ class Simulator(object):
         self.draw_ball()
 
         # Draw the robots
-        try:
-            map(lambda x: x.draw(), self.robots)
-        except:
-            pass
+        map(lambda x: x.draw(), self.robots)
 
     def init_screen(self):
         self.log.debug("Creating simulator screen")
