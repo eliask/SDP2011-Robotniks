@@ -21,19 +21,15 @@ class Main2(Strategy):
         self.until_turned = 0
 
     def run(self):
+        self.getSelf()
         try:
-            self.me = self.world.getSelf() # Find out where I am
+            self.me = self.getSelf() # Find out where I am
             self.log.debug("My position: %s", pos2string(self.me.pos))
         except Exception, e:
             self.log.warn("couldn't find self: %s", e)
             return
 
-        ballPos = np.array(self.world.getBall().pos) # are we there yet?
-        # try:
-        #     ballPos = self.world.getBall().pos # are we there yet?
-        # except Exception, e:
-        #     self.log.warn("couldn't find ball: %s", e)
-        #     return
+        ballPos = np.array( self.world.getBall().pos )
 
         #print self.me.pos, ballPos
         if self.me.pos[0] == 0 or ballPos[0] == 0:
@@ -48,7 +44,7 @@ class Main2(Strategy):
             direction we should be going towards.
             """
             v = apf.all_apf( pos, self.world.getResolution(), ballPos,
-                             self.world.getGoalPos(), World.BallRadius )
+                             self.world.getGoalPos(self.colour), World.BallRadius )
 
             if self.sim:
                 # If in the simulator, visualise "intended movement direction"
@@ -158,7 +154,7 @@ class Main2(Strategy):
         self.log.debug("orientToKick()")
 
         ball = self.world.getBall().pos
-        goal = self.world.getGoalPos()
+        goal = self.world.getGoalPos(self.colour)
         dx,dy = goal[0]-ball[0], goal[1]-ball[1]
         angle = atan2(dy,dx)
         delta = abs(angle - self.me.orientation) % (2*pi)

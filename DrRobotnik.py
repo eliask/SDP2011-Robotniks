@@ -16,11 +16,13 @@ if args != 3:
     sys.exit(2)
 
 colour = sys.argv[1]
-world = World(colour)
+world = World()
 v = Vision(world)
 ai_name = sys.argv[2]
 
 ai = strategies[ai_name]( world, RealRobotInterface() )
+ai.setColour(colour)
+
 while True:
     v.processFrame()
     ai.run()

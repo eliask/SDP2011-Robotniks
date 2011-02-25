@@ -10,7 +10,7 @@ class KickTest(Strategy):
 
     def run(self):
         try:
-            self.me = self.world.getSelf() # Find out where I am
+            self.me = self.getSelf() # Find out where I am
         except Exception, e:
             logging.warn("couldn't find self: %s", e)
             return

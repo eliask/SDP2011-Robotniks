@@ -43,18 +43,11 @@ class Simulator(object):
         self.prev = {}
         self.robots=[]
 
-    def convertPos(self, pos):
-        return pos
-        return map(lambda x:self.scale*(x+self.offset), pos)
-    def convertVel(self, vel):
-        return vel
-        return map(lambda x:x*self.scale, vel)
-
     def set_state(self, state):
         "Set the current state of the ball and the robot"
         R = state.robot
-        self.prev['robot'] = {'pos':self.convertPos([R.pos_x, R.pos_y]),
-                              'vel':self.convertVel([R.vel_x, R.vel_y]),
+        self.prev['robot'] = {'pos':[R.pos_x, R.pos_y],
+                              'vel':[R.vel_x, R.vel_y],
                               'ang_v':R.ang_v,
                               'angle':R.angle,
                               'left_angle':R.left_angle,
@@ -62,8 +55,8 @@ class Simulator(object):
                               }
 
         B = state.ball
-        self.prev['ball'] = {'pos':self.convertPos([B.pos_x, B.pos_y]),
-                              'vel':self.convertVel([B.vel_x, B.vel_y]),
+        self.prev['ball'] = {'pos':[B.pos_x, B.pos_y],
+                              'vel':[B.vel_x, B.vel_y],
                               'ang_v':B.ang_v,
                               }
 
@@ -156,10 +149,11 @@ class Simulator(object):
         pos2 = self.scale * pymunk.Vec2d( (World.PitchLength/2.0 + 60,
                                            World.PitchWidth/2.0 + self.offset) )
         self.make_robot(pos1, col1, 0, self.robot1[0])
-        #self.make_robot(pos2, col2, -pi, self.robot2[0])
+        self.make_robot(pos2, col2, -pi, self.robot2[0])
 
-        self.world.setSelf(self.robots[0])
-        self.world.setBall(self.ball)
+        self.world.ents[col1] = self.robots[0]
+        self.world.ents[col2] = self.robots[1]
+        self.world.ents['ball'] = self.ball
 
     def init_AI(self):
         self.log.debug("Initialising AI")
@@ -169,30 +163,30 @@ class Simulator(object):
 
         if ai1 and real1:
             real_interface = RealRobotInterface()
-            #meta_interface = MetaInterface(real_interface, self.robots[0])
             ai = ai1(self.world, real_interface)
             self.ai.append(ai)
-            #robotSprite = self.robots[0]
             self.robots[0] = ai
-            #self.setRobotAI(self.robots[0], ai)
             self.log.debug("AI 1 started in the real world")
         elif ai1:
-            self.ai.append( ai1(self.world, self.robots[0], self.ai_args[0], self) )
+            ai = ai1(self.world, self.robots[0],
+                     self.ai_args[0], self)
+            ai.setColour(self.robots[0].colour)
+            self.ai.append(ai)
             self.log.debug("AI 1 started in the simulated world")
         else:
             self.log.debug("No AI 1 present")
 
         if ai2 and real2:
-            # TODO: reverse sides here
-            ai = ai2(self.world, RealRobotInterface())
+            real_interface = RealRobotInterface()
+            ai = ai2(self.world, real_interface)
             self.ai.append(ai)
-            robotSprite = self.robots[0]
             self.robots[1] = ai
-            #del robotSprite
-            self.setRobotAI(self.robots[1], ai)
             self.log.debug("AI 2 started in the real world")
         elif ai2:
-            self.ai.append( ai2(self.world, self.robots[1]) )
+            ai = ai1(self.world, self.robots[1],
+                     self.ai_args[1], self)
+            ai.setColour(self.robots[1].colour)
+            self.ai.append(ai)
             self.log.debug("AI 2 started in the simulated world")
         else:
             self.log.debug("No AI 2 present")
@@ -226,7 +220,6 @@ class Simulator(object):
         self.init_physics()
         self.init_screen()
         self.make_objects()
-        self.world.assignSides()
         self.init_AI()
         self.init_input()
         # by initialising the input after the AI, we can control even
@@ -241,7 +234,7 @@ class Simulator(object):
             pygame.display.flip()
 
     def init_input(self):
-        self.input = Input(self, self.robots[0], self.robots[0]) #self.robots[1])
+        self.input = Input(self, self.robots[0], self.robots[1])
 
     def handle_input(self):
         if self.headless:
@@ -253,6 +246,7 @@ class Simulator(object):
 
     def make_robot(self, pos, colour, angle, ai):
         robot = Robot(pos, colour, self)
+        robot.set_angle(angle)
         self.world.ents[colour] = robot
         self.robots.append(robot)
 

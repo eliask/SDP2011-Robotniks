@@ -30,6 +30,14 @@ class Robot(SimRobotInterface):
 
         SimRobotInterface.__init__(self)
 
+    def set_angle(self, angle):
+        self.robot.body.angle = angle
+        self.wheel_left.body.angle += angle
+        self.wheel_right.body.angle += angle
+
+        self.wheel_left.body.position = self.left_wheel_pos()
+        self.wheel_right.body.position = self.right_wheel_pos()
+
     def add_robot(self, space, pos):
     	fp=[]; _fp = [(-1, -1), (1, -1), (1, 1), (-1, 1)]
         for x,y in _fp:
@@ -89,13 +97,12 @@ class Robot(SimRobotInterface):
     def get_kicker_points(self):
 	p = self.robot.get_points()
         K = self.sim.scale * World.KickerReach
-        sine, cosine = \
-            K*cos(self.robot.body.angle), \
-            K*sin(self.robot.body.angle)
-    	bb = [ p[1] - self.robot.body.position,
-               p[1] - self.robot.body.position + [sine, cosine],
-               p[2] - self.robot.body.position +[sine, cosine],
-               p[2] - self.robot.body.position]
+        angle = self.robot.body.angle
+        center = self.robot.body.position
+    	bb = [ p[1] - center,
+               p[1] - center + [K*cos(angle), K*sin(angle)],
+               p[2] - center + [K*cos(angle), K*sin(angle)],
+               p[2] - center ]
 	return bb
 
     def draw(self):
@@ -106,14 +113,10 @@ class Robot(SimRobotInterface):
 
     def draw_outline(self):
     	ps = self.robot.get_points()
-    	ps.append(ps[0])
-        pygame.gfxdraw.filled_polygon(self.sim.screen, ps, THECOLORS['blue'])
-	#pygame.draw.lines(self.sim.screen, THECOLORS["blue"], False, ps, 4)
+        pygame.gfxdraw.filled_polygon(self.sim.screen, ps + [ps[0]],
+                                      map(lambda x:0.7*x, THECOLORS[self.colour]))
 
     def draw_kickzone(self):
-        #return
-    	#ps = self.get_kicker_points()
-	#pygame.draw.lines(self.sim.screen, THECOLORS["red"], False, ps, 3)
 	ps = self.kickzone.get_points()
 	pygame.draw.lines(self.sim.screen, THECOLORS["red"], False, ps, 3)
 
@@ -121,7 +124,6 @@ class Robot(SimRobotInterface):
         ps = wheel.get_points()
         ps.append(ps[0])
         pygame.gfxdraw.filled_polygon(self.sim.screen, ps, THECOLORS['black'])
-        #pygame.draw.lines(self.sim.screen, THECOLORS["black"], False, ps, 5)
 
         #Draw wheel direction markers
         pos = map(int, wheel.body.position + [5*cos(wheel.body.angle),

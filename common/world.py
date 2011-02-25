@@ -35,27 +35,26 @@ class World(object):
     # The entities we are interested in
     entityNames = ('ball', 'blue', 'yellow')
 
-    def __init__(self, ourColour=None):
+    def __init__(self):
         self.name = "Real World"
         self.time = time.time()
-        self.openLog()
-
-        self.ourColour = ourColour
-        assert ourColour in ('blue', 'yellow'), \
-            "Legal robot colour is required"
 
         self.ents = {}
-        self.est_ball   = BallEstimator()
-        self.est_yellow = RobotEstimator()
-        self.est_blue   = RobotEstimator()
+        self.est = { 'ball'   : BallEstimator(),
+                     'yellow' : RobotEstimator(),
+                     'blue'   : RobotEstimator(),
+                     }
 
     def getResolution(self):
         return self.resolution
     def setResolution(self, res):
         self.resolution = res
 
-    def openLog(self):
-        self.log = open('anomalities.txt', 'a')
+        # Left/right goals
+        self.GoalPositions = \
+            [ (0, self.resolution[1]/2.0),
+              (self.resolution[0], self.resolution[1]/2.0),
+              ]
 
     def update(self, time, ents):
         dt = time - self.time
@@ -63,38 +62,35 @@ class World(object):
         self.ents = ents
         self.pointer = None
 
-        self.est_ball.update( ents['balls'], dt )
-        self.est_yellow.update( ents['yellow'], dt )
-        self.est_blue.update( ents['blue'], dt )
+        self.est['ball'].update( ents['balls'], dt )
+        self.est['yellow'].update( ents['yellow'], dt )
+        self.est['blue'].update( ents['blue'], dt )
 
-        self.assignSides()
         self.updateStates()
 
-    def __getPos(self, ent):
-        x,y = entCenter(ent)
-        return np.array((x,y))
-
-    def __getRobot(self, est):
+    def getRobot(self, colour):
+        est = self.est[colour]
         robot = Robot()
         robot.pos = est.getPos()
         robot.velocity = est.getVelocity()
         robot.orientation = est.getOrientation()
         return robot
 
-    def getGoalPos(self):
-        # XXX: hardcoded right goal
-        #World.PitchLength, World.PitchWidth/2.0
-        return self.resolution[0], self.resolution[1]/2.0
+    def getGoalPos(self, colour):
+        if colour == 'blue':
+            return self.GoalPositions[0]
+        else:
+            return self.GoalPositions[1]
 
-    def getSelf(self):
-        return self.__getRobot( self.us )
-    def getOpponent(self):
-        return self.__getRobot( self.them )
+    def swapGoals(self):
+        self.GoalPositions = \
+            [ self.GoalPositions[1], self.GoalPositions[0] ]
+
 
     def getBall(self):
         ball = Ball()
-        ball.pos =      self.est_ball.getPos()
-        ball.velocity = self.est_ball.getVelocity()
+        ball.pos =      self.est['ball'].getPos()
+        ball.velocity = self.est['ball'].getVelocity()
         return ball
 
     def updateStates(self):
@@ -102,18 +98,3 @@ class World(object):
         self.states.append(self.ents)
         if len(self.states) > self.max_states:
             del self.states[0]
-
-    def assignSides(self):
-        if self.ourColour == 'blue':
-            self.us   = self.est_blue
-            self.them = self.est_yellow
-        else:
-            self.us   = self.est_yellow
-            self.them = self.est_blue
-
-class ReversedWorld(World):
-    "See us as the other robot - useful if we have two AIs"
-    def getSelf(self):
-        return super(ReversedWorld, self).getOpponent()
-    def getOpponent(self):
-        return super(ReversedWorld, self).getSelf()

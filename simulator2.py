@@ -18,12 +18,13 @@ def usage():
     print "  -t, --strategy2 Use specified strategy for robot 2"
     print "  -S, --real1     Robot 1 operates in the real world"
     print "  -T, --real2     Robot 2 operates in the real world"
+    print "  -c, --colour    The colour of robot 1. Blue by default"
     print "  -h, --help      Print this message"
 
 def main():
     try:
         opts, args = \
-            getopt.getopt( sys.argv[1:], "Hhls:t:STrc:1:",
+            getopt.getopt( sys.argv[1:], "Hhls:t:STrc:1:2:",
                            [ "headless", "help",
                              "list-strategies", "strategy1", "strategy2",
                              "real1", "real2", "colour", "arg1",
@@ -38,7 +39,7 @@ def main():
     strategy1, strategy2 = None, None
     real1 = real2 = None
     colour = 'blue'
-    arg1 = None
+    arg1 = arg2 = None
 
     for opt, arg in opts:
         if opt in ("-H", "--headless"):
@@ -58,6 +59,8 @@ def main():
             colour = arg
         elif opt in ("-1", "--arg1"):
             arg1 = arg
+        elif opt in ("-2", "--arg2"):
+            arg1 = arg
         elif opt in ("-h", "--help"):
             usage()
             sys.exit()
@@ -70,26 +73,14 @@ def main():
     if strategy2:
         ai2 = strategies[strategy2]
 
-    assert colour, "Need to set robot colour"
-
-    # assert not (real1 or real2) or vision, \
-    #    "Using real robots requires vision"
-
-    # if real1 or real2:
-    #     world = common.world.World(colour)
-    # else:
-    world = simworld.World(colour)
-
-    assert not (real1 and real2), \
-        "How are we to run 2 physical robots??"
+    world = simworld.World()
 
     sim = Simulator( headless=headless,
                      world=world,
                      robot1=(ai1, real1),
                      robot2=(ai2, real2),
-                     ai_args=[arg1],
+                     ai_args=[arg1, arg2],
                      colour=colour,
-                     real_world=None, #(real1 or real2),
                      )
     sim.run()
 
