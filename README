@@ -1,8 +1,61 @@
-Most of the code uses or runs on Python 2.6, OpenCV 2.0 (with SWIG
-bindings) and Pygame (v1.9 included).
+Most of the code uses Python 2.6, OpenCV 2.1+ and Pygame.
 
-Before running any code, import the environment variables using:
-$ . env.sh
+Pygame v1.9 is included, as is OpenCV 2.2.
+Before running code like vision2.py, import the environment variables using:
+  $ . env.sh
+
+This will make the code use the supplied software.
+
 
 When running the simulator, check out the options it takes by executing:
-$ ./simulator.py --help
+$ ./simulator2.py --help
+
+
+The main system requires a number of steps to set up. These should be
+done in separate terminals:
+
+1. Run the server:
+  $ ./start-server.sh
+
+2. Start the MPlayer process used for video capture, This will record
+   snapshots of the video feed to a temporary directory. The files
+   will only get deleted once the vision system is reading them. The
+   MPlayer capture must always be started /before/ the vision system,
+   and if the vision system is restarted, the MPlayer capture must
+   also be restarted.
+  $ ./start-mplayer.sh
+
+3. Start the main control system:
+  $ ./robot.sh blue
+  OR
+  $ ./robot.sh yellow
+
+If things go bad, you can stop the robot using:
+  $ ./stop.py
+
+
+If you don't want to run the AI (main2 currently), you can omit the
+first step and, making sure the environment variables are set, just
+execute:
+  $ ./vision2.py blue [files..]
+
+If using files for vision input, the MPlayer process won't need to be
+started either.
+
+
+How to use the vision system GUI:
+
+Keymap:
+t     - cycle through thresholded images
+tab   - display trackbars for editing thresholds
+s     - save screenshot
+r     - display raw/uncropped image
+space - switch everything back to normal
+0     - display all channels
+1/2/3 - display only the blue/green/red channel
+o     - toggle GUI overlay
+h     - toggle histogram display
+
+Dragging the mouse to form a rectangle further crops the image down to
+a set threshold size.
+
