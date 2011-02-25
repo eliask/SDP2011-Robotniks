@@ -155,6 +155,9 @@ class Simulator(object):
         self.world.ents[col2] = self.robots[1]
         self.world.ents['ball'] = self.ball
 
+        if col1 == 'blue':
+            self.world.swapGoals()
+
     def init_AI(self):
         self.log.debug("Initialising AI")
 
