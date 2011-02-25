@@ -46,7 +46,8 @@ class SimRobotInterface(RobotInterface):
         self.command_queue.append( (time.time(), command) )
 
     def process_command_queue(self):
-        for t, cmd in self.command_queue:
+        while len(self.command_queue) > 0:
+            t, cmd = self.command_queue[0]
             if t + self.latency > time.time():
                 break
             cmd()
