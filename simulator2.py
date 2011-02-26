@@ -14,7 +14,7 @@ def usage():
     print "Usage: simulator.py <options>"
     print "  -H, --headless  Run without graphical output from simulator"
     print "  -l, --list-strategies  Print the list of available strategies"
-    print "  -z, --speed     Set simulator speed (default 2)"
+    print "  -z, --speed     Set simulator speed (default 1)"
     print "  -s, --strategy1 Use specified strategy for robot 1"
     print "  -t, --strategy2 Use specified strategy for robot 2"
     print "  -S, --real1     Robot 1 operates in the real world"

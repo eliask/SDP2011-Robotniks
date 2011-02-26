@@ -16,6 +16,9 @@ class Robot(SimRobotInterface):
         self.sim = sim
         self.colour = colour
 
+        self.group = 1<<self.sim.groups
+        self.sim.groups += 1
+
         space = self.sim.space
 	self.robot = self.add_robot(space, pos)
 	self.kickzone = self.add_kickzone(space)
@@ -51,7 +54,7 @@ class Robot(SimRobotInterface):
 
     	robot_shape = pymunk.Poly(robot_body, fp)
 	robot_shape.friction = 0.8
-    	robot_shape.group = 2
+    	robot_shape.group = self.group
     	space.add(robot_body, robot_shape)
         return robot_shape
 
@@ -74,7 +77,7 @@ class Robot(SimRobotInterface):
         moment = pymunk.moment_for_poly(mass, fp)
         wheel_body = pymunk.Body(mass, moment)
         wheel_shape = pymunk.Poly(wheel_body, fp)
-        wheel_shape.group = 2
+        wheel_shape.group = self.group
 	wheel_body.position = pos
     	joint = pymunk.PivotJoint(self.robot.body, wheel_body, wheel_body.position)
         space.add(wheel_body, wheel_shape, joint)
@@ -89,7 +92,7 @@ class Robot(SimRobotInterface):
     def add_kickzone(self, space):
     	bb = self.get_kicker_points()
     	shape = pymunk.Poly(self.robot.body, bb)
-    	shape.group = 2
+    	shape.group = self.group
 	shape.sensor = True
     	space.add(shape)
         return shape

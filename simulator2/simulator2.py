@@ -42,6 +42,7 @@ class Simulator(object):
 
         self.prev = {}
         self.robots=[]
+        self.groups = 0
 
     def set_state(self, state):
         "Set the current state of the ball and the robot"
@@ -286,7 +287,7 @@ class Simulator(object):
 
         for line in static_lines:
             line.elasticity = 0.75
-            line.group = 1
+            line.group = -1
         space.add_static(static_lines)
         return static_lines
 
@@ -309,7 +310,7 @@ class Simulator(object):
     	shape = pymunk.Circle(body, radius)
 	shape.elasticity = 0.6
 	#shape.friction = 1
-    	shape.group = 3
+    	shape.group = -1
     	space.add(body, shape)
     	return shape
 
