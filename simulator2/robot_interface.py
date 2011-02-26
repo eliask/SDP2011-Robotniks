@@ -41,17 +41,20 @@ class SimRobotInterface(RobotInterface):
         self.log.setLevel(logging.INFO)
 
         self.command_queue = []
+        self.current_commands = []
 
     def receive_command(self, command):
-        self.command_queue.append( (time.time(), command) )
+        self.current_commands.append( command )
 
     def process_command_queue(self):
-        while len(self.command_queue) > 0:
-            t, cmd = self.command_queue[0]
-            if t + self.latency > time.time():
-                break
+        self.command_queue.insert(0, self.current_commands)
+        self.current_commands = []
+
+        discrete_latency = int(round(self.latency * self.sim.tickrate))
+        if len(self.command_queue) < discrete_latency:
+            return
+        for cmd in self.command_queue.pop():
             cmd()
-            del self.command_queue[0]
 
     def tick(self, *args):
         self.process_command_queue()
