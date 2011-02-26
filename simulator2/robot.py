@@ -16,7 +16,7 @@ class Robot(SimRobotInterface):
         self.sim = sim
         self.colour = colour
 
-        self.group = 1<<self.sim.groups
+        self.group = self.sim.groups
         self.sim.groups += 1
 
         space = self.sim.space

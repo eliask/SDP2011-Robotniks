@@ -287,7 +287,8 @@ class Simulator(object):
 
         for line in static_lines:
             line.elasticity = 0.75
-            line.group = -1
+            line.group = self.groups
+        self.groups += 1
         space.add_static(static_lines)
         return static_lines
 
@@ -309,8 +310,8 @@ class Simulator(object):
             pymunk.Vec2d(World.PitchLength, World.PitchWidth)
     	shape = pymunk.Circle(body, radius)
 	shape.elasticity = 0.6
-	#shape.friction = 1
-    	shape.group = -1
+    	shape.group = self.groups
+        self.groups += 1
     	space.add(body, shape)
     	return shape
 
