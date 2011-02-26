@@ -14,6 +14,7 @@ def usage():
     print "Usage: simulator.py <options>"
     print "  -H, --headless  Run without graphical output from simulator"
     print "  -l, --list-strategies  Print the list of available strategies"
+    print "  -z, --speed     Set simulator speed (default 2)"
     print "  -s, --strategy1 Use specified strategy for robot 1"
     print "  -t, --strategy2 Use specified strategy for robot 2"
     print "  -S, --real1     Robot 1 operates in the real world"
@@ -24,10 +25,10 @@ def usage():
 def main():
     try:
         opts, args = \
-            getopt.getopt( sys.argv[1:], "Hhls:t:STrc:1:2:",
-                           [ "headless", "help",
+            getopt.getopt( sys.argv[1:], "Hhz:ls:t:STrc:1:2:",
+                           [ "headless", "help", "speed",
                              "list-strategies", "strategy1", "strategy2",
-                             "real1", "real2", "colour", "arg1",
+                             "real1", "real2", "colour", "arg1", "arg2",
                              ] )
     except getopt.GetoptError, err:
         # print help information and exit:
@@ -40,10 +41,13 @@ def main():
     real1 = real2 = None
     colour = 'blue'
     arg1 = arg2 = None
+    speed = 1
 
     for opt, arg in opts:
         if opt in ("-H", "--headless"):
             headless = True
+        if opt in ("-z", "--speed"):
+            speed = int(arg)
         elif opt in ("-l", "--list-strategies"):
             list_strategies()
             sys.exit()
@@ -76,6 +80,7 @@ def main():
     world = simworld.World()
 
     sim = Simulator( headless=headless,
+                     speed=speed,
                      world=world,
                      robot1=(ai1, real1),
                      robot2=(ai2, real2),

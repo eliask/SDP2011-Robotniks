@@ -21,7 +21,7 @@ from strategy.apf import *
 class Simulator(object):
 
     tickrate = 25.0
-    speed = 2
+    speed = 1
     scale = 3 # pixel/cm
     offset = 4.0
     Resolution = map( int, scale*(2*offset+np.array([World.PitchLength,
@@ -186,7 +186,7 @@ class Simulator(object):
             self.robots[1] = ai
             self.log.debug("AI 2 started in the real world")
         elif ai2:
-            ai = ai1(self.world, self.robots[1],
+            ai = ai2(self.world, self.robots[1],
                      self.ai_args[1], self)
             ai.setColour(self.robots[1].colour)
             self.ai.append(ai)

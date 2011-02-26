@@ -18,11 +18,11 @@ class SimRobotInterface(RobotInterface):
     knowing where we are "heading".
     """
 
-    accel = 10
-    ang_accel = 3
+    accel = 20
+    ang_accel = 6
     friction = 0.8
     epsilon = radians(3)
-    latency = 0.35
+    latency = 0.3
 
     def __init__(self, *args):
         RobotInterface.__init__(self, *args)
