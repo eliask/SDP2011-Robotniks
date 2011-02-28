@@ -481,3 +481,48 @@ class SteeringRightThread extends Thread{
 	}
 }
 
+class IC2Send {
+
+	I2CPort multiplexor;
+	I2CSensor mplSensor;
+	
+	public IC2Send(){
+	}
+
+	public synchronized void setup(){
+		multiplexor = SensorPort.S4;
+		multiplexor.i2cEnable(I2CPort.STANDARD_MODE);
+		I2CSensor mplSensor = new I2CSensor(multiplexor);
+		mplSensor.setAddress(0x5A);
+	}
+
+	public synchronized void setMotors(int directionIndex, int speedIndex, int wheelIndex){
+
+		// sets up possible values 
+		byte[] directionValues = new byte [3];
+		directionValues[0] = (byte)1;
+		directionValues[1] = (byte)0;
+		directionValues[2] = (byte)2;
+		byte[] speedValues = new byte [3];
+		speedValues[0] = (byte)0;
+		speedValues[1] = (byte)130;
+		speedValues[2] = (byte)255;
+
+		// sets specific values
+		byte direction = directionValues[directionIndex];
+		byte speed = speedValues[speedIndex];
+
+		switch (wheelIndex){
+		// left wheel
+		case 0:		 
+			mplSensor.sendData(0x01,direction); 
+			mplSensor.sendData(0x02,speed);
+			break;
+			// right wheel
+		case 1:
+			mplSensor.sendData(0x03,direction); 
+			mplSensor.sendData(0x04,speed);
+			break;
+		}
+	}
+}
