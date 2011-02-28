@@ -59,6 +59,7 @@ class Main2(Strategy):
 
         # Move towards the pseudo-target (which we get by adding the
         # gradient to our current position)
+	self.orientToKick()
         self.moveTo(self.me.pos + 100*pf(self.me.pos))
 
         # Kick the ball if we are in front of it
