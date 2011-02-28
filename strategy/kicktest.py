@@ -30,10 +30,17 @@ class KickTest(Strategy):
 		self.kick()
 
     def canKick(self, target_pos):
-	if dist(self.me.pos, target_pos) < 50:
-            angle_diff = self.me.orientation % (2*pi)
-            - pi - abs( atan2(self.me.pos[1] - target_pos[1],
-                              (self.me.pos[0] - target_pos[0])) )
+	#	to get the angle between [-pi, pi]
+	if self.me.orientation > pi:
+		self.me.orientation -= 2*pi
 
-            if angle_diff < radians(13):
-                return True
+	if dist(self.me.pos, target_pos) < 50:
+           	angle_diff = self.me.orientation - atan2(target_pos[1] - self.me.pos[1],
+                              (target_pos[0] - self.me.pos[0]))
+		if angle_diff > pi:
+			angle_diff -= 2*pi
+		elif angle_diff < -pi:
+			angle_diff += 2*pi
+
+            	if abs(angle_diff) < radians(35):
+                	return True
