@@ -7,7 +7,7 @@ import apf
 import logging
 import pygame
 
-class Main2(Strategy):
+class Group1(Strategy):
     turning_start = 0
 
     def __init__(self, *args):
@@ -24,7 +24,7 @@ class Main2(Strategy):
         self.getSelf()
         try:
             self.me = self.getSelf() # Find out where I am
-            self.log.debug("My position: %s", pos2string(self.me.pos))
+            #self.log.debug("My position: %s", pos2string(self.me.pos))
         except Exception, e:
             self.log.warn("couldn't find self: %s", e)
             return
@@ -37,34 +37,16 @@ class Main2(Strategy):
             print "POS 0"
             return
 
-        def pf(pos):
-            """Calculate the potential field gradient at point
-
-            The gradient of the potential field tells us which
-            direction we should be going towards.
-            """
-            v = apf.all_apf( pos, self.world.getResolution(), ballPos,
-                             self.world.getGoalPos(self.colour), World.BallRadius )
-
-            if self.sim:
-                # If in the simulator, visualise "intended movement direction"
-                pos = self.me.pos
-                v2 = np.array(v) * 5
-                delta = map(lambda x:int(round(x)), (pos[0]+v2[0], pos[1]+v2[1]))
-                #print pos, delta
-                pygame.draw.line(self.sim.screen, (123,0,222,130), pos, delta, 4)
-                #pygame.draw.circle(self.sim.screen, (255,50,255,130), delta, 6)
-
-            return np.array(v)
-
         # Move towards the pseudo-target (which we get by adding the
         # gradient to our current position)
 	self.orientToKick()
-        self.moveTo(self.me.pos + 100*pf(self.me.pos))
+        self.moveTo(ballPos)
+
 
         # Kick the ball if we are in front of it
 	if self.canKick(ballPos):
 		self.kick()
+
 
     def canKick(self, target_pos):
         """Are we right in front of the ball, being able to kick it?
@@ -73,8 +55,8 @@ class Main2(Strategy):
         """
 	if dist(self.me.pos, target_pos) < 20:
             angle_diff = self.me.orientation % (2*pi)
-            - pi - abs( atan2(self.me.pos[1] - target_pos[1],
-                              (self.me.pos[0] - target_pos[0])) )
+            - abs( atan2(self.me.pos[1] - target_pos[1],
+                              (self.me.pos[0] - target_pos[0])) + pi )
 
             return angle_diff < radians(13)
 
@@ -93,12 +75,12 @@ class Main2(Strategy):
             #self.drive_both(0)
             return False
 
-        self.log.debug("moveTo(%s)", pos2string(dest))
+        #self.log.debug("moveTo(%s)", pos2string(dest))
         #print dest, self.me.pos, type(dest), type(self.me.pos)
         _dist = dist(dest, self.me.pos)
         #print _dist
         #print dest
-        self.log.debug("Distance to target: %.3f" % _dist)
+        #self.log.debug("Distance to target: %.3f" % _dist)
         epsilon = 100
 
         self.drive_both(3)
@@ -120,14 +102,14 @@ class Main2(Strategy):
         not drive.
         """
         angle = atan2(dest[1], dest[0])
-        self.log.debug("turnTo(%.1f)", degrees(angle))
+        #self.log.debug("turnTo(%.1f)", degrees(angle))
 
         dx,dy = dest - self.me.pos
         angle = atan2(dy,dx)
         orient = self.me.orientation
         delta = angle - orient
         self.steer_both(delta)
-        print "steer_both(%.1f)" % degrees(delta)
+        #print "steer_both(%.1f)" % degrees(delta)
 
         d_left = delta - self.left_angle
         d_right = delta - self.right_angle
@@ -152,15 +134,14 @@ class Main2(Strategy):
 
         The robot will first orient the wheels to a position that allows
         """
-        self.log.debug("orientToKick()")
+        #self.log.debug("orientToKick()")
 
         ball = self.world.getBall().pos
         goal = self.world.getGoalPos(self.colour)
         dx,dy = goal[0]-ball[0], goal[1]-ball[1]
         angle = atan2(dy,dx)
         delta = abs(angle - self.me.orientation) % (2*pi)
-        self.log.debug( "Difference between orientation and kicking angle: %.1f",
-                        degrees(delta) )
+        #self.log.debug( "Difference between orientation and kicking angle: %.1f", degrees(delta) )
 
         if angleDiffWithin(delta, radians(40)):
             self.turning_start = 0

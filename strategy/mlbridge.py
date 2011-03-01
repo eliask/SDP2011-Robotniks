@@ -135,7 +135,7 @@ class MLBridge(Strategy):
     def construct_state(self):
         state = ML.ML_pb2.WorldState()
 
-        me = self.world.getSelf()
+        me = self.getSelf()
         state.robot.pos_x = me.pos[0]
         state.robot.pos_y = me.pos[1]
         state.robot.vel_x = me.velocity[0]

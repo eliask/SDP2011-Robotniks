@@ -25,5 +25,15 @@ class Strategy(object):
                 func(*args, **kwargs)
         raise AttributeError(name)
 
+    def setColour(self, colour):
+        print colour
+        self.colour = colour
+
+    def draw(self):
+        pass
+
+    def getSelf(self):
+        return self.world.getRobot(self.colour)
+
     def run(self):
         raise NotImplemented, "Base AI class - DO NOT USE"

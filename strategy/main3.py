@@ -7,7 +7,7 @@ import apf
 import logging
 import pygame
 
-class Main2(Strategy):
+class Main3(Strategy):
     turning_start = 0
 
     def __init__(self, *args):
@@ -37,34 +37,15 @@ class Main2(Strategy):
             print "POS 0"
             return
 
-        def pf(pos):
-            """Calculate the potential field gradient at point
-
-            The gradient of the potential field tells us which
-            direction we should be going towards.
-            """
-            v = apf.all_apf( pos, self.world.getResolution(), ballPos,
-                             self.world.getGoalPos(self.colour), World.BallRadius )
-
-            if self.sim:
-                # If in the simulator, visualise "intended movement direction"
-                pos = self.me.pos
-                v2 = np.array(v) * 5
-                delta = map(lambda x:int(round(x)), (pos[0]+v2[0], pos[1]+v2[1]))
-                #print pos, delta
-                pygame.draw.line(self.sim.screen, (123,0,222,130), pos, delta, 4)
-                #pygame.draw.circle(self.sim.screen, (255,50,255,130), delta, 6)
-
-            return np.array(v)
-
         # Move towards the pseudo-target (which we get by adding the
         # gradient to our current position)
-	self.orientToKick()
-        self.moveTo(self.me.pos + 100*pf(self.me.pos))
+        self.moveTo(ballPos)
+
 
         # Kick the ball if we are in front of it
 	if self.canKick(ballPos):
 		self.kick()
+
 
     def canKick(self, target_pos):
         """Are we right in front of the ball, being able to kick it?
@@ -73,8 +54,8 @@ class Main2(Strategy):
         """
 	if dist(self.me.pos, target_pos) < 20:
             angle_diff = self.me.orientation % (2*pi)
-            - pi - abs( atan2(self.me.pos[1] - target_pos[1],
-                              (self.me.pos[0] - target_pos[0])) )
+            - abs( atan2(self.me.pos[1] - target_pos[1],
+                              (self.me.pos[0] - target_pos[0])) + pi )
 
             return angle_diff < radians(13)
 

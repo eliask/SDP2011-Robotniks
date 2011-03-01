@@ -16,6 +16,9 @@ class Robot(SimRobotInterface):
         self.sim = sim
         self.colour = colour
 
+        self.group = self.sim.groups
+        self.sim.groups += 1
+
         space = self.sim.space
 	self.robot = self.add_robot(space, pos)
 	self.kickzone = self.add_kickzone(space)
@@ -30,6 +33,14 @@ class Robot(SimRobotInterface):
 
         SimRobotInterface.__init__(self)
 
+    def set_angle(self, angle):
+        self.robot.body.angle = angle
+        self.wheel_left.body.angle += angle
+        self.wheel_right.body.angle += angle
+
+        self.wheel_left.body.position = self.left_wheel_pos()
+        self.wheel_right.body.position = self.right_wheel_pos()
+
     def add_robot(self, space, pos):
     	fp=[]; _fp = [(-1, -1), (1, -1), (1, 1), (-1, 1)]
         for x,y in _fp:
@@ -43,7 +54,7 @@ class Robot(SimRobotInterface):
 
     	robot_shape = pymunk.Poly(robot_body, fp)
 	robot_shape.friction = 0.8
-    	robot_shape.group = 2
+    	robot_shape.group = self.group
     	space.add(robot_body, robot_shape)
         return robot_shape
 
@@ -66,7 +77,7 @@ class Robot(SimRobotInterface):
         moment = pymunk.moment_for_poly(mass, fp)
         wheel_body = pymunk.Body(mass, moment)
         wheel_shape = pymunk.Poly(wheel_body, fp)
-        wheel_shape.group = 2
+        wheel_shape.group = self.group
 	wheel_body.position = pos
     	joint = pymunk.PivotJoint(self.robot.body, wheel_body, wheel_body.position)
         space.add(wheel_body, wheel_shape, joint)
@@ -81,7 +92,7 @@ class Robot(SimRobotInterface):
     def add_kickzone(self, space):
     	bb = self.get_kicker_points()
     	shape = pymunk.Poly(self.robot.body, bb)
-    	shape.group = 2
+    	shape.group = self.group
 	shape.sensor = True
     	space.add(shape)
         return shape
@@ -89,13 +100,12 @@ class Robot(SimRobotInterface):
     def get_kicker_points(self):
 	p = self.robot.get_points()
         K = self.sim.scale * World.KickerReach
-        sine, cosine = \
-            K*cos(self.robot.body.angle), \
-            K*sin(self.robot.body.angle)
-    	bb = [ p[1] - self.robot.body.position,
-               p[1] - self.robot.body.position + [sine, cosine],
-               p[2] - self.robot.body.position +[sine, cosine],
-               p[2] - self.robot.body.position]
+        angle = self.robot.body.angle
+        center = self.robot.body.position
+    	bb = [ p[1] - center,
+               p[1] - center + [K*cos(angle), K*sin(angle)],
+               p[2] - center + [K*cos(angle), K*sin(angle)],
+               p[2] - center ]
 	return bb
 
     def draw(self):
@@ -106,14 +116,10 @@ class Robot(SimRobotInterface):
 
     def draw_outline(self):
     	ps = self.robot.get_points()
-    	ps.append(ps[0])
-        pygame.gfxdraw.filled_polygon(self.sim.screen, ps, THECOLORS['blue'])
-	#pygame.draw.lines(self.sim.screen, THECOLORS["blue"], False, ps, 4)
+        pygame.gfxdraw.filled_polygon(self.sim.screen, ps + [ps[0]],
+                                      map(lambda x:0.7*x, THECOLORS[self.colour]))
 
     def draw_kickzone(self):
-        #return
-    	#ps = self.get_kicker_points()
-	#pygame.draw.lines(self.sim.screen, THECOLORS["red"], False, ps, 3)
 	ps = self.kickzone.get_points()
 	pygame.draw.lines(self.sim.screen, THECOLORS["red"], False, ps, 3)
 
@@ -121,7 +127,6 @@ class Robot(SimRobotInterface):
         ps = wheel.get_points()
         ps.append(ps[0])
         pygame.gfxdraw.filled_polygon(self.sim.screen, ps, THECOLORS['black'])
-        #pygame.draw.lines(self.sim.screen, THECOLORS["black"], False, ps, 5)
 
         #Draw wheel direction markers
         pos = map(int, wheel.body.position + [5*cos(wheel.body.angle),

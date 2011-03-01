@@ -18,10 +18,11 @@ class SimRobotInterface(RobotInterface):
     knowing where we are "heading".
     """
 
-    accel = 10
-    ang_accel = 3
+    accel = 20
+    ang_accel = 6
     friction = 0.8
     epsilon = radians(3)
+    latency = 0.3
 
     def __init__(self, *args):
         RobotInterface.__init__(self, *args)
@@ -36,12 +37,27 @@ class SimRobotInterface(RobotInterface):
         self.delta_left_prev    = 0
         self.delta_right_prev   = 0
 
-        self.cooldowns = {}
-
         self.log = logging.getLogger("simulator2.robot.%s" % self.colour)
         self.log.setLevel(logging.INFO)
 
+        self.command_queue = []
+        self.current_commands = []
+
+    def receive_command(self, command):
+        self.current_commands.append( command )
+
+    def process_command_queue(self):
+        self.command_queue.insert(0, self.current_commands)
+        self.current_commands = []
+
+        discrete_latency = int(round(self.latency * self.sim.tickrate))
+        if len(self.command_queue) < discrete_latency:
+            return
+        for cmd in self.command_queue.pop():
+            cmd()
+
     def tick(self, *args):
+        self.process_command_queue()
         #RobotInterface.tick(self, *args)
 
         self.update_velocity( self.wheel_left.body.velocity,
@@ -102,15 +118,20 @@ class SimRobotInterface(RobotInterface):
         v[1] += sin(angle) * accel
         v *= self.friction
 
-    def drive_left(self, speed):
+    def __drive_left(self, speed):
         self._drive_left = speed
         self.log.debug("drive left: %d", speed)
         self.drive_left_accel = self.accel * speed
 
-    def drive_right(self, speed):
+    def __drive_right(self, speed):
         self._drive_right = speed
         self.log.debug("drive right: %d", speed)
         self.drive_right_accel = self.accel * speed
+
+    def drive_left(self, speed):
+        self.receive_command(lambda:self.__drive_left(speed))
+    def drive_right(self, speed):
+        self.receive_command(lambda:self.__drive_right(speed))
 
     def get_relative_angle(self, _angle, wheel_angle):
         angle = (_angle + self.robot.body.angle - wheel_angle) % (2*pi)
@@ -119,7 +140,7 @@ class SimRobotInterface(RobotInterface):
         else:
             return pi - angle
 
-    def steer_left(self, angle):
+    def __steer_left(self, angle):
         if self.drive_left_accel > 0:
             return
 
@@ -131,7 +152,7 @@ class SimRobotInterface(RobotInterface):
         self.steer_left_target = angle
         self.delta_left_prev = abs(delta)
 
-    def steer_right(self, angle):
+    def __steer_right(self, angle):
         if self.drive_right_accel > 0:
             return
 
@@ -142,6 +163,11 @@ class SimRobotInterface(RobotInterface):
         self.steer_right_accel = copysign(self.ang_accel, delta)
         self.steer_right_target = angle
         self.delta_right_prev = abs(delta)
+
+    def steer_left(self, angle):
+        self.receive_command(lambda:self.__steer_left(angle))
+    def steer_right(self, angle):
+        self.receive_command(lambda:self.__steer_right(angle))
 
     def steer_left_incr(self, angle):
         "A helper function for the UI _only_"
@@ -179,7 +205,7 @@ class SimRobotInterface(RobotInterface):
         self.steer_left_accel = 0
         self.steer_right_accel = 0
 
-    def kick(self):
+    def __kick(self):
         self._kick = True
         if self.kickzone.point_query(self.sim.ball.body.position):
             # TODO: somehow the ball is not registered as being within
@@ -189,6 +215,9 @@ class SimRobotInterface(RobotInterface):
                                                50*sin(self.robot.body.angle)), (0,0))
         else:
             self.log.info("Robot uses kick... no effect")
+
+    def kick(self):
+        self.receive_command(self.__kick)
 
     def sendMessage(self):
         pass

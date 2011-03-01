@@ -21,7 +21,7 @@ from strategy.apf import *
 class Simulator(object):
 
     tickrate = 25.0
-    speed = 2
+    speed = 1
     scale = 3 # pixel/cm
     offset = 4.0
     Resolution = map( int, scale*(2*offset+np.array([World.PitchLength,
@@ -33,9 +33,6 @@ class Simulator(object):
     robot1=None
     robot2=None
 
-    apf_scale = 0.1*scale
-    apf_dist = 60*scale
-
     def __init__(self, **kwargs):
         self.log = logging.getLogger("simulator2")
         self.log.debug("Simulator started with the arguments:")
@@ -45,18 +42,13 @@ class Simulator(object):
 
         self.prev = {}
         self.robots=[]
-
-    def convertPos(self, pos):
-        return pos
-        return map(lambda x:self.scale*(x+self.offset), pos)
-    def convertVel(self, vel):
-        return vel
-        return map(lambda x:x*self.scale, vel)
+        self.groups = 0
 
     def set_state(self, state):
+        "Set the current state of the ball and the robot"
         R = state.robot
-        self.prev['robot'] = {'pos':self.convertPos([R.pos_x, R.pos_y]),
-                              'vel':self.convertVel([R.vel_x, R.vel_y]),
+        self.prev['robot'] = {'pos':[R.pos_x, R.pos_y],
+                              'vel':[R.vel_x, R.vel_y],
                               'ang_v':R.ang_v,
                               'angle':R.angle,
                               'left_angle':R.left_angle,
@@ -64,8 +56,8 @@ class Simulator(object):
                               }
 
         B = state.ball
-        self.prev['ball'] = {'pos':self.convertPos([B.pos_x, B.pos_y]),
-                              'vel':self.convertVel([B.vel_x, B.vel_y]),
+        self.prev['ball'] = {'pos':[B.pos_x, B.pos_y],
+                              'vel':[B.vel_x, B.vel_y],
                               'ang_v':B.ang_v,
                               }
 
@@ -74,6 +66,7 @@ class Simulator(object):
         self.load_state()
 
     def save_state(self):
+        "Save the current state of the ball and the robot"
         ball = self.world.getBall()
         self.prev['ball'] = {'pos':list(ball.pos),
                              'vel':list(bal.velocity),
@@ -91,6 +84,7 @@ class Simulator(object):
                               }
 
     def load_state(self):
+        "Restore a previously saved simulator state"
         self.ball.body.position = pymunk.Vec2d(self.prev['ball']['pos'])
         self.ball.body.velocity = pymunk.Vec2d(self.prev['ball']['vel'])
         self.ball.body.angular_velocity = self.prev['ball']['ang_v']
@@ -122,11 +116,9 @@ class Simulator(object):
         self.draw_field()
         self.draw_walls()
         self.draw_ball()
+
         # Draw the robots
-        try:
-            map(lambda x: x.draw(), self.robots)
-        except:
-            pass
+        map(lambda x: x.draw(), self.robots)
 
     def init_screen(self):
         self.log.debug("Creating simulator screen")
@@ -158,10 +150,14 @@ class Simulator(object):
         pos2 = self.scale * pymunk.Vec2d( (World.PitchLength/2.0 + 60,
                                            World.PitchWidth/2.0 + self.offset) )
         self.make_robot(pos1, col1, 0, self.robot1[0])
-        #self.make_robot(pos2, col2, -pi, self.robot2[0])
+        self.make_robot(pos2, col2, -pi, self.robot2[0])
 
-        self.world.setSelf(self.robots[0])
-        self.world.setBall(self.ball)
+        self.world.ents[col1] = self.robots[0]
+        self.world.ents[col2] = self.robots[1]
+        self.world.ents['ball'] = self.ball
+
+        if col1 == 'blue':
+            self.world.swapGoals()
 
     def init_AI(self):
         self.log.debug("Initialising AI")
@@ -171,30 +167,30 @@ class Simulator(object):
 
         if ai1 and real1:
             real_interface = RealRobotInterface()
-            #meta_interface = MetaInterface(real_interface, self.robots[0])
             ai = ai1(self.world, real_interface)
             self.ai.append(ai)
-            #robotSprite = self.robots[0]
             self.robots[0] = ai
-            #self.setRobotAI(self.robots[0], ai)
             self.log.debug("AI 1 started in the real world")
         elif ai1:
-            self.ai.append( ai1(self.world, self.robots[0], self.ai_args[0], self) )
+            ai = ai1(self.world, self.robots[0],
+                     self.ai_args[0], self)
+            ai.setColour(self.robots[0].colour)
+            self.ai.append(ai)
             self.log.debug("AI 1 started in the simulated world")
         else:
             self.log.debug("No AI 1 present")
 
         if ai2 and real2:
-            # TODO: reverse sides here
-            ai = ai2(self.world, RealRobotInterface())
+            real_interface = RealRobotInterface()
+            ai = ai2(self.world, real_interface)
             self.ai.append(ai)
-            robotSprite = self.robots[0]
             self.robots[1] = ai
-            #del robotSprite
-            self.setRobotAI(self.robots[1], ai)
             self.log.debug("AI 2 started in the real world")
         elif ai2:
-            self.ai.append( ai2(self.world, self.robots[1]) )
+            ai = ai2(self.world, self.robots[1],
+                     self.ai_args[1], self)
+            ai.setColour(self.robots[1].colour)
+            self.ai.append(ai)
             self.log.debug("AI 2 started in the simulated world")
         else:
             self.log.debug("No AI 2 present")
@@ -228,7 +224,6 @@ class Simulator(object):
         self.init_physics()
         self.init_screen()
         self.make_objects()
-        self.world.assignSides()
         self.init_AI()
         self.init_input()
         # by initialising the input after the AI, we can control even
@@ -243,7 +238,7 @@ class Simulator(object):
             pygame.display.flip()
 
     def init_input(self):
-        self.input = Input(self, self.robots[0], self.robots[0]) #self.robots[1])
+        self.input = Input(self, self.robots[0], self.robots[1])
 
     def handle_input(self):
         if self.headless:
@@ -255,10 +250,12 @@ class Simulator(object):
 
     def make_robot(self, pos, colour, angle, ai):
         robot = Robot(pos, colour, self)
+        robot.set_angle(angle)
         self.world.ents[colour] = robot
         self.robots.append(robot)
 
     def add_walls(self, space):
+        "Create the physical walls of the pitch"
         body = pymunk.Body(pymunk.inf, pymunk.inf)
 
         offset = self.offset
@@ -290,7 +287,8 @@ class Simulator(object):
 
         for line in static_lines:
             line.elasticity = 0.75
-            line.group = 1
+            line.group = self.groups
+        self.groups += 1
         space.add_static(static_lines)
         return static_lines
 
@@ -303,6 +301,7 @@ class Simulator(object):
                               THECOLORS["black"], False, [pv1,pv2])
 
     def add_ball(self, space):
+        "Create the physical ball"
 	mass = 1
     	radius = 5
 	inertia = pymunk.moment_for_circle(mass, 0.999, radius)
@@ -311,12 +310,13 @@ class Simulator(object):
             pymunk.Vec2d(World.PitchLength, World.PitchWidth)
     	shape = pymunk.Circle(body, radius)
 	shape.elasticity = 0.6
-	#shape.friction = 1
-    	shape.group = 3
+    	shape.group = self.groups
+        self.groups += 1
     	space.add(body, shape)
     	return shape
 
     def draw_field(self):
+        "Draw the potential field"
     	ball = map(int, self.ball.body.position)
         offset = 4000
         X = range(max(0,ball[0]-offset), min(self.Resolution[0],ball[0]+offset), 30)
@@ -327,8 +327,6 @@ class Simulator(object):
 
         def pf(pos):
             return all_apf( pos, self.Resolution, ball, goal, World.BallRadius )
-            return tangential_field(1, ball, pos, self.apf_scale, self.apf_dist)
-            return attractive_field( ball, pos, self.apf_scale, self.apf_dist )
 
         for x in X:
             for y in Y:
