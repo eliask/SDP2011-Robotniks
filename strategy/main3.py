@@ -7,21 +7,30 @@ import apf
 import logging
 import pygame
 
-class Main2(Strategy):
+class Main3(Strategy):
     turn_until = 0
 
     def __init__(self, *args):
         Strategy.__init__(self, *args)
         self.reset()
-        self.log = logging.getLogger('strategy.main2')
+        self.log = logging.getLogger('strategy.main3')
 
         # Variables for tracking the robot's internal state
         self.left_angle = 0
         self.right_angle = 0
         self.until_turned = 0
 
+        self.lock_until = 0
+        self.post_lock = lambda:None
+
     def run(self):
-        self.getSelf()
+
+        if self.lock_until > time.time():
+            return
+        else:
+            self.post_lock()
+            self.post_lock = lambda:None
+
         try:
             self.me = self.getSelf() # Find out where I am
             self.log.debug("My position: %s", pos2string(self.me.pos))
@@ -59,7 +68,30 @@ class Main2(Strategy):
 
         # Move towards the pseudo-target (which we get by adding the
         # gradient to our current position)
-        self.moveTo(self.me.pos + 100*pf(self.me.pos))
+        self.moveTo(self.me.pos + 10*pf(self.me.pos))
+
+        if self.reachesGoal():
+            print "REACH"
+            self.dash()
+
+        #self.sendMessage()
+        #return
+        self.scoreGoal(ballPos)
+
+    def reachesGoal(self):
+        _,Y = self.world.getResolution()
+        X,_ = self.world.getGoalPos(self.colour)
+        y1 = 1/3.0 * Y
+        y2 = 2/3.0 * Y
+        points = [self.me.pos, (X,y1), (X,y2)]
+
+        ball = self.world.getBall().pos
+        if dist(self.me.pos, np.array(ball)) > 100 or X-ball[0] > 100:
+            return False
+        if ball[0] >= self.me.pos:
+            return False
+
+        return pointInConvexPolygon(points, ball)
 
         # Kick the ball if we are in front of it
 	if self.canKick(ballPos):
@@ -103,8 +135,8 @@ class Main2(Strategy):
         self.drive_both(3)
         # TODO: implement the canKick predicate instead
         if _dist < epsilon:
-            if self.orientToKick():
-                self.drive_both(3)
+            # if self.orientToKick():
+            #     self.drive_both(3)
             return True
         else:
             self.drive_both(3)
@@ -146,6 +178,12 @@ class Main2(Strategy):
             self.drive_both(0)
             return False
 
+    def dash(self):
+        if self.orientToKick():
+            self.lock_until = self.getTimeUntil(1.8)
+            self.post_lock = self.kick
+            self.drive_both(3)
+
     def orientToKick(self):
         """Orient the robot's body to face the ball.
 
@@ -161,7 +199,7 @@ class Main2(Strategy):
         self.log.debug( "Difference between orientation and kicking angle: %.1f",
                         degrees(delta) )
 
-        if angleDiffWithin(delta, radians(40)):
+        if angleDiffWithin(delta, radians(60)):
             self.turn_until = 0
             self.drive_both(0)
             return True

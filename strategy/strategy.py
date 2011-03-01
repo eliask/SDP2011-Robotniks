@@ -37,3 +37,9 @@ class Strategy(object):
 
     def run(self):
         raise NotImplemented, "Base AI class - DO NOT USE"
+
+    def getTimeUntil(self, delta):
+        if self.sim:
+            return time.time() + delta / self.sim.speed
+        else:
+            return time.time() + delta
