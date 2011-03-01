@@ -127,6 +127,9 @@ class Simulator(object):
         self.robot2_pos = \
             self.scale * pymunk.Vec2d( (World.PitchLength/2.0 + 60,
                                         World.PitchWidth/2.0 + self.offset) )
+	x = randint(100, 300)
+	self.robot1_pos = (50, x)
+	self.robot2_pos = (250, 200)
 
         self.world.setResolution(self.Resolution)
         if self.headless:
@@ -348,6 +351,8 @@ class Simulator(object):
     	body = pymunk.Body(mass, inertia)
     	body.position = self.offset + self.scale/2.0 * \
             pymunk.Vec2d(World.PitchLength, World.PitchWidth)
+
+	body.position = (210, 200)
     	shape = pymunk.Circle(body, radius)
 	shape.elasticity = 0.6
     	shape.group = self.groups
