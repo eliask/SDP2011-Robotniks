@@ -113,8 +113,7 @@ class Simulator(object):
 
         self.screen.blit(self.overlay, (0,0))
 
-        self.draw_field()
-        self.draw_walls()
+        #self.draw_field()
         self.draw_ball()
 
         # Draw the robots
@@ -122,6 +121,13 @@ class Simulator(object):
 
     def init_screen(self):
         self.log.debug("Creating simulator screen")
+        self.robot1_pos = \
+            self.scale * pymunk.Vec2d( (World.PitchLength/2.0 - 60,
+                                        World.PitchWidth/2.0 + self.offset) )
+        self.robot2_pos = \
+            self.scale * pymunk.Vec2d( (World.PitchLength/2.0 + 60,
+                                        World.PitchWidth/2.0 + self.offset) )
+
         self.world.setResolution(self.Resolution)
         if self.headless:
             self.screen = pygame.Surface(self.Resolution)
@@ -145,12 +151,8 @@ class Simulator(object):
             col2, col1 = colours
 
         self.log.info("Robot 1 is %s. Robot 2 is %s", col1, col2)
-        pos1 = self.scale * pymunk.Vec2d( (World.PitchLength/2.0 - 60,
-                                           World.PitchWidth/2.0 + self.offset) )
-        pos2 = self.scale * pymunk.Vec2d( (World.PitchLength/2.0 + 60,
-                                           World.PitchWidth/2.0 + self.offset) )
-        self.make_robot(pos1, col1, 0, self.robot1[0])
-        self.make_robot(pos2, col2, -pi, self.robot2[0])
+        self.make_robot(self.robot1_pos, col1, 0, self.robot1[0])
+        self.make_robot(self.robot2_pos, col2, -pi, self.robot2[0])
 
         self.world.ents[col1] = self.robots[0]
         self.world.ents[col2] = self.robots[1]
@@ -210,13 +212,34 @@ class Simulator(object):
         for _ in range(self.speed):
             self.timestep()
 
-        if self.ball.body.position.x < 0 \
-                or self.ball.body.position.y < 0 \
-                or self.ball.body.position.x > self.Resolution[0] \
-                or self.ball.body.position.y > self.Resolution[1]:
+        ball = self.ball.body.position
+        if self.goal_left.point_query(ball):
+            self.reset()
+        if self.goal_right.point_query(ball):
+            self.reset()
 
-            self.ball.body.position = pymunk.Vec2d(self.Resolution[0]/2.0,
-                                                   self.Resolution[1]/2.0)
+        if ball.x < 0 or ball.y < 0 \
+                or ball.x > self.Resolution[0] \
+                or ball.y > self.Resolution[1]:
+            self.reset_ball_pos()
+
+    def reset_ball_pos(self):
+        self.ball.body.position = pymunk.Vec2d(self.Resolution[0]/2.0,
+                                               self.Resolution[1]/2.0)
+
+    def reset(self):
+        self.ball.body.velocity = pymunk.Vec2d((0,0))
+        self.reset_ball_pos()
+
+        self.robots[0].set_position( self.robot1_pos )
+        self.robots[0].set_angle(0)
+        self.robots[0].wheel_left.body.angle = 0
+        self.robots[0].wheel_right.body.angle = 0
+
+        self.robots[1].set_position( self.robot2_pos )
+        self.robots[1].set_angle(pi)
+        self.robots[1].wheel_left.body.angle = pi
+        self.robots[1].wheel_right.body.angle = pi
 
     def run(self):
         pygame.init()
@@ -224,6 +247,7 @@ class Simulator(object):
         self.init_physics()
         self.init_screen()
         self.make_objects()
+        self.draw_walls()
         self.init_AI()
         self.init_input()
         # by initialising the input after the AI, we can control even
@@ -254,6 +278,13 @@ class Simulator(object):
         self.world.ents[colour] = robot
         self.robots.append(robot)
 
+    def add_goal(self, body, space, lines):
+        points = [line[0] for line in lines] + [lines[-1][-1]]
+	shape = pymunk.Poly(body, points)
+	shape.sensor = True
+	space.add(shape)
+        return shape
+
     def add_walls(self, space):
         "Create the physical walls of the pitch"
         body = pymunk.Body(pymunk.inf, pymunk.inf)
@@ -266,15 +297,20 @@ class Simulator(object):
         x_corner2 = 2*offset + World.PitchLength
 
         lines = [  ((offset, offset), (offset, goal_corner))
+                   # Left goal area
                   ,((offset, goal_corner), (0, goal_corner))
                   ,((0, goal_corner), (0, goal_corner2))
                   ,((0, goal_corner2), (offset, goal_corner2))
+
                   ,((offset, goal_corner2), (offset, y_corner))
                   ,((offset, y_corner), (x_corner, y_corner))
                   ,((x_corner, y_corner), (x_corner, goal_corner2))
+
+                   # Right goal area
                   ,((x_corner, goal_corner2), (x_corner2, goal_corner2))
                   ,((x_corner2, goal_corner2), (x_corner2, goal_corner))
                   ,((x_corner2, goal_corner), (x_corner, goal_corner))
+
                   ,((x_corner, goal_corner), (x_corner, offset))
                   ,((x_corner, offset), (offset, offset))
                   ]
@@ -284,6 +320,10 @@ class Simulator(object):
         def get_static_line((p1,p2)):
             return pymunk.Segment(body, rescale(p1), rescale(p2), 1.0)
         static_lines = map(get_static_line, lines)
+
+        rescaled = map( lambda x:map(rescale, x), lines )
+        self.goal_left  = self.add_goal(body, space, rescaled[1:4])
+        self.goal_right = self.add_goal(body, space, rescaled[7:10])
 
         for line in static_lines:
             line.elasticity = 0.75
@@ -297,7 +337,7 @@ class Simulator(object):
             body = line.body
             pv1 = body.position + line.a.rotated(body.angle)
             pv2 = body.position + line.b.rotated(body.angle)
-            pygame.draw.lines(self.screen,
+            pygame.draw.lines(self.overlay,
                               THECOLORS["black"], False, [pv1,pv2])
 
     def add_ball(self, space):
