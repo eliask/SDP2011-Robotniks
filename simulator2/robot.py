@@ -37,7 +37,13 @@ class Robot(SimRobotInterface):
         self.robot.body.angle = angle
         self.wheel_left.body.angle += angle
         self.wheel_right.body.angle += angle
+        self.set_wheel_position()
 
+    def set_position(self, pos):
+        self.robot.body.position = pos
+        self.set_wheel_position()
+
+    def set_wheel_position(self):
         self.wheel_left.body.position = self.left_wheel_pos()
         self.wheel_right.body.position = self.right_wheel_pos()
 
