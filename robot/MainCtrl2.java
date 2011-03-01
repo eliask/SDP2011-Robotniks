@@ -6,6 +6,7 @@ import java.io.IOException;
 import lejos.nxt.*;
 import lejos.nxt.comm.*;
 
+
 // Collect commands, write to screen
 public class MainCtrl2 {
 
@@ -13,6 +14,7 @@ public class MainCtrl2 {
 	private static final Button button_left = Button.LEFT;
 	private static final Button button_right = Button.RIGHT;
 	private static final Button button_enter = Button.ENTER;
+	
 
 	public static void main(String[] args) throws InterruptedException{
 		Thread mainReceiver = new Receiver();
@@ -23,7 +25,6 @@ public class MainCtrl2 {
 		Thread steeringRightThread = new SteeringRightThread();
 		Thread counterThread = new CounterThread();
 		
-		I2CSend.setup();
 		mainReceiver.start();
 		kickThread.start();
 		driveLeftThread.start();
@@ -296,34 +297,35 @@ class DriveLeftThread extends Thread{
 	}
 
 	public void run(){
+		Multiplexor chip = new Multiplexor(SensorPort.S4);
 		while(true){
 			int target = ControlCentre.getTargetDriveLeftVal();
 			LCD.drawString(Integer.toString(target)+",",2,1);
 
 			switch(target){
 			case 0:
-			    I2CSend.setMotors(0,0,1);
+			    chip.setMotors(0,0,1);
 			    break;
 			case 4:
-			    I2CSend.setMotors(0,0,1);
+			    chip.setMotors(0,0,1);
 			    break;
 			case 1:
-			    I2CSend.setMotors(1,1,1);
+			    chip.setMotors(1,1,1);
 			    break;
 			case 2:
-			    I2CSend.setMotors(1,2,1);
+			    chip.setMotors(1,2,1);
 			    break;
 			case 3:
-			    I2CSend.setMotors(1,3,1);
+			    chip.setMotors(1,3,1);
 			    break;
 			case 5:
-			    I2CSend.setMotors(2,1,1);
+			    chip.setMotors(2,1,1);
 			    break;
 			case 6:
-			    I2CSend.setMotors(2,2,1);
+			    chip.setMotors(2,2,1);
 			    break;
 			case 7:
-			    I2CSend.setMotors(2,3,1);
+			    chip.setMotors(2,3,1);
 			    break;
 			}
 		try{
@@ -339,33 +341,34 @@ class DriveRightThread extends Thread{
 	}
 
 	public void run(){
+		Multiplexor chip2 = new Multiplexor(SensorPort.S4);
 		while (true){
 			int target = ControlCentre.getTargetDriveRightVal();
 			LCD.drawString(Integer.toString(target)+",",4,1);
 			switch(target){
 			case 0:
-			    I2CSend.setMotors(0,0,0);
+			    chip2.setMotors(0,0,0);
 			    break;
 			case 4:
-			    I2CSend.setMotors(0,0,0);
+			    chip2.setMotors(0,0,0);
 			    break;
 			case 1:
-			    I2CSend.setMotors(1,1,0);
+			    chip2.setMotors(1,1,0);
 			    break;
 			case 2:
-			    I2CSend.setMotors(1,2,0);
+			    chip2.setMotors(1,2,0);
 			    break;
 			case 3:
-			    I2CSend.setMotors(1,3,0);
+			    chip2.setMotors(1,3,0);
 			    break;
 			case 5:
-			    I2CSend.setMotors(2,1,0);
+			    chip2.setMotors(2,1,0);
 			    break;
 			case 6:
-			    I2CSend.setMotors(2,2,0);
+			    chip2.setMotors(2,2,0);
 			    break;
 			case 7:
-			    I2CSend.setMotors(2,3,0);
+			    chip2.setMotors(2,3,0);
 			    break;
 			}
 		try{
@@ -479,52 +482,5 @@ class SteeringRightThread extends Thread{
 
 	private synchronized void setToAngle(int Angle){
 		toAngle = Angle;
-	}
-}
-
-class I2CSend extends I2CSensor{
-
-	private static I2CPort multiplexor;
-	private static I2CSensor mplSensor;
-	
-	public I2CSend(){
-	   super(multiplexor);  
-	}
-
-	public static synchronized void setup(){
-	    multiplexor = SensorPort.S4;
-	    multiplexor.i2cEnable(I2CPort.STANDARD_MODE);
-	    I2CSensor mplSensor = new I2CSensor(multiplexor);
-	    mplSensor.setAddress(0x5A);
-	}
-
-	public static synchronized void setMotors(int directionIndex, int speedIndex, int wheelIndex){
-
-		// sets up possible values 
-		byte[] directionValues = new byte [3];
-		directionValues[0] = (byte)1;
-		directionValues[1] = (byte)0;
-		directionValues[2] = (byte)2;
-		byte[] speedValues = new byte [3];
-		speedValues[0] = (byte)0;
-		speedValues[1] = (byte)130;
-		speedValues[2] = (byte)255;
-
-		// sets specific values
-		byte direction = directionValues[directionIndex];
-		byte speed = speedValues[speedIndex];
-
-		switch (wheelIndex){
-		// right wheel
-		case 0:		 
-			mplSensor.sendData(0x01,direction); 
-			mplSensor.sendData(0x02,speed);
-			break;
-		// left wheel
-		case 1:
-			mplSensor.sendData(0x03,direction); 
-			mplSensor.sendData(0x04,speed);
-			break;
-		}
 	}
 }
