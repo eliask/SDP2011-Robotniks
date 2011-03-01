@@ -1,4 +1,5 @@
 from communication.interface import *
+from common.utils import other_colour
 import logging
 
 class Strategy(object):
@@ -35,5 +36,20 @@ class Strategy(object):
     def getSelf(self):
         return self.world.getRobot(self.colour)
 
+    def getOpponent(self):
+        return self.world.getRobot( other_colour(self.colour) )
+
+    def getBall(self):
+        return self.world.getBall()
+
+    def getGoalPos(self):
+        return self.world.getGoalPos(self.colour)
+
     def run(self):
         raise NotImplemented, "Base AI class - DO NOT USE"
+
+    def getTimeUntil(self, delta):
+        if self.sim:
+            return time.time() + delta / self.sim.speed
+        else:
+            return time.time() + delta

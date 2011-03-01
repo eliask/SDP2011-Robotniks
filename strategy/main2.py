@@ -8,7 +8,7 @@ import logging
 import pygame
 
 class Main2(Strategy):
-    turning_start = 0
+    turn_until = 0
 
     def __init__(self, *args):
         Strategy.__init__(self, *args)
@@ -29,7 +29,7 @@ class Main2(Strategy):
             self.log.warn("couldn't find self: %s", e)
             return
 
-        ballPos = np.array( self.world.getBall().pos )
+        ballPos = np.array( self.getBall().pos )
 
         #print self.me.pos, ballPos
         if self.me.pos[0] == 0 or ballPos[0] == 0:
@@ -44,7 +44,7 @@ class Main2(Strategy):
             direction we should be going towards.
             """
             v = apf.all_apf( pos, self.world.getResolution(), ballPos,
-                             self.world.getGoalPos(self.colour), World.BallRadius )
+                             self.getGoalPos(), World.BallRadius )
 
             if self.sim:
                 # If in the simulator, visualise "intended movement direction"
@@ -134,7 +134,7 @@ class Main2(Strategy):
         #print delta
 
         if self.until_turned < time.time():
-            self.until_turned = time.time() + 0.6
+            self.until_turned = self.getTimeUntil(0.6)
             self.left_angle = self.right_angle = delta
             #print self.until_turned
             d_left = d_right = 0
@@ -154,8 +154,8 @@ class Main2(Strategy):
         """
         self.log.debug("orientToKick()")
 
-        ball = self.world.getBall().pos
-        goal = self.world.getGoalPos(self.colour)
+        ball = self.getBall().pos
+        goal = self.getGoalPos()
         dx,dy = goal[0]-ball[0], goal[1]-ball[1]
         angle = atan2(dy,dx)
         delta = abs(angle - self.me.orientation) % (2*pi)
@@ -163,18 +163,17 @@ class Main2(Strategy):
                         degrees(delta) )
 
         if angleDiffWithin(delta, radians(40)):
-            self.turning_start = 0
+            self.turn_until = 0
             self.drive_both(0)
             return True
         else:
-            if self.turning_start == 0:
-                self.turning_start = time.time()
+            if self.turn_until == 0:
+                self.turn_until = self.getTimeUntil(0.7)
                 self.drive_both(0)
 
             self.steer_left(radians(135))
             self.steer_right(radians(-45))
-            if time.time() - self.turning_start > 0.7:
-                #print time.time() - self.turning_start
+            if self.turn_until < time.time():
                 self.drive_both(3)
             return False
 

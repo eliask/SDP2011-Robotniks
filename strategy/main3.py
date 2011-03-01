@@ -8,20 +8,29 @@ import logging
 import pygame
 
 class Main3(Strategy):
-    turning_start = 0
+    turn_until = 0
 
     def __init__(self, *args):
         Strategy.__init__(self, *args)
         self.reset()
-        self.log = logging.getLogger('strategy.main2')
+        self.log = logging.getLogger('strategy.main3')
 
         # Variables for tracking the robot's internal state
         self.left_angle = 0
         self.right_angle = 0
         self.until_turned = 0
 
+        self.lock_until = 0
+        self.post_lock = lambda:None
+
     def run(self):
-        self.getSelf()
+
+        if self.lock_until > time.time():
+            return
+        else:
+            self.post_lock()
+            self.post_lock = lambda:None
+
         try:
             self.me = self.getSelf() # Find out where I am
             self.log.debug("My position: %s", pos2string(self.me.pos))
@@ -45,7 +54,6 @@ class Main3(Strategy):
         # Kick the ball if we are in front of it
 	if self.canKick(ballPos):
 		self.kick()
-
 
     def canKick(self, target_pos):
         """Are we right in front of the ball, being able to kick it?
@@ -115,7 +123,7 @@ class Main3(Strategy):
         #print delta
 
         if self.until_turned < time.time():
-            self.until_turned = time.time() + 0.6
+            self.until_turned = self.getTimeUntil(0.6)
             self.left_angle = self.right_angle = delta
             #print self.until_turned
             d_left = d_right = 0
@@ -135,35 +143,3 @@ class Main3(Strategy):
         """
         self.log.debug("orientToKick()")
 
-        ball = self.world.getBall().pos
-        goal = self.world.getGoalPos(self.colour)
-        dx,dy = goal[0]-ball[0], goal[1]-ball[1]
-        angle = atan2(dy,dx)
-        delta = abs(angle - self.me.orientation) % (2*pi)
-        self.log.debug( "Difference between orientation and kicking angle: %.1f",
-                        degrees(delta) )
-
-        if angleDiffWithin(delta, radians(40)):
-            self.turning_start = 0
-            self.drive_both(0)
-            return True
-        else:
-            if self.turning_start == 0:
-                self.turning_start = time.time()
-                self.drive_both(0)
-
-            self.steer_left(radians(135))
-            self.steer_right(radians(-45))
-            if time.time() - self.turning_start > 0.7:
-                #print time.time() - self.turning_start
-                self.drive_both(3)
-            return False
-
-    def orient(angle):
-        """Change the robot's orientation to specified angle.
-
-        The robot will be turned in a way that minimises the turning
-        time, taking into account wheel turning direction and driving
-        direction.
-        """
-        pass

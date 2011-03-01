@@ -7,6 +7,9 @@ import tempfile
 from math import *
 import numpy as np
 
+def other_colour(colour):
+    return {True:'yellow', False:'blue'}[colour == 'blue']
+
 def cvmat2list(mat):
     return [ mat[i,j] for i in range(mat.rows) for j in range(mat.cols) ]
 

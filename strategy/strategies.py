@@ -12,6 +12,7 @@ except ImportError:
 "A list of strategies that can be used"
 
 strategies = { 'main2' : Main2,
+               'main3' : Main3,
                'kicktest' : kicktest.KickTest,
                'main3' : Main3,
 	       'group1' : Group1,
