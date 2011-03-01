@@ -43,15 +43,23 @@ class PenaltyD(Strategy):
 		self.turned = 1
 	
 	if self.turned == 1:
+		if self.me.pos[1] - 150 < 210 - self.me.pos[1]:
+			self.direction = 1
 		if self.direction == 0:
-			if self.me.pos[1] > 170:
-				self.drive_both(3)
-			else:
-				self.drive_both(0)
-				self.direction = 1
+			self.driveUp()
 		else:
-			if self.me.pos[1] < 200:
-				self.drive_both(-3)
-			else:
-				self.drive_both(0)
-				self.direction = 0
+			self.driveDown()
+
+    def driveUp(self):
+	if self.me.pos[1] > 150:
+		self.drive_both(3)
+	else:
+		self.drive_both(0)
+		self.direction = 1
+
+    def driveDown(self):
+	if self.me.pos[1] < 210:
+		self.drive_both(-3)
+	else:
+		self.drive_both(0)
+		self.direction = 0
