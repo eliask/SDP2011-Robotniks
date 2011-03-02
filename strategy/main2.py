@@ -36,7 +36,7 @@ class Main2(Strategy):
             self.drive_both(-3)
             self.kick()
             self.positions = []
-            self.lock_until = time.time() + 0.2
+            self.lock_until = self.getTimeUntil(0.2)
             self.log.warn("Detected robot being stuck, locking to backwards movement")
             return True
         else:
@@ -210,7 +210,7 @@ class Main2(Strategy):
 
     def dash(self):
         if True or self.orientToKick():
-            self.lock_until = time.time() + 1.8
+            self.lock_until = self.getTimeUntil(1.8)
             self.post_lock = self.kick
             self.drive_both(3)
 
