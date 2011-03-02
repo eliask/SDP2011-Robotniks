@@ -26,8 +26,10 @@ public class Multiplexor extends I2CSensor{
 		if(speedIndex == 0){
 			speed = (byte)0;
 		}else if(speedIndex == 1){
-			speed = (byte)130;
-		} else if(speedIndex == 2){
+			speed = (byte)90;
+        }else if(speedIndex == 2){
+			speed = (byte)180;
+		} else if(speedIndex == 3){
 			speed = (byte)255;
 		}
 
