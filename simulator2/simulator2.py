@@ -44,6 +44,7 @@ class Simulator(object):
         self.robots=[]
         self.groups = 0
         self.running = True
+        self.score = [0,0]
 
     def set_state(self, state):
         "Set the current state of the ball and the robot"
@@ -114,6 +115,7 @@ class Simulator(object):
 
         self.screen.blit(self.overlay, (0,0))
 
+        self.draw_score()
         #self.draw_field()
         self.draw_ball()
 
@@ -217,8 +219,10 @@ class Simulator(object):
 
         ball = self.ball.body.position
         if self.goal_left.point_query(ball):
+            self.score[1] += 1
             self.reset()
         if self.goal_right.point_query(ball):
+            self.score[0] += 1
             self.reset()
 
         if ball.x < 0 or ball.y < 0 \
@@ -344,6 +348,14 @@ class Simulator(object):
         self.groups += 1
         space.add_static(static_lines)
         return static_lines
+
+    def draw_score(self):
+        pos = (self.Resolution[0]/2 - 50, 30)
+        name = pygame.font.get_default_font()
+        font = pygame.font.Font(name, 50)
+        text = "%d - %d" % (self.score[0], self.score[1])
+        surf = font.render(text, True, THECOLORS['gray'])
+        self.screen.blit(surf, pos)
 
     def draw_walls(self):
     	for line in self.walls:
