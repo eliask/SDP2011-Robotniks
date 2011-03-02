@@ -42,8 +42,17 @@ class Strategy(object):
     def getBall(self):
         return self.world.getBall()
 
-    def getGoalPos(self):
+    def getMyGoalPos(self):
         return self.world.getGoalPos(self.colour)
+
+    def getOpponentGoalPos(self):
+        return self.world.getGoalPos( other_colour(self.colour) )
+
+    def getMyGoalPoints(self):
+        return self.world.getGoalPoints( self.colour )
+
+    def getOpponentGoalPoints(self):
+        return self.world.getGoalPoints( other_colour(self.colour) )
 
     def run(self):
         raise NotImplemented, "Base AI class - DO NOT USE"

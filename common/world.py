@@ -82,6 +82,11 @@ class World(object):
         else:
             return self.GoalPositions[1]
 
+    def getGoalPoints(self, colour):
+        center = self.getGoalPos(colour)
+        return map( np.array, [(center[0], 0.6*center[1]),
+                               (center[0], 1.4*center[1])] )
+
     def swapGoals(self):
         self.GoalPositions = \
             [ self.GoalPositions[1], self.GoalPositions[0] ]
