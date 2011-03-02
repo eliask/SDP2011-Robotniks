@@ -7,7 +7,6 @@ try:
     from penalty_a import PenaltyA
     from penalty_d import PenaltyD
     from friendly1 import Friendly1
-
     from mlbridge import MLBridge
 except ImportError:
     MLBridge = None
