@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Base widget - GooeyPy Docs</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="skin/style.css" />
+</head>
+<body>
+
+    <div id="header">
+        <a href='http://joey101.net/gooeypy/'><img src='skin/logo.png' alt="GooeyPy"></a> Documentation
+    </div>
+
+    <div id="links">
+        <a href='index.html'>Overview</a><br><br>
+        <strong>gui</strong><ul>
+<li><a href="widget.html">widget</a></li>
+<li><a href="styleset.html">styleset</a></li>
+<li><a href="effects.html">effects</a></li>
+</ul>
+<strong>widgets</strong><ul>
+<li><a href="label.html">label</a></li>
+<li><a href="button.html">button</a></li>
+<li><a href="input.html">input</a></li>
+<li><a href="slider.html">slider</a></li>
+<li><a href="container.html">container</a></li>
+<li><a href="box.html">box</a></li>
+<li><a href="selectbox.html">selectbox</a></li>
+<li><a href="textblock.html">textblock</a></li>
+<li><a href="image.html">image</a></li>
+</ul>
+
+    </div>
+
+    <div id="body">
+        <ul id='sections'>
+<li><a href='#Widget'>Widget</a></li>
+<li><a href='#Widget.link'>Widget.link</a></li>
+<li><a href='#Widget.connect'>Widget.connect</a></li>
+<li><a href='#Widget.pos'>Widget.pos</a></li>
+<li><a href='#Widget.width'>Widget.width</a></li>
+<li><a href='#Widget.height'>Widget.height</a></li>
+<li><a href='#Widget.rect'>Widget.rect</a></li>
+<li><a href='#Widget.style'>Widget.style</a></li>
+<li><a href='#Widget.draw'>Widget.draw</a></li>
+<li><a href='#Widget.draw_widget'>Widget.draw_widget</a></li>
+<li><a href='#Widget.click'>Widget.click</a></li>
+<li><a href='#Widget.send'>Widget.send</a></li>
+</ul>
+
+        <div id="content">
+              
+<h1 id="Widget"><a name="Widget">Widget</a></h1>
+<span class="command">Widget([disabled, [active, [parent, [theme, [surface, [custom_styles]]]]]]) -&gt; Widget</span>
+<p>Base widget class.</p>
+<div class="section" id="example-of-use">
+<h3>Example of use</h3>
+<pre class="literal-block">
+mywidget = Widget(x=30, y=100, width=100, height=30)
+mywidget.connect(EVENT, myfunc, [values])
+
+# One of the cool things about GooeyPy is that you can change any style
+# widget specific options (like 'value' in the input and slider widgets)
+# and the widget will automatically update itself.
+
+mywidget.value = &quot;GooeyPy is awesome!&quot;
+
+# One thing to note is that while when initializing a widget you can
+# pass it arguments as custom styles (see below), you can't access those
+# styles directly (i.e. mywidget.width won't give you what you expect,
+# and it will raise an error if you try to assign to it). So if you want
+# to change or read a style option you would have to do something like
+# the following:
+
+mywidget.stylesets[&quot;default&quot;][&quot;width&quot;] = 140
+
+# You can also do it like this:
+
+mywidget.style[&quot;width&quot;] = 140
+
+# But be warned, widget.style returns the current styleset that's in
+# use! So if you are hovering over the widget when you change the width,
+# that width will only apply to that widget when you hover over it.
+# So if you want the width to apply to the widget at all times, you
+# can apply it to the &quot;default&quot; styleset (as shown above) in which
+# case it will apply to all stylesets that don't already have a width
+# style set. Or you can loop through mywidget.stylesets and set it for
+# each one, like so:
+
+for s in mywidget.stylesets.values():
+    s[&quot;width&quot;] = 140
+</pre>
+</div>
+<div class="section" id="arguments">
+<h3>Arguments</h3>
+<dl class="docutils">
+<dt>disabled</dt>
+<dd>If a widget is disabled, the &quot;disabled&quot; styling will
+apply and it will cease to interact with the user.</dd>
+<dt>active</dt>
+<dd>This widget will be ignored all together if it's not active.</dd>
+<dt>parent</dt>
+<dd>This is used internally when creating new widget types.</dd>
+<dt>theme</dt>
+<dd>The theme name or path to theme that you want this widget to use.</dd>
+<dt>surface</dt>
+<dd>The surface you want this widget to blit onto. This is a required
+argument for top-level widgets (widgets without a parent). This will
+override blitting to a parent (if it has one).</dd>
+<dt>custom_styles</dt>
+<dd>When you pass any extra arguments they get passed as a
+custom style; the key being the style option and the
+value passed as the tyle's option.
+Like in our example above, we pass 'x', 'y', 'width',
+and 'height'. Those will automatically get converted
+into styling options specific to that widget. Please
+refer to the documentation on styling for all
+available options and valid values.</dd>
+</dl>
+</div>
+
+<h2 id="Widget.link"><a name="Widget.link">Widget.link</a></h2>
+<span class="command">Widget.link(attr) -&gt; cellulose.DependencyCell</span>
+<p>This is one of those very cool things in GooeyPy where you won't find
+anywhere else. You can have one widget share a value with one or more
+other widgets!
+In the below example, whenever the value of myslider changes, so will
+the fontsize for mylabel and vise-versa (and it automatically redraws
+the stuff too... of course).</p>
+<div class="section" id="example-of-use">
+<h3>Example of use</h3>
+<pre class="literal-block">
+myslider = Slider(value=10, length=20)
+mylabel = Label(value=&quot;hi&quot;, font_size=myslider.link(&quot;value&quot;))
+</pre>
+<p>Linking works with any attribute (that you would want to change) or
+styling option in any widget! Cool eh? Well, actually it's not quite all
+working perfectly, so expect a bug or two with linking certain
+attributes on certain widgets.</p>
+<p>There is one pit-fall with this... if the thing you are trying to link
+isn't an attribute or a Cell (i.e. linkable), it will return None (and
+that could cause rather obscure errors).</p>
+</div>
+
+<h2 id="Widget.connect"><a name="Widget.connect">Widget.connect</a></h2>
+<span class="command">Widget.connect(code, func, [values]) -&gt; None</span>
+<p>Connect an event to a callback function.</p>
+<div class="section" id="example-of-use">
+<h3>Example of use</h3>
+<pre class="literal-block">
+def onclick(value):
+    print 'clicked', value
+
+mybutton = Button(&quot;GooeyPy&quot;)
+mybutton.connect(CLICK, onclick, &quot;button&quot;)
+</pre>
+</div>
+<div class="section" id="arguments">
+<h3>Arguments</h3>
+<dl class="docutils">
+<dt>code</dt>
+<dd>The event code to trigger the callback.</dd>
+<dt>func</dt>
+<dd>The callback</dd>
+<dt>values</dt>
+<dd>Extra values you may want to send on to your callback when
+it is called.</dd>
+</dl>
+</div>
+
+<h2 id="Widget.pos"><a name="Widget.pos">Widget.pos</a></h2>
+<span class="command">Widget.pos -&gt; Tuple</span>
+<p>Get the actual position that the widget should be drawn to and receive
+events at.</p>
+
+<h2 id="Widget.width"><a name="Widget.width">Widget.width</a></h2>
+<span class="command">Widget.width -&gt; int</span>
+<p>This returns the actual width of this widget. It takes into account
+padding (for widgets that contain other widgets), min-width and
+max-width styles.</p>
+
+<h2 id="Widget.height"><a name="Widget.height">Widget.height</a></h2>
+<span class="command">Widget.height -&gt; int</span>
+<p>This returns the actual height of this widget. It takes into account
+padding (for widgets that contain other widgets), min-height and
+max-height styles.</p>
+
+<h2 id="Widget.rect"><a name="Widget.rect">Widget.rect</a></h2>
+<span class="command">Widget.rect -&gt; pygame.Rect</span>
+<p>Gets the rect of the widget's current surface.</p>
+
+<h2 id="Widget.style"><a name="Widget.style">Widget.style</a></h2>
+<span class="command">Widget.style -&gt; StyleSet</span>
+<p>Returns the current styleset in use (from Widget.stylesets)</p>
+
+<h2 id="Widget.draw"><a name="Widget.draw">Widget.draw</a></h2>
+<span class="command">Widget.draw() -&gt; None</span>
+<p>draws the widget if necessary.</p>
+
+<h2 id="Widget.draw_widget"><a name="Widget.draw_widget">Widget.draw_widget</a></h2>
+<p>When writing your own widgets, you can overwrite this function
+to have custom processes when drawing.</p>
+
+<h2 id="Widget.click"><a name="Widget.click">Widget.click</a></h2>
+<p>When writing your own widgets, you can overwrite this function which is
+called every time the widget is clicked.</p>
+
+<h2 id="Widget.send"><a name="Widget.send">Widget.send</a></h2>
+<span class="command">Widget.send(code, [event]) -&gt; None</span>
+<p>Sends the event code 'code' and event 'event' (if suplied) to trigger
+any callbacks.</p>
+
+
+        </div>
+    </div>
+
+    <div id="footer">All content &copy; 2007 Joey Marshall <a href='http://joey101.net/gooeypy/'>GooeyPy</a></div>
+</body>
+</html>

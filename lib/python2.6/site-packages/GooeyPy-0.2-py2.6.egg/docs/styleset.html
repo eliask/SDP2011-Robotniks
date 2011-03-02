@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Styling options - GooeyPy Docs</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="skin/style.css" />
+</head>
+<body>
+
+    <div id="header">
+        <a href='http://joey101.net/gooeypy/'><img src='skin/logo.png' alt="GooeyPy"></a> Documentation
+    </div>
+
+    <div id="links">
+        <a href='index.html'>Overview</a><br><br>
+        <strong>gui</strong><ul>
+<li><a href="widget.html">widget</a></li>
+<li><a href="styleset.html">styleset</a></li>
+<li><a href="effects.html">effects</a></li>
+</ul>
+<strong>widgets</strong><ul>
+<li><a href="label.html">label</a></li>
+<li><a href="button.html">button</a></li>
+<li><a href="input.html">input</a></li>
+<li><a href="slider.html">slider</a></li>
+<li><a href="container.html">container</a></li>
+<li><a href="box.html">box</a></li>
+<li><a href="selectbox.html">selectbox</a></li>
+<li><a href="textblock.html">textblock</a></li>
+<li><a href="image.html">image</a></li>
+</ul>
+
+    </div>
+
+    <div id="body">
+        <ul id='sections'>
+<li><a href='#Style.really_get_image'>Style.really_get_image</a></li>
+<li><a href='#StyleSet'>StyleSet</a></li>
+<li><a href='#StyleSet.surf'>StyleSet.surf</a></li>
+<li><a href='#StyleSet.apply'>StyleSet.apply</a></li>
+</ul>
+
+        <div id="content">
+              
+<h2 id="Style.really_get_image"><a name="Style.really_get_image">Style.really_get_image</a></h2>
+<blockquote>
+really_get_image(path, [colorkey, [nocache]]) -&gt; pygame.Surface</blockquote>
+<p>path should be a sting. Example: really_get_image(&quot;data/image/my_image.png&quot;)
+Use forward slashed as demonstrated even if you are developing under
+windows, it will open the files os independent.</p>
+
+<h1 id="StyleSet"><a name="StyleSet">StyleSet</a></h1>
+<span class="command">StyleSet(widget, [parent]) -&gt; StyleSet object</span>
+<p>A styleset is a collection of style options grouped together for a
+specific event for a widget. Each widget has an dictionary named
+&quot;stylesets&quot; which contains several stylesets. For example:</p>
+<pre class="literal-block">
+{&quot;disabled&quot;:styleset, &quot;hover&quot;:styleset, &quot;default&quot;:styleset,
+        &quot;focused&quot;:styleset, &quot;down&quot;:styleset}
+</pre>
+<p>When the widget is hovered for example it will use stylesets[&quot;hover&quot;]
+At any time you can change a styling option for a widget by doing
+something like this:</p>
+<pre class="literal-block">
+mywidget.stylesets[&quot;hover&quot;][&quot;color&quot;] = (255,10,10)
+</pre>
+<div class="section" id="style-options">
+<h3>Style options</h3>
+<table border="1" class="docutils">
+<colgroup>
+<col width="21%" />
+<col width="79%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">option</th>
+<th class="head">value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>padding</td>
+<td>8 4 4 5 | 4 5 | 10</td>
+</tr>
+<tr><td>padding-top</td>
+<td>3</td>
+</tr>
+<tr><td>padding-right</td>
+<td>3</td>
+</tr>
+<tr><td>padding-bottom</td>
+<td>3</td>
+</tr>
+<tr><td>padding-left</td>
+<td>3</td>
+</tr>
+<tr><td>color</td>
+<td>(255,255,255)</td>
+</tr>
+<tr><td>font-weight</td>
+<td>normal | bold</td>
+</tr>
+<tr><td>font-family</td>
+<td>Verra.ttf</td>
+</tr>
+<tr><td>font-size</td>
+<td>12</td>
+</tr>
+<tr><td>effect</td>
+<td>pulsate 5</td>
+</tr>
+<tr><td>width</td>
+<td>300</td>
+</tr>
+<tr><td>height</td>
+<td>200</td>
+</tr>
+<tr><td>x</td>
+<td>57</td>
+</tr>
+<tr><td>y</td>
+<td>102</td>
+</tr>
+<tr><td>position</td>
+<td>relative | absolute</td>
+</tr>
+<tr><td>bgcolor</td>
+<td>(200,0,0)</td>
+</tr>
+<tr><td>bgimage</td>
+<td>image.png repeat|repeat-x|repeat-y|no-repeat|slice</td>
+</tr>
+<tr><td>border</td>
+<td>3 (0,250,20)</td>
+</tr>
+<tr><td>spacing</td>
+<td>12 # For certain container widgets.</td>
+</tr>
+<tr><td>opacity</td>
+<td>25 # Alpha value. Valid otpions between 0 and 255.</td>
+</tr>
+<tr><td>antialias</td>
+<td>1 | 0</td>
+</tr>
+<tr><td>align</td>
+<td>left | right | center</td>
+</tr>
+<tr><td>valign</td>
+<td>top | bottom | center</td>
+</tr>
+</tbody>
+</table>
+<p>Something to note about align and valign. When they are changed from their
+default values (top and left), the x and y values act as an offset. So if
+you are aligning a widget center and have an x value of 100, the widget will
+display 100 pixels to the right of the center of it's parent (or container)
+widget.</p>
+<p>Also, aligning only takes effect when positioning is relative (which is
+default).</p>
+</div>
+<div class="section" id="arguments">
+<h3>Arguments</h3>
+<dl class="docutils">
+<dt>widget</dt>
+<dd>The widget this styleset is for.</dd>
+<dt>parent</dt>
+<dd>Another styleset that this styleset should inherit from.</dd>
+</dl>
+</div>
+
+<h2 id="StyleSet.surf"><a name="StyleSet.surf">StyleSet.surf</a></h2>
+<span class="command">StyleSet.surf -&gt; pygame.Surface</span>
+<p>The surface generated from the styling.</p>
+
+<h2 id="StyleSet.apply"><a name="StyleSet.apply">StyleSet.apply</a></h2>
+<span class="command">StyleSet.apply(surf, option, values) -&gt; pygame.Surface</span>
+<p>Applies styling to surf. If you are just wanting to change a style
+option, use:</p>
+<pre class="literal-block">
+StyleSet[&quot;option&quot;] = values
+</pre>
+<p>This function is mainly for internal use.</p>
+
+
+        </div>
+    </div>
+
+    <div id="footer">All content &copy; 2007 Joey Marshall <a href='http://joey101.net/gooeypy/'>GooeyPy</a></div>
+</body>
+</html>
