@@ -212,10 +212,7 @@ class Simulator(object):
         self.space.step(1/self.tickrate)
         map(lambda x:x.tick(), self.robots)
         self.ball.body.velocity *= 0.997
-
-    def update_objects(self):
-        for _ in range(self.speed):
-            self.timestep()
+        self.runAI()
 
         ball = self.ball.body.position
         if self.goal_left.point_query(ball):
@@ -229,6 +226,10 @@ class Simulator(object):
                 or ball.x > self.Resolution[0] \
                 or ball.y > self.Resolution[1]:
             self.reset_ball_pos()
+
+    def update_state(self):
+        for _ in range(self.speed):
+            self.timestep()
 
     def penalty_left(self):
 	self.ball.body.position = (210, 200)
@@ -280,8 +281,7 @@ class Simulator(object):
             self.clock.tick(self.tickrate)
             self.handle_input()
             if self.running:
-                self.update_objects()
-                self.runAI()
+                self.update_state()
             self.draw_ents()
             pygame.display.flip()
 
