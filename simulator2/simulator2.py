@@ -225,7 +225,7 @@ class Simulator(object):
         if ball.x < 0 or ball.y < 0 \
                 or ball.x > self.Resolution[0] \
                 or ball.y > self.Resolution[1]:
-            self.reset_ball_pos()
+            self.reset_ball()
 
     def update_state(self):
         for _ in range(self.speed):
@@ -247,13 +247,13 @@ class Simulator(object):
     def pause(self):
         self.running = not self.running
 
-    def reset_ball_pos(self):
+    def reset_ball(self):
         self.ball.body.position = pymunk.Vec2d(self.Resolution[0]/2.0,
                                                self.Resolution[1]/2.0)
+        self.ball.body.velocity = pymunk.Vec2d((0,0))
 
     def reset(self):
-        self.ball.body.velocity = pymunk.Vec2d((0,0))
-        self.reset_ball_pos()
+        self.reset_ball()
 
         self.robots[0].set_position( self.robot1_pos )
         self.robots[0].set_angle(0)
