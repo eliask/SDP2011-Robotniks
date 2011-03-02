@@ -6,6 +6,7 @@ from gooeypy.const import *
 import os
 import pygame
 import sys
+from strategies import strategies
 
 """
 Points to the strategy dir
@@ -13,32 +14,22 @@ Points to the strategy dir
 strategy_dir = os.path.abspath('.') + '/strategy'
 
 """
-The strategies to list.  The key is the display name and the value is the file.
-"""
-strategies = {
-  'main2': 'main2.py',
-  'main3': 'main3.py'
-  # etc
-}
-
-"""
 The method to change the strategy.
 """
 def change_strategy(strategy):
-  print 'Changed strategy to %s in %s' % \
-    (strategy, strategies[strategy])
+  print 'Changed strategy to:', strategy
 
 """
 The method to change the goal.
 """
 def change_goal(goal):
-  print 'Changed goal to %s' % goal
+  print 'Changed goal to:', goal
 
 """
 The method to change the colour.
 """
 def change_colour(colour):
-  print 'Changed colour to %s' % colour
+  print 'Changed colour to', colour
 
 """
 Setup the GUI components.
@@ -79,16 +70,16 @@ quit = False
 selected_strategy = None
 while not quit:
   clock.tick(30)
-  
-  # You'd think there'd be a 'connectable' event for the selection changing, but
-  # unfortunately not.
+
+  # You'd think there'd be a 'connectable' event for the selection
+  # changing, but unfortunately not.
   if len(strategy_select.values) != 0:
     new_strategy = strategy_select.values.pop()
     if new_strategy != selected_strategy:
       selected_strategy = new_strategy
       change_strategy(selected_strategy)
-  
+
   gui.run(pygame.event.get())
   gui.draw()
-  
+
   pygame.display.flip()
