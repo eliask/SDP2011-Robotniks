@@ -19,16 +19,14 @@ public class MainCtrl2 {
 	public static void main(String[] args) throws InterruptedException{
 		Thread mainReceiver = new Receiver();
 		Thread kickThread = new KickThread();
-		Thread driveLeftThread = new DriveLeftThread();
-		Thread driveRightThread = new DriveRightThread();
+		Thread driveThread = new DriveThread();
 		Thread steeringLeftThread = new SteeringLeftThread();
 		Thread steeringRightThread = new SteeringRightThread();
 		Thread counterThread = new CounterThread();
 		
 		mainReceiver.start();
 		kickThread.start();
-		driveLeftThread.start();
-		driveRightThread.start();
+		driveThread.start();
 		steeringLeftThread.start();
 		steeringRightThread.start();
 		counterThread.start();
@@ -279,8 +277,8 @@ class KickThread extends Thread{
 			if (kick) {
 				LCD.drawString("K,",0,1);
 				Movement.motor_kick.setSpeed(900);
-				Movement.motor_kick.rotate((120*(5/3)));
 				Movement.motor_kick.rotate((-120*(5/3)));
+				Movement.motor_kick.rotate((120*(5/3)));
 			} else {
 				LCD.drawString("_,",0,1);
 			}
@@ -292,17 +290,18 @@ class KickThread extends Thread{
 	}
 }
 
-class DriveLeftThread extends Thread{
-	public DriveLeftThread(){
+class DriveThread extends Thread{
+	public DriveThread(){
 	}
 
 	public void run(){
 		Multiplexor chip = new Multiplexor(SensorPort.S4);
 		while(true){
-			int target = ControlCentre.getTargetDriveLeftVal();
-			LCD.drawString(Integer.toString(target)+",",2,1);
+			
+			int targetLeft = ControlCentre.getTargetDriveLeftVal();
+			LCD.drawString(Integer.toString(targetLeft)+",",2,1);
 
-			switch(target){
+			switch(targetLeft){
 			case 0:
 			    chip.setMotors(0,0,1);
 			    break;
@@ -310,65 +309,51 @@ class DriveLeftThread extends Thread{
 			    chip.setMotors(0,0,1);
 			    break;
 			case 1:
+			    chip.setMotors(1,0,1);
+			    break;
+			case 2:
 			    chip.setMotors(1,1,1);
 			    break;
-			case 2:
+			case 3:
 			    chip.setMotors(1,2,1);
 			    break;
-			case 3:
-			    chip.setMotors(1,3,1);
-			    break;
 			case 5:
+			    chip.setMotors(2,0,1);
+			    break;
+			case 6:
 			    chip.setMotors(2,1,1);
 			    break;
-			case 6:
+			case 7:
 			    chip.setMotors(2,2,1);
 			    break;
-			case 7:
-			    chip.setMotors(2,3,1);
-			    break;
 			}
-		try{
-			Thread.sleep(100);
-		}catch(InterruptedException e){
-		}
-		}
-	}
-}
-
-class DriveRightThread extends Thread{
-	public DriveRightThread(){
-	}
-
-	public void run(){
-		Multiplexor chip2 = new Multiplexor(SensorPort.S4);
-		while (true){
-			int target = ControlCentre.getTargetDriveRightVal();
-			LCD.drawString(Integer.toString(target)+",",4,1);
-			switch(target){
+			
+			int targetRight = ControlCentre.getTargetDriveRightVal();
+			LCD.drawString(Integer.toString(targetRight)+",",4,1);
+			switch(targetRight){
 			case 0:
-			    chip2.setMotors(0,0,0);
+			    chip.setMotors(0,0,0);
 			    break;
 			case 4:
-			    chip2.setMotors(0,0,0);
+			    chip.setMotors(0,0,0);
 			    break;
 			case 1:
-			    chip2.setMotors(1,1,0);
+			    chip.setMotors(1,0,0);
 			    break;
 			case 2:
-			    chip2.setMotors(1,2,0);
+			    chip.setMotors(1,1,0);
 			    break;
 			case 3:
-			    chip2.setMotors(1,3,0);
+			    chip.setMotors(1,2,0);
 			    break;
 			case 5:
-			    chip2.setMotors(2,1,0);
+			    chip.setMotors(2,0,0);
 			    break;
 			case 6:
-			    chip2.setMotors(2,2,0);
+			    chip.setMotors(2,1,0);
 			    break;
 			case 7:
-			    chip2.setMotors(2,3,0);
+			    chip.setMotors(2,2,0);
 			    break;
 			}
 		try{
@@ -484,3 +469,4 @@ class SteeringRightThread extends Thread{
 		toAngle = Angle;
 	}
 }
+
