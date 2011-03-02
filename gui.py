@@ -6,7 +6,7 @@ from gooeypy.const import *
 import os
 import pygame
 import sys
-from strategies import strategies
+from strategy.strategies import strategies
 
 """
 Points to the strategy dir
