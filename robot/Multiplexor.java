@@ -2,6 +2,8 @@ import lejos.nxt.I2CPort;
 import lejos.nxt.I2CSensor;
 
 public class Multiplexor extends I2CSensor{
+	private static byte direction;
+	private static byte speed;
 
 	public Multiplexor(I2CPort port){
 		super(port);
@@ -13,29 +15,32 @@ public class Multiplexor extends I2CSensor{
 
 	public void setMotors(int directionIndex, int speedIndex, int wheelIndex){
 		// sets up possible values 
-		byte[] directionValues = new byte [3];
-		directionValues[0] = (byte)1;
-		directionValues[1] = (byte)0;
-		directionValues[2] = (byte)2;
-		byte[] speedValues = new byte [3];
-		speedValues[0] = (byte)0;
-		speedValues[1] = (byte)130;
-		speedValues[2] = (byte)255;
-
-		// sets specific values
-		byte direction = directionValues[directionIndex];
-		byte speed = speedValues[speedIndex];
+		if(directionIndex == -1){
+			direction  = (byte)2;
+		}else if(directionIndex == 0){
+			direction = (byte)0;
+		} else if(speedIndex == 1){
+			direction = (byte)1;
+		}
+			
+		if(speedIndex == 0){
+			speed = (byte)0;
+		}else if(speedIndex == 1){
+			speed = (byte)130;
+		} else if(speedIndex == 2){
+			speed = (byte)255;
+		}
 
 		switch (wheelIndex){
-		// right wheel
-		case 0:		 
-			sendData((byte)0x01,direction); 
-			sendData((byte)0x02,speed);
-			break;
 		// left wheel
-		case 1:
+		case 0:		 
 			sendData((byte)0x03,direction); 
 			sendData((byte)0x04,speed);
+			break;
+		// right wheel
+		case 1:
+			sendData((byte)0x01,direction); 
+			sendData((byte)0x02,speed);
 			break;
 		}
 	}

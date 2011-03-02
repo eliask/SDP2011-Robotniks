@@ -303,28 +303,28 @@ class DriveThread extends Thread{
 
 			switch(targetLeft){
 			case 0:
-			    chip.setMotors(0,0,1);
+			    chip.setMotors(0,0,0);
 			    break;
 			case 4:
-			    chip.setMotors(0,0,1);
+			    chip.setMotors(0,0,0);
 			    break;
 			case 1:
-			    chip.setMotors(1,0,1);
+			    chip.setMotors(1,1,0);
 			    break;
 			case 2:
-			    chip.setMotors(1,1,1);
+			    chip.setMotors(1,2,0);
 			    break;
 			case 3:
-			    chip.setMotors(1,2,1);
+			    chip.setMotors(1,3,0);
 			    break;
 			case 5:
-			    chip.setMotors(2,0,1);
+			    chip.setMotors(-1,1,0);
 			    break;
 			case 6:
-			    chip.setMotors(2,1,1);
+			    chip.setMotors(-1,2,0);
 			    break;
 			case 7:
-			    chip.setMotors(2,2,1);
+			    chip.setMotors(-1,3,0);
 			    break;
 			}
 			
@@ -332,28 +332,28 @@ class DriveThread extends Thread{
 			LCD.drawString(Integer.toString(targetRight)+",",4,1);
 			switch(targetRight){
 			case 0:
-			    chip.setMotors(0,0,0);
+			    chip.setMotors(0,0,1);
 			    break;
 			case 4:
-			    chip.setMotors(0,0,0);
+			    chip.setMotors(0,0,1);
 			    break;
 			case 1:
-			    chip.setMotors(1,0,0);
+			    chip.setMotors(1,1,1);
 			    break;
 			case 2:
-			    chip.setMotors(1,1,0);
+			    chip.setMotors(1,2,1);
 			    break;
 			case 3:
-			    chip.setMotors(1,2,0);
+			    chip.setMotors(1,3,1);
 			    break;
 			case 5:
-			    chip.setMotors(2,0,0);
+			    chip.setMotors(-1,1,1);
 			    break;
 			case 6:
-			    chip.setMotors(2,1,0);
+			    chip.setMotors(-1,2,1);
 			    break;
 			case 7:
-			    chip.setMotors(2,2,0);
+			    chip.setMotors(-1,3,1);
 			    break;
 			}
 		try{
