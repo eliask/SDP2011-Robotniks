@@ -42,9 +42,9 @@ class GUI:
         def t1(x): self.vision.featureEx.hough_params[0] = x
         def t2(x): self.vision.featureEx.hough_params[1] = x
 
-        cv.NamedWindow("hough")
-        cv.CreateTrackbar("P1", self.WindowName, 180, 1000, t1)
-        cv.CreateTrackbar("P2", self.WindowName, 120, 1000, t2)
+        #cv.NamedWindow("hough")
+        # cv.CreateTrackbar("P1", self.WindowName, 180, 1000, t1)
+        # cv.CreateTrackbar("P2", self.WindowName, 120, 1000, t2)
 
     def initThresholds(self):
         T = self.threshold
@@ -201,7 +201,7 @@ class GUI:
 
         cv.ResetImageROI(image)
 
-    def drawRotBox(self, ent, color=cv.CV_RGB(255,128,0) ):
+    def draw_ent(self, ent, color=cv.CV_RGB(255,128,0) ):
         if not ent: return
         #x,y = self.scale*ent.pos[0], self.scale*ent.pos[1]
         x,y = ent.pos
@@ -221,15 +221,11 @@ class GUI:
         cv.Circle( self.image, tuple(self.world.getBall().pos),
                    10, (180,100,230), 3 )
 
-        robot = self.world.getSelf()
-        if robot:
-            logging.info( "Our robot at angle: %.1f", degrees(robot.orientation))
-            self.drawRotBox(robot, color=cv.CV_RGB(0,0,200) )
-
-        robot = self.world.getOpponent()
-        if robot:
-            logging.info( "Other robot at angle: %.1f", degrees(robot.orientation))
-            self.drawRotBox(robot, color=cv.CV_RGB(255,255,64) )
+        for robot, colour in [('blue', (230,100,100)), ('yellow', (0,200,200))]:
+            robot = self.world.getRobot(robot)
+            if robot:
+                logging.info( "%s robot at angle: %.1f", robot, degrees(robot.orientation))
+                self.draw_ent(robot, colour)
 
     def processInput(self):
         #c = cv.WaitKey(500)

@@ -9,16 +9,15 @@ import logging
 #logging.basicConfig(level=logging.DEBUG)
 
 args = len(sys.argv)
-if args < 2:
-    print "Usage: vision.py <colour> [filename]"
+if args < 1:
+    print "Usage: vision.py [filename]"
     sys.exit(2)
 
-colour = sys.argv[1]
-world = World(colour)
-if args == 2:
+world = World()
+if args == 1:
     v = Vision(world)
-elif args > 2:
-    files = sys.argv[2:]
+elif args > 1:
+    files = sys.argv[1:]
     v = Vision(world, files)
 
 v.run()

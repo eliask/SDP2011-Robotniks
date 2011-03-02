@@ -79,7 +79,9 @@ class Capture:
 
 		while True:
 			if frameExists(self.cur_frame + 1):
-				os.remove(getName(self.cur_frame - 1))
+				file = getName(self.cur_frame - 1)
+				if os.path.exists(file):
+					os.remove(file)
 				self.cur_frame += 1
 			elif frameExists(self.cur_frame):
 				frame = cv.LoadImage(getName(self.cur_frame - 1))

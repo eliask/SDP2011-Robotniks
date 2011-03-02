@@ -273,6 +273,6 @@ class FeatureExtraction:
         circles = [storage[i,0] for i in range(storage.rows)]
         for x,y, radius in [storage[i,0] for i in range(storage.rows)]:
             cv.Circle(out, (x,y), min(7,cv.Round(radius)), cv.CV_RGB(300,1,1), 2)
-        cv.ShowImage("hough", out)
+        #cv.ShowImage("hough", out)
 
         return circles
