@@ -1,0 +1,130 @@
+body {
+    padding:0;
+    margin:0;
+    background: #a8fe62 url("nav.png") repeat-y;
+    font-family:Sans-Serif, Arial;
+}
+
+a {
+    text-decoration:none;
+    padding: 0 .4em;
+    color:#00f;
+}
+a:visited {
+    color:#99f;
+}
+
+a:hover {
+/*     text-decoration:underline; */
+    background-color:#d8ff9b;
+}
+
+#header {
+    border-bottom: 1px solid black;
+    text-align:center;
+    font-size:3em;
+    background:white;
+    padding:0.4em 0;
+}
+#header img {
+    margin:0;
+    padding:0;
+    border:0;
+/*     float:left; */
+}
+#header a:hover, #header a {
+    margin:0;
+    padding:0;
+    border:0;
+}
+
+#links {
+    float:left;
+    width:10em;
+    padding:1em;
+/*     border-right: 1px solid black; */
+}
+
+#body {
+    width:50em;
+    margin-left:12em;
+}
+#content {
+    border: 1px solid #0c8200;
+    border-top-style:dashed;
+    background:#f5ffed;
+    padding:1em;
+    float:left;
+}
+#body h1, #body h2 {
+    margin: 2em 0 0 0;
+    color:#0c8200;
+    padding:0 0 0 2em;
+    background-color:#d8ff9b;
+/*     border-bottom:1px solid #0c8200; */
+}
+h1 a, h2 a {
+    color:#0c8200;
+}
+
+.section h3 {
+    color:#0c8200;
+    font-size:1.2em;
+    margin: 1.5em 0 0 0;
+    padding:0;
+/*     background-color:#d8ff9b; */
+}
+.command {
+    font-weight:bold;
+    color:#ffba00;
+}
+
+#body table td {
+    padding:0.7em;
+}
+
+#body pre {
+    margin:0;
+    padding:0.4em;
+    border:1px dashed #0c8200;
+    background-color:#f4f4f4;
+    font-size:1em;
+/*     border-left:0.3em solid #d0eda4; */
+/*     padding-left: 1em; */
+}
+
+ul#sections {
+    margin:0;
+    padding:1em;
+    list-style-type:none;
+    background-color:#a9ff63;
+    float:left;
+/*     margin-left:12em; */
+/*     width:50em; */
+}
+ul#sections li {
+/*     display: inline; */
+    float:left;
+}
+ul#sections li a {
+    padding: 0 1em;
+    display:block;
+    width:10em;
+}
+
+dl {
+    margin:.5em 0;
+    padding:0;
+}
+dt {
+    font-weight:bold;
+}
+
+#footer {
+/*     border-top: 1px solid black; */
+    clear:both;
+    text-align:center;
+    font-size:0.8em;
+    padding:1em;
+/*     background-color:#ddd; */
+}

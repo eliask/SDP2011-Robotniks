@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>button - GooeyPy Docs</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="skin/style.css" />
+</head>
+<body>
+
+    <div id="header">
+        <a href='http://joey101.net/gooeypy/'><img src='skin/logo.png' alt="GooeyPy"></a> Documentation
+    </div>
+
+    <div id="links">
+        <a href='index.html'>Overview</a><br><br>
+        <strong>gui</strong><ul>
+<li><a href="widget.html">widget</a></li>
+<li><a href="styleset.html">styleset</a></li>
+<li><a href="effects.html">effects</a></li>
+</ul>
+<strong>widgets</strong><ul>
+<li><a href="label.html">label</a></li>
+<li><a href="button.html">button</a></li>
+<li><a href="input.html">input</a></li>
+<li><a href="slider.html">slider</a></li>
+<li><a href="container.html">container</a></li>
+<li><a href="box.html">box</a></li>
+<li><a href="selectbox.html">selectbox</a></li>
+<li><a href="textblock.html">textblock</a></li>
+<li><a href="image.html">image</a></li>
+</ul>
+
+    </div>
+
+    <div id="body">
+        <ul id='sections'>
+<li><a href='#Button'>Button</a></li>
+<li><a href='#Switch'>Switch</a></li>
+</ul>
+
+        <div id="content">
+            <h1 id="Button"><a name="Button">Button</a></h1>
+<span class="command">Button([value]) -&gt; Button widget</span>
+<p>A widget resembling a button.</p>
+<div class="section" id="arguments">
+<h3>Arguments</h3>
+<dl class="docutils">
+<dt>value</dt>
+<dd>The text or widget to be displayed on the button.</dd>
+</dl>
+</div>
+
+<h1 id="Switch"><a name="Switch">Switch</a></h1>
+<span class="command">Switch([value, [labels, [options]]]) -&gt; Switch widget</span>
+<p>This is very similar to a button. When clicked, it will cycle through it's
+list of options. The label displayed will be the the item in the labels list
+at the same index as the current option (value) in the options list. The
+labels and options need to be exactly the same size.</p>
+<div class="section" id="arguments">
+<h3>Arguments</h3>
+<dl class="docutils">
+<dt>value</dt>
+<dd>Must be an item in the options list.</dd>
+<dt>labels</dt>
+<dd>A list of strings that will be used as labels.</dd>
+<dt>options</dt>
+<dd>A list of items that are cycled through to determin this widgets value.</dd>
+</dl>
+</div>
+
+
+        </div>
+    </div>
+
+    <div id="footer">All content &copy; 2007 Joey Marshall <a href='http://joey101.net/gooeypy/'>GooeyPy</a></div>
+</body>
+</html>

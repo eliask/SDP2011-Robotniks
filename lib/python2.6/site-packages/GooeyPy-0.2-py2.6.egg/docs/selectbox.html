@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>selectbox - GooeyPy Docs</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="skin/style.css" />
+</head>
+<body>
+
+    <div id="header">
+        <a href='http://joey101.net/gooeypy/'><img src='skin/logo.png' alt="GooeyPy"></a> Documentation
+    </div>
+
+    <div id="links">
+        <a href='index.html'>Overview</a><br><br>
+        <strong>gui</strong><ul>
+<li><a href="widget.html">widget</a></li>
+<li><a href="styleset.html">styleset</a></li>
+<li><a href="effects.html">effects</a></li>
+</ul>
+<strong>widgets</strong><ul>
+<li><a href="label.html">label</a></li>
+<li><a href="button.html">button</a></li>
+<li><a href="input.html">input</a></li>
+<li><a href="slider.html">slider</a></li>
+<li><a href="container.html">container</a></li>
+<li><a href="box.html">box</a></li>
+<li><a href="selectbox.html">selectbox</a></li>
+<li><a href="textblock.html">textblock</a></li>
+<li><a href="image.html">image</a></li>
+</ul>
+
+    </div>
+
+    <div id="body">
+        <ul id='sections'>
+<li><a href='#SelectBox'>SelectBox</a></li>
+<li><a href='#SelectBox.add'>SelectBox.add</a></li>
+<li><a href='#SelectBox.remove'>SelectBox.remove</a></li>
+<li><a href='#SelectBox.clear'>SelectBox.clear</a></li>
+</ul>
+
+        <div id="content">
+            <h1 id="SelectBox"><a name="SelectBox">SelectBox</a></h1>
+<span class="command">SelectBox([multiple, [expand]]) -&gt; SelectBox widget</span>
+<p>Subclasses from VBox. Like a html select box.</p>
+<p>You can access SelectBox.values to get a set of all selected values.</p>
+<div class="section" id="arguments">
+<h3>Arguments</h3>
+<dl class="docutils">
+<dt>multiple</dt>
+<dd>If set to True, multiple options can be selected.</dd>
+<dt>expand</dt>
+<dd>If set to True (default) all widgets will expand to be the same width.</dd>
+</dl>
+</div>
+
+<h2 id="SelectBox.add"><a name="SelectBox.add">SelectBox.add</a></h2>
+<span class="command">SelectBox.add(label, value) -&gt; Option widget</span>
+<p>Add an option to SelectBox.</p>
+<div class="section" id="arguments">
+<h3>Arguments</h3>
+<dl class="docutils">
+<dt>label</dt>
+<dd>The text or widget to be displayed as the option.</dd>
+<dt>value</dt>
+<dd>The value of the option (not displayed).</dd>
+</dl>
+</div>
+
+<h2 id="SelectBox.remove"><a name="SelectBox.remove">SelectBox.remove</a></h2>
+<span class="command">SelectBox.remove(option) -&gt; None</span>
+<p>Remove option from SelectBox.</p>
+<div class="section" id="arguments">
+<h3>Arguments</h3>
+<dl class="docutils">
+<dt>option</dt>
+<dd>Can ether be a string representing an option's value or the option
+widget.</dd>
+</dl>
+</div>
+
+<h2 id="SelectBox.clear"><a name="SelectBox.clear">SelectBox.clear</a></h2>
+<span class="command">SelectBox.clear() -&gt; None</span>
+<p>clears all options from SelectBox.</p>
+
+
+        </div>
+    </div>
+
+    <div id="footer">All content &copy; 2007 Joey Marshall <a href='http://joey101.net/gooeypy/'>GooeyPy</a></div>
+</body>
+</html>
