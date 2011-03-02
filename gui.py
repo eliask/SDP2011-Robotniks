@@ -1,43 +1,55 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 This creates the interface to switch between strategies.
 """
-import gooeypy
-from gooeypy.const import *
-import os
-import pygame
-import sys
-from strategy.strategies import strategies
 
-"""
-Points to the strategy dir
-"""
+from common.world import *
+from communication.robot_interface2 import *
+from gooeypy.const import *
+from strategy.strategies import *
+from strategy.strategies import strategies
+from vision2.vision import *
+import pygame, gooeypy
+import os, sys
+import logging
+#logging.basicConfig(level=logging.DEBUG)
+
 strategy_dir = os.path.abspath('.') + '/strategy'
 
-"""
-The method to change the strategy.
-"""
+world = World()
+v = Vision(world)
+
+colour = 'yellow'
+if len(sys.argv) > 1:
+  colour = sys.argv[1]
+
+ai_name = 'friendly1'
+if len(sys.argv) > 2:
+  ai_name = sys.argv[2]
+
+
 def change_strategy(strategy):
+  del ai
+  ai = strategies[strategy]( world, RealRobotInterface() )
+  ai.setColour(colour)
   print 'Changed strategy to:', strategy
 
-"""
-The method to change the goal.
-"""
-def change_goal(goal):
+def change_goal(new_goal):
+  if goal != new_goal:
+    world.swapGoals()
   print 'Changed goal to:', goal
 
-"""
-The method to change the colour.
-"""
 def change_colour(colour):
+  ai.setColour(colour)
   print 'Changed colour to', colour
 
-"""
-Setup the GUI components.
-"""
+# Setup the GUI components:
 pygame.init()
 clock = pygame.time.Clock()
-screen = pygame.display.set_mode((640, 135), pygame.SRCALPHA)
-gui = gooeypy.Container(width=640, height=135, surface=screen)
+height = 21 * len(strategies)
+screen = pygame.display.set_mode((640, height), pygame.SRCALPHA)
+gui = gooeypy.Container(width=640, height=height, surface=screen)
 
 hbox = gooeypy.HBox(x=0, y=0)
 gui.add(hbox)
@@ -63,13 +75,18 @@ yellow_button = gooeypy.Button('Yellow')
 yellow_button.click = lambda: change_colour('yellow')
 hbox.add(yellow_button)
 
-"""
-The GUI loop.
-"""
+ai = strategies[ai_name]( world, RealRobotInterface() )
+ai.setColour(colour)
+
 quit = False
 selected_strategy = None
+
 while not quit:
-  clock.tick(30)
+  # The main loop
+
+  v.processFrame()
+  ai.run()
+  ai.sendMessage()
 
   # You'd think there'd be a 'connectable' event for the selection
   # changing, but unfortunately not.
