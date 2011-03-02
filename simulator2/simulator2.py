@@ -358,11 +358,11 @@ class Simulator(object):
 
     def draw_score(self):
         pos = (self.Resolution[0]/2 - 50, 30)
-        #name = pygame.font.get_default_font()
-        #font = pygame.font.Font(name, 50)
-        #text = "%d - %d" % (self.score[0], self.score[1])
-        #surf = font.render(text, True, THECOLORS['gray'])
-        #self.screen.blit(surf, pos)
+        name = pygame.font.get_default_font()
+        font = pygame.font.Font(name, 50)
+        text = "%d - %d" % (self.score[0], self.score[1])
+        surf = font.render(text, True, THECOLORS['gray'])
+        self.screen.blit(surf, pos)
 
     def draw_walls(self):
     	for line in self.walls:
