@@ -69,8 +69,8 @@ def ball_apf(pos, ball_pos, goal_pos, radius):
     G1 = G1x, G1y
     tangent1 = tangential_field(1, G1, pos, [S*scaleT2]*2, max_dist)
 
-    G2x = ball_pos[0] + S*scaleT1*cos(pi+angleN) - offset*sin(angle)
-    G2y = ball_pos[1] + S*scaleT1*sin(pi+angleN) - offset*cos(angle)
+    G2x = ball_pos[0] + S*scaleT1*(cos(pi+angleN) - offset*sin(angle))
+    G2y = ball_pos[1] + S*scaleT1*(sin(pi+angleN) - offset*cos(angle))
     G2 = G2x, G2y
     tangent2 = tangential_field(-1, G2, pos, [S*scaleT2]*2, max_dist)
 
