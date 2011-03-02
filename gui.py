@@ -28,13 +28,16 @@ ai_name = 'friendly1'
 if len(sys.argv) > 2:
   ai_name = sys.argv[2]
 
+ai = strategies[ai_name]( world, RealRobotInterface() )
+ai.setColour(colour)
 
 def change_strategy(strategy):
-  del ai
+  global ai
   ai = strategies[strategy]( world, RealRobotInterface() )
   ai.setColour(colour)
   print 'Changed strategy to:', strategy
 
+goal = 'left'
 def change_goal(new_goal):
   if goal != new_goal:
     world.swapGoals()
@@ -74,9 +77,6 @@ hbox.add(blue_button)
 yellow_button = gooeypy.Button('Yellow')
 yellow_button.click = lambda: change_colour('yellow')
 hbox.add(yellow_button)
-
-ai = strategies[ai_name]( world, RealRobotInterface() )
-ai.setColour(colour)
 
 quit = False
 selected_strategy = None

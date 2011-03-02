@@ -148,6 +148,8 @@ def enum(*sequential, **named):
     return type('Enum', (), enums)
 
 def dist(src, dest):
+    src=np.array(src)
+    dest=np.array(dest)
     return sqrt( sum((src-dest)**2) )
 
 def angleDiffWithin(angle, epsilon):

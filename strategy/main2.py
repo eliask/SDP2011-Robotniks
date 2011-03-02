@@ -133,7 +133,7 @@ class Main2(Strategy):
 
         Note: Somewhat inaccurate atm. Adjusting the constants might work.
         """
-	if dist(self.me.pos, target_pos) < 20:
+	if dist(np.array(self.me.pos), target_pos) < 20:
             angle_diff = self.me.orientation % (2*pi)
             - pi - abs( atan2(self.me.pos[1] - target_pos[1],
                               (self.me.pos[0] - target_pos[0])) )
@@ -201,7 +201,7 @@ class Main2(Strategy):
         angle = atan2(dest[1], dest[0])
         self.log.debug("turnTo(%.1f)", degrees(angle))
 
-        dx,dy = dest - self.me.pos
+        dx,dy = np.array(dest) - self.me.pos
         angle = atan2(dy,dx)
         orient = self.me.orientation
         delta = angle - orient
