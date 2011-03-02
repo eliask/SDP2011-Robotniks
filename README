@@ -21,8 +21,7 @@ done in separate terminals:
    snapshots of the video feed to a temporary directory. The files
    will only get deleted once the vision system is reading them. The
    MPlayer capture must always be started /before/ the vision system,
-   and if the vision system is restarted, the MPlayer capture must
-   also be restarted.
+   but can be restarted afterwards as many times as wanted.
   $ ./start-mplayer.sh
 
 3. Start the main control system:
@@ -37,7 +36,7 @@ If things go bad, you can stop the robot using:
 If you don't want to run the AI (main2 currently), you can omit the
 first step and, making sure the environment variables are set, just
 execute:
-  $ ./vision2.py blue [files..]
+  $ ./vision2.py [files..]
 
 If using files for vision input, the MPlayer process won't need to be
 started either.
