@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>input - GooeyPy Docs</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" type="text/css" href="skin/style.css" />
+</head>
+<body>
+
+    <div id="header">
+        <a href='http://joey101.net/gooeypy/'><img src='skin/logo.png' alt="GooeyPy"></a> Documentation
+    </div>
+
+    <div id="links">
+        <a href='index.html'>Overview</a><br><br>
+        <strong>gui</strong><ul>
+<li><a href="widget.html">widget</a></li>
+<li><a href="styleset.html">styleset</a></li>
+<li><a href="effects.html">effects</a></li>
+</ul>
+<strong>widgets</strong><ul>
+<li><a href="label.html">label</a></li>
+<li><a href="button.html">button</a></li>
+<li><a href="input.html">input</a></li>
+<li><a href="slider.html">slider</a></li>
+<li><a href="container.html">container</a></li>
+<li><a href="box.html">box</a></li>
+<li><a href="selectbox.html">selectbox</a></li>
+<li><a href="textblock.html">textblock</a></li>
+<li><a href="image.html">image</a></li>
+</ul>
+
+    </div>
+
+    <div id="body">
+        <ul id='sections'>
+<li><a href='#Input'>Input</a></li>
+<li><a href='#Input.font'>Input.font</a></li>
+</ul>
+
+        <div id="content">
+            <h1 id="Input"><a name="Input">Input</a></h1>
+<span class="command">Input([value, [max_length, [disallowed_chars]]]) - Input widget</span>
+<p>Creates an HTML like input field.</p>
+<div class="section" id="arguments">
+<h3>Arguments</h3>
+<dl class="docutils">
+<dt>value</dt>
+<dd>The initial value of the input (defaults to &quot;&quot;). Note that due to the
+nature of the value, you cannot link to it (but you can from it). If
+you really want to link it's value you can do so it _value, but it may
+not always work like you expect!</dd>
+<dt>max_length</dt>
+<dd>The maximum number of character that can be put into the Input.</dd>
+<dt>disallowed_chars</dt>
+<dd>A list of characters that are disallowed to enter.</dd>
+</dl>
+</div>
+
+<h2 id="Input.font"><a name="Input.font">Input.font</a></h2>
+<span class="command">Input.font -&gt; pygame.Font</span>
+<p>The font that this input is using.</p>
+
+
+        </div>
+    </div>
+
+    <div id="footer">All content &copy; 2007 Joey Marshall <a href='http://joey101.net/gooeypy/'>GooeyPy</a></div>
+</body>
+</html>
