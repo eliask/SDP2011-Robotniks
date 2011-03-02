@@ -71,7 +71,7 @@ def main():
         else:
             assert False, "unhandled option"
 
-    ai1 = ai2 = None
+    ai1 = ai2 = strategies['null']
     if strategy1:
         ai1 = strategies[strategy1]
     if strategy2:
