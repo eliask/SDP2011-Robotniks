@@ -1,8 +1,8 @@
 import cv
 import logging
-import os
-import os.path
+import os, os.path
 import subprocess
+import time
 
 """
 Files with these extensions will be treated as images and loaded as such.
@@ -45,7 +45,7 @@ class Capture:
 				self.capture = cv.CaptureFromFile(filename)
 		else:
 			logging.info("Capturing from camera")
-			self.initMPlayer()
+			self.init_mplayer()
 
 	"""
 	Initialises MPlayer.  This is required to work around the interlaced feed
@@ -54,22 +54,26 @@ class Capture:
 	TODO: actually start MPlayer inside the script so it doesn't
 	need to be started manually
 	"""
-	def initMPlayer(self):
+	def init_mplayer(self):
                 assert os.environ['MPLAYER_CAPTURE'], \
                     'The environment variable MPLAYER_CAPTURE must be set'
 		self.mplayer = bool(int(os.environ['MPLAYER_CAPTURE']))
 
 		logging.info("Starting MPlayer")
 		self.cur_frame = 2
+		self.init_mplayer_dir()
+		self.last_frame_time = time.time()
+
+	def init_mplayer_dir(self):
 		self.dir = open('.mplayer-store', 'r').readline().strip()
 
-	def getMPlayerFrame(self):
-		def getName(num):
+	def get_mplayer_frame(self):
+		def get_name(num):
 			return '%s/%08d.jpg' % (self.dir, num)
 
-		def frameExists(num):
+		def frame_exists(num):
 			try:
-				h = open(getName(num), 'r')
+				h = open(get_name(num), 'r')
 				h.close()
 				return True
 			except IOError:
@@ -78,15 +82,21 @@ class Capture:
 		logging.debug("Getting MPlayer frame %d" % self.cur_frame)
 
 		while True:
-			if frameExists(self.cur_frame + 1):
-				file = getName(self.cur_frame - 1)
-				if os.path.exists(file):
-					os.remove(file)
+			if self.last_frame_time + 0.5 < time.time():
+				self.init_mplayer_dir()
+
+			if frame_exists(self.cur_frame + 1):
+				filename = get_name(self.cur_frame - 1)
+				if os.path.exists(filename):
+					os.remove(filename)
 				self.cur_frame += 1
-			elif frameExists(self.cur_frame):
-				frame = cv.LoadImage(getName(self.cur_frame - 1))
+				self.last_frame_time = time.time()
+			elif frame_exists(self.cur_frame):
+				frame = cv.LoadImage(get_name(self.cur_frame - 1))
 				break
                         elif len( os.listdir(".") ) > 0:
+				if get_name(1):
+					self.cur_frame = 1
                                 self.cur_frame += 1
 
 		return frame
@@ -107,7 +117,7 @@ class Capture:
 			frame = cv.QueryFrame(self.capture)
 		else:
 			logging.info("Getting frame from MPlayer")
-			frame = self.getMPlayerFrame()
+			frame = self.get_mplayer_frame()
 
 		if not frame:
 			raise EOF
