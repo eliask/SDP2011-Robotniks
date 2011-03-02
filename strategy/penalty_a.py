@@ -14,12 +14,7 @@ class PenaltyA(Strategy):
     def __init__(self, *args):
         Strategy.__init__(self, *args)
         self.reset()
-        self.log = logging.getLogger('strategy.main2')
-
-        # Variables for tracking the robot's internal state
-        self.left_angle = 0
-        self.right_angle = 0
-        self.until_turned = 0
+        self.log = logging.getLogger('strategy.penaltykick')
 
     def run(self):
         self.getSelf()
@@ -31,20 +26,16 @@ class PenaltyA(Strategy):
             return
 
         ballPos = np.array( self.world.getBall().pos )
-	
-	# Get opponent position
-	if self.colour == 'blue':
-		opponent = self.world.getRobot('yellow')
-	else:
-		opponent = self.world.getRobot('blue')
-	
+
+        opponent = self.getOpponent()
+
 	# Decide which direction to kick
 	opp_y = opponent.pos[1]
 	if opp_y >= 200:
 		direction = 1
 	else:
 		direction = -1
-	
+
 	# Perform turning and kicking
        	if self.turning_start == 0:
                 self.turning_start = time.time()
@@ -52,7 +43,7 @@ class PenaltyA(Strategy):
 	if time.time() - self.turning_start < 0.2:
 		self.drive_left(direction)
 		self.drive_right(-direction)
-	else:	
+	else:
 		self.drive_both(0)
 		if time.time() - self.turning_start > 0.5:
 			if self.canKick(ballPos):

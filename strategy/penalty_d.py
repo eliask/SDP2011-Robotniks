@@ -14,7 +14,7 @@ class PenaltyD(Strategy):
     def __init__(self, *args):
         Strategy.__init__(self, *args)
         self.reset()
-        self.log = logging.getLogger('strategy.main2')
+        self.log = logging.getLogger('strategy.penaltydef')
 
         # Variables for tracking the robot's internal state
         self.left_angle = 0
@@ -32,16 +32,16 @@ class PenaltyD(Strategy):
 
         ballPos = np.array( self.world.getBall().pos )
 	ball_y = ballPos[1]
-	self.turned = 0	
+	self.turned = 0
 
 	if self.turning_start == 0:
                 self.turning_start = time.time()
                 self.drive_both(0)
 	if time.time() - self.turning_start < 0.3:
-		self.steer_both(radians(-90)) 
+		self.steer_both(radians(-90))
 	else:
 		self.turned = 1
-	
+
 	if self.turned == 1:
 		if self.me.pos[1] - 150 < 210 - self.me.pos[1]:
 			self.direction = 1
