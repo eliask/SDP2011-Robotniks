@@ -43,6 +43,7 @@ class Simulator(object):
         self.prev = {}
         self.robots=[]
         self.groups = 0
+        self.running = True
 
     def set_state(self, state):
         "Set the current state of the ball and the robot"
@@ -231,6 +232,9 @@ class Simulator(object):
         self.robots[0].set_position( (50, x) )
         self.robots[1].set_position( (250, 200) )
 
+    def pause(self):
+        self.running = not self.running
+
     def reset_ball_pos(self):
         self.ball.body.position = pymunk.Vec2d(self.Resolution[0]/2.0,
                                                self.Resolution[1]/2.0)
@@ -264,13 +268,14 @@ class Simulator(object):
         while True:
             self.clock.tick(self.tickrate)
             self.handle_input()
-            self.update_objects()
+            if self.running:
+                self.update_objects()
+                self.runAI()
             self.draw_ents()
-            self.runAI()
             pygame.display.flip()
 
     def init_input(self):
-        self.input = Input(self, self.robots[0], self.robots[1])
+        self.input = Input(self)
 
     def handle_input(self):
         if self.headless:

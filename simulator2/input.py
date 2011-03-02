@@ -6,11 +6,9 @@ import pygame
 
 class Input:
 
-    def __init__(self, sim, p1, p2):
+    def __init__(self, sim):
         self.sim = sim
-        self.p1 = p1
-        self.p2 = p2
-        self.initKeymap(p1, p2)
+        self.initKeymap(sim.robots[0], sim.robots[1])
         self.command_string = ''
         self.place_object_num = 0
         self.button_down = False
@@ -29,7 +27,9 @@ class Input:
             K_e : ( lambda:p1.steer_right_incr(-45), None ),
             K_SPACE : ( p1.kick,   None ),
             K_RETURN : ( self.command,   None ),
-	    #K_x : ( p1.reset, None ),
+
+	    K_0 : ( self.sim.reset, None ),
+	    K_p : ( self.sim.pause, None ),
             }
 
     def robotInput(self, event):
