@@ -10,7 +10,7 @@ import pygame
 class PenaltyD(Strategy):
     turning_start = 0
     direction = 0
-
+    angle = -90
     def __init__(self, *args):
         Strategy.__init__(self, *args, name='penaltydef')
 
@@ -29,8 +29,10 @@ class PenaltyD(Strategy):
 	if self.turning_start == 0:
                 self.turning_start = time.time()
                 self.drive_both(0)
+		if self.me.pos[0] > 400:
+			self.angle = 90
 	if time.time() - self.turning_start < 0.3:
-		self.steer_both(radians(-90))
+		self.steer_both(radians(self.angle))
 	else:
 		self.turned = 1
 
