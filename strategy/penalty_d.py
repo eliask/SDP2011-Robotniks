@@ -12,17 +12,9 @@ class PenaltyD(Strategy):
     direction = 0
 
     def __init__(self, *args):
-        Strategy.__init__(self, *args)
-        self.reset()
-        self.log = logging.getLogger('strategy.penaltydef')
-
-        # Variables for tracking the robot's internal state
-        self.left_angle = 0
-        self.right_angle = 0
-        self.until_turned = 0
+        Strategy.__init__(self, *args, name='penaltydef')
 
     def run(self):
-        self.getSelf()
         try:
             self.me = self.getSelf() # Find out where I am
             #self.log.debug("My position: %s", pos2string(self.me.pos))

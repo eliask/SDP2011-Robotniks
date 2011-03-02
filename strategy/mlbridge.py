@@ -10,8 +10,7 @@ import logging, cPickle, random
 class MLBridge(Strategy):
 
     def __init__(self, *args):
-        Strategy.__init__(self, *args)
-        self.log = logging.getLogger("strategy.mlbridge")
+        Strategy.__init__(self, *args, name='mlbridge')
         self.log.setLevel(logging.INFO)
 
         cmd = ['ML/ml']

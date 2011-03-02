@@ -15,7 +15,6 @@ except ImportError:
 strategies = { 'main2' : Main2,
                'main3' : Main3,
                'kicktest' : kicktest.KickTest,
-               'main3' : Main3,
 	       'penalty_a' : PenaltyA,
 	       'penalty_d' : PenaltyD,
                'null' : null.Null,

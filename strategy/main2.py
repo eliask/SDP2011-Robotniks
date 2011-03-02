@@ -10,10 +10,11 @@ import pygame
 class Main2(Strategy):
     turn_until = 0
 
-    def __init__(self, *args):
-        Strategy.__init__(self, *args)
+    def __init__(self, *args, **kwargs):
+        if not 'name' in kwargs:
+            kwargs['name'] = 'main2'
+        Strategy.__init__(self, *args, **kwargs)
         self.reset()
-        self.log = logging.getLogger('strategy.main2')
 
         # Variables for tracking the robot's internal state
         self.left_angle = 0
@@ -188,7 +189,7 @@ class Main2(Strategy):
         orient = self.me.orientation
         delta = angle - orient
         self.steer_both(delta)
-        print "steer_both(%.1f)" % degrees(delta)
+        self.log.debug( "steer_both(%.1f)", degrees(delta) )
 
         d_left = delta - self.left_angle
         d_right = delta - self.right_angle

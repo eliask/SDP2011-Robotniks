@@ -12,12 +12,9 @@ class PenaltyA(Strategy):
     turning_start = 0
 
     def __init__(self, *args):
-        Strategy.__init__(self, *args)
-        self.reset()
-        self.log = logging.getLogger('strategy.penaltykick')
+        Strategy.__init__(self, *args, name='penaltykick')
 
     def run(self):
-        self.getSelf()
         try:
             self.me = self.getSelf() # Find out where I am
             #self.log.debug("My position: %s", pos2string(self.me.pos))

@@ -9,11 +9,13 @@ class Strategy(object):
     strategies. Not to be used directly.
     """
 
-    def __init__(self, world, interface, arg=None, sim=None):
+    def __init__(self, world, interface, arg=None, sim=None, **kwargs):
         self.arg = arg
         self.sim = sim
         self.world = world
         self.interface = interface
+
+        self.log = logging.getLogger('strategy.%s' % kwargs['name'])
 
         logging.getLogger("strategy") \
             .info( "Strategy %s started in the %s"

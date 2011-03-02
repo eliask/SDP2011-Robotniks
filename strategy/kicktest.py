@@ -12,8 +12,7 @@ class KickTest(Main2):
     "A basic module for testing the kicker"
 
     def __init__(self, *args):
-        Main2.__init__(self, *args)
-        self.log = logging.getLogger('strategy.kicktest')
+        Main2.__init__(self, *args, name='kicktest')
 
     def run(self):
         try:

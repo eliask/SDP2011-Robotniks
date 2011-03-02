@@ -6,22 +6,13 @@ from strategy import *
 import apf
 import logging
 import pygame
+from main2 import Main2
 
-class Main3(Strategy):
+class Main3(Main2):
     turn_until = 0
 
     def __init__(self, *args):
-        Strategy.__init__(self, *args)
-        self.reset()
-        self.log = logging.getLogger('strategy.main3')
-
-        # Variables for tracking the robot's internal state
-        self.left_angle = 0
-        self.right_angle = 0
-        self.until_turned = 0
-
-        self.lock_until = 0
-        self.post_lock = lambda:None
+        Main2.__init__(self, *args, name='main3')
 
     def run(self):
 
