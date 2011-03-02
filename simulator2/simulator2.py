@@ -280,9 +280,9 @@ class Simulator(object):
         while True:
             self.clock.tick(self.tickrate)
             self.handle_input()
+            self.draw_ents()
             if self.running:
                 self.update_state()
-            self.draw_ents()
             pygame.display.flip()
 
     def init_input(self):
@@ -391,9 +391,9 @@ class Simulator(object):
     def draw_field(self):
         "Draw the potential field"
     	ball = map(int, self.ball.body.position)
-        offset = 4000
-        X = range(max(0,ball[0]-offset), min(self.Resolution[0],ball[0]+offset), 30)
-        Y = range(max(0,ball[1]-offset), min(self.Resolution[1],ball[1]+offset), 30)
+        offset = 100
+        X = range(max(0,ball[0]-offset), min(self.Resolution[0],ball[0]+offset), 10)
+        Y = range(max(0,ball[1]-offset), min(self.Resolution[1],ball[1]+offset), 10)
 
         goal = self.offset+self.scale*World.PitchLength, \
             self.offset+self.scale*World.PitchWidth/2.0
