@@ -84,6 +84,8 @@ class Capture:
 			elif frameExists(self.cur_frame):
 				frame = cv.LoadImage(getName(self.cur_frame - 1))
 				break
+                        elif len( os.listdir(".") ) > 0:
+                                self.cur_frame += 1
 
 		return frame
 
