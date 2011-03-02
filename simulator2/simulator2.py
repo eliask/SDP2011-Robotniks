@@ -280,9 +280,9 @@ class Simulator(object):
         while True:
             self.clock.tick(self.tickrate)
             self.handle_input()
+            self.draw_ents()
             if self.running:
                 self.update_state()
-            self.draw_ents()
             pygame.display.flip()
 
     def init_input(self):
