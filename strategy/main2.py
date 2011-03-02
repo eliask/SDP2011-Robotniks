@@ -43,6 +43,26 @@ class Main2(Strategy):
         else:
             return False
 
+    def pf(self, pos):
+        """Calculate the potential field gradient at point
+
+        The gradient of the potential field tells us which
+        direction we should be going towards.
+        """
+        v = apf.all_apf( pos, self.world.getResolution(), self.getBall().pos,
+                         self.getOpponentGoalPos(), World.BallRadius )
+
+        if self.sim:
+            # If in the simulator, visualise "intended movement direction"
+            pos = self.me.pos
+            v2 = np.array(v) * 5
+            delta = map(lambda x:int(round(x)), (pos[0]+v2[0], pos[1]+v2[1]))
+            #print pos, delta
+            pygame.draw.line(self.sim.screen, (123,0,222,130), pos, delta, 4)
+            #pygame.draw.circle(self.sim.screen, (255,50,255,130), delta, 6)
+
+        return np.array(v)
+
     def run(self):
         if self.lock_until > time.time():
             return
@@ -73,36 +93,16 @@ class Main2(Strategy):
             print "POS 0"
             return
 
-        def pf(pos):
-            """Calculate the potential field gradient at point
-
-            The gradient of the potential field tells us which
-            direction we should be going towards.
-            """
-            v = apf.all_apf( pos, self.world.getResolution(), ballPos,
-                             self.getOpponentGoalPos(), World.BallRadius )
-
-            if self.sim:
-                # If in the simulator, visualise "intended movement direction"
-                pos = self.me.pos
-                v2 = np.array(v) * 5
-                delta = map(lambda x:int(round(x)), (pos[0]+v2[0], pos[1]+v2[1]))
-                #print pos, delta
-                pygame.draw.line(self.sim.screen, (123,0,222,130), pos, delta, 4)
-                #pygame.draw.circle(self.sim.screen, (255,50,255,130), delta, 6)
-
-            return np.array(v)
-
         # Move towards the pseudo-target (which we get by adding the
         # gradient to our current position)
 	# if self.orientToKick():
-        #     self.moveTo(self.me.pos + 100*pf(self.me.pos))
+        #     self.moveTo(self.me.pos + 100*self.pf(self.me.pos))
 
         # # Kick the ball if we are in front of it
 	# if self.canKick(ballPos):
         #     self.kick()
 
-        self.moveTo(self.me.pos + 10*pf(self.me.pos))
+        self.moveTo(self.me.pos + 10*self.pf(self.me.pos))
 
         # if self.reachesGoal():
         #     print "REACH"
@@ -139,6 +139,23 @@ class Main2(Strategy):
                               (self.me.pos[0] - target_pos[0])) )
 
             return angle_diff < radians(13)
+
+    def canKick(self, target_pos):
+	#	to get the angle between [-pi, pi]
+	if self.me.orientation > pi:
+		self.me.orientation -= 2*pi
+
+	if dist(self.me.pos, target_pos) < 50:
+		angle_diff = self.me.orientation - atan2(target_pos[1] - self.me.pos[1],
+                              (target_pos[0] - self.me.pos[0]))
+		if angle_diff > pi:
+			angle_diff -= 2*pi
+		elif angle_diff < -pi:
+			angle_diff += 2*pi
+
+		if abs(angle_diff) < radians(35):
+			return True
+
 
     def scoreGoal(self, ballPos):
         if self.moveTo( ballPos ): # are we there yet?
@@ -210,7 +227,7 @@ class Main2(Strategy):
             return False
 
     def dash(self):
-        if True or self.orientToKick():
+        if self.orientToKick():
             self.lock_until = self.getTimeUntil(1.8)
             self.post_lock = self.kick
             self.drive_both(3)
