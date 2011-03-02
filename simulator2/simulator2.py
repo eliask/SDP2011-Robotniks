@@ -29,7 +29,7 @@ class Simulator(object):
 
     # Options and arguments
     headless=False
-    ai=[]
+    ai=[None, None]
     robot1=None
     robot2=None
 
@@ -127,9 +127,6 @@ class Simulator(object):
         self.robot2_pos = \
             self.scale * pymunk.Vec2d( (World.PitchLength/2.0 + 60,
                                         World.PitchWidth/2.0 + self.offset) )
-	x = randint(100, 300)
-	self.robot1_pos = (50, x)
-	self.robot2_pos = (250, 200)
 
         self.world.setResolution(self.Resolution)
         if self.headless:
@@ -161,7 +158,7 @@ class Simulator(object):
         self.world.ents[col2] = self.robots[1]
         self.world.ents['ball'] = self.ball
 
-        if col1 == 'blue':
+        if col1 == 'yellow':
             self.world.swapGoals()
 
     def init_AI(self):
@@ -173,14 +170,15 @@ class Simulator(object):
         if ai1 and real1:
             real_interface = RealRobotInterface()
             ai = ai1(self.world, real_interface)
-            self.ai.append(ai)
+            self.ai[0] = ai
             self.robots[0] = ai
             self.log.debug("AI 1 started in the real world")
         elif ai1:
             ai = ai1(self.world, self.robots[0],
                      self.ai_args[0], self)
             ai.setColour(self.robots[0].colour)
-            self.ai.append(ai)
+            self.ai[0] = ai
+            self.robots[0].ai = ai
             self.log.debug("AI 1 started in the simulated world")
         else:
             self.log.debug("No AI 1 present")
@@ -188,14 +186,15 @@ class Simulator(object):
         if ai2 and real2:
             real_interface = RealRobotInterface()
             ai = ai2(self.world, real_interface)
-            self.ai.append(ai)
+            self.ai[1] = ai
             self.robots[1] = ai
             self.log.debug("AI 2 started in the real world")
         elif ai2:
             ai = ai2(self.world, self.robots[1],
                      self.ai_args[1], self)
             ai.setColour(self.robots[1].colour)
-            self.ai.append(ai)
+            self.ai[1] = ai
+            self.robots[1].ai = ai
             self.log.debug("AI 2 started in the simulated world")
         else:
             self.log.debug("No AI 2 present")
@@ -225,6 +224,12 @@ class Simulator(object):
                 or ball.x > self.Resolution[0] \
                 or ball.y > self.Resolution[1]:
             self.reset_ball_pos()
+
+    def set_penalty_kick(self):
+	self.ball.body.position = (210, 200)
+	x = randint(100, 300)
+        self.robots[0].set_position( (50, x) )
+        self.robots[1].set_position( (250, 200) )
 
     def reset_ball_pos(self):
         self.ball.body.position = pymunk.Vec2d(self.Resolution[0]/2.0,
@@ -352,7 +357,6 @@ class Simulator(object):
     	body.position = self.offset + self.scale/2.0 * \
             pymunk.Vec2d(World.PitchLength, World.PitchWidth)
 
-	body.position = (210, 200)
     	shape = pymunk.Circle(body, radius)
 	shape.elasticity = 0.6
     	shape.group = self.groups

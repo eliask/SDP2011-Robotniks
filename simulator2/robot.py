@@ -119,6 +119,15 @@ class Robot(SimRobotInterface):
         self.draw_kickzone()
         self.draw_wheel(self.wheel_left)
         self.draw_wheel(self.wheel_right)
+        self.draw_label()
+
+    def draw_label(self):
+        name = pygame.font.get_default_font()
+        font = pygame.font.Font(name, 15)
+        surf = font.render(self.ai.__class__.__name__, True, THECOLORS['black'])
+        x,y = self.robot.body.position
+        pos = x-20, y-45
+        self.sim.screen.blit(surf, pos)
 
     def draw_outline(self):
     	ps = self.robot.get_points()
