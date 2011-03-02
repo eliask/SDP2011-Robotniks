@@ -7,6 +7,8 @@ try:
     from penalty_a import PenaltyA
     from penalty_d import PenaltyD
     from mlbridge import MLBridge
+
+    from friendly1 import Friendly1
 except ImportError:
     MLBridge = None
 
@@ -19,6 +21,7 @@ strategies = { 'main2' : Main2,
 	       'penalty_d' : PenaltyD,
                'null' : null.Null,
                'ML'   : MLBridge,
+               'friendly1'   : Friendly1,
              }
 
 def list_strategies():
