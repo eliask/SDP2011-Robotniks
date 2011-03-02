@@ -8,37 +8,57 @@ def getKickingPosition():
     """
     pass
 
-def move(dest, destAngle):
-    "Move directly(?) to destination"
-    pass
-
-def constainedMove(dest, destAngle, avoid):
-    "Move while avoiding specified object(s)"
-    pass
-
-def computeGoalKicks():
+def computeGoalKicks(my_goal, opponent_goal, ball, opponent, resolution):
     """Return the best directions to kick the ball towards
 
     Currently this is incomplete. Some thought is required as to what
     constitutes a good position. If there are multiple possible kicks
-    side by side, the "aximum margin" kick should usually be chosen.
+    side by side, the "maximum margin" kick should usually be chosen.
     """
-    ball = self.ents['ball']
-    targetGoal = Magic
+    def avg(x):
+        if len(x) == 0: return 0
+        return sum(x)/len(x)
 
-    # TODO: also add ball.left/right/etc. rays
-    pos = entCenter(ball)
-    successes = [ createRay(targetGoal, pos, radians(angle))
+    def goal_score(goal, ball):
+        goal_len = dist(*goal)
+        D = dist(ball, goal[0]), dist(ball, goal[1])
+        if min(D) > 200:
+            return 0
+        if D[0] <= goal_len and D[1] <= goal_len:
+            return 1
+
+        return 0
+        if D[0] < D[1]:
+            return D[0] / sum(D)
+        else:
+            return D[1] / sum(D)
+
+    def scorefn(ball):
+        my = goal_score(my_goal, ball)
+        op = goal_score(opponent_goal, ball)
+        print ball, my_goal, opponent_goal, my, op
+        #assert my <= 0 or op <= 0
+        return my + op
+
+    successes = [ createRay(scorefn, resolution,
+                            opponent, ball, radians(angle), 1)
                   for angle in range(360) ]
 
-    # TODO: do further processing to determine the best,
-    # "non-accidental" clusters
-    return successes
+    w=0.5; n=9
+    gauss1d = np.exp( -0.5 * w/n * np.array(range(-(n-1), n, 2))**2 )
+    gauss1d /= sum(gauss1d)
 
-def createRay(targetGoal, pos, angle):
+    wraparound = int(np.ceil(n/2.0))
+    wrapped = successes[-wraparound:] + successes + successes[:wraparound]
+    convolved = np.convolve(gauss1d, successes, 'same')
+    unwrapped = convolved[wraparound : len(successes)]
+
+    return successes #unwrapped
+
+def createRay(scorefn, resolution, opponent, ball, angle, maxBounces):
     """Simulate the trajectory of an idealised ball.
 
-    targetGoal['score'](x0, x1) is a scoring function that returns a
+    scorefn(x0, x1) is a scoring function that returns a
     utility value between -1 and 1. If we hit the right goal, we get
     maximum utility, and minimum for the wrong one. The two arguments
     x0 and x1 are the starting position and the tested position,
@@ -50,45 +70,48 @@ def createRay(targetGoal, pos, angle):
 def createRay(scorefn, pos0, pos, angle, maxBounces):
     # TODO: handle collisions with robots
     if maxBounces == 0:
-        return scorefn(pos0, pos)
+        return scorefn(ball)
 
-    X,Y = pos
+    X,Y = ball
     if -pi/2 <= angle <= pi/2:
-        dx = Pitch.right - X
+        dx = resolution[0] - X
     else:
-        pitchX = X - Pitch.left
+        dx = 0 - X
 
     if 0 <= angle <= pi:
-        dy = Pitch.top - Y
+        dy = 0 - Y
     else:
-        dy = Y - Pitch.bottom
+        dy = resolution[1] - Y
 
+    #print "STUFF:",X,Y,angle,dy,dx
     hitX = X + dy * tan(angle)
     if hitX < 0:
         imagX = hitX - dx
         if angle == 0:
             # this should only happen inside the goal area
-            return scorefn(pos0, (hitX, pos[1]))
-        else:
-            hitY = Pitch.top + imagX / tan(angle)
-2
-    pos = hitX, hitY
-    score = scorefn(pos0, pos)
+            return scorefn((hitX, ball[1]))
+
+    imagX = hitX - dx
+    hitY = Y + dx * cos(angle)
+    if hitX < 0 or hitX > resolution[0]:
+        hitY = 0 + imagX / tan(angle)
+
+    ball = hitX, hitY
+    score = scorefn(ball)
     if abs(score) == 1:
         return score
     else:
-        angle = reflectRay(hitX, hitY, angle)
-        createRay(targetGoal, pos0, pos, angle, maxBounces-1)
+        angle = reflectRay(resolution, hitX, hitY, angle)
+        return createRay(scorefn, resolution, opponent, ball, angle, maxBounces-1)
 
-
-def reflectRay(angle, hitX, hitY):
+def reflectRay(resolution, angle, hitX, hitY):
     # Deal with small numerical inaccuracies
     epsilon = 1e-6
     hitX += epsilon*cos(angle)
     hitY += epsilon*sin(angle)
-    if hitY <= Pitch.top or hitY >= Pitch.bottom:
+    if hitY <= 0 or hitY >= resolution[1]:
         return angle - pi
-    if hitX <= Pitch.left or hitX >= Pitch.right:
+    if hitX <= 0 or hitX >= resolution[0]:
         return pi - angle
 
 def computeIntercepts():
