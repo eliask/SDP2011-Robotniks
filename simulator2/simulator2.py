@@ -230,11 +230,18 @@ class Simulator(object):
                 or ball.y > self.Resolution[1]:
             self.reset_ball_pos()
 
-    def set_penalty_kick(self):
+    def penalty_left(self):
 	self.ball.body.position = (210, 200)
 	x = randint(100, 300)
         self.robots[0].set_position( (50, x) )
         self.robots[1].set_position( (250, 200) )
+
+    def penalty_right(self):
+        res = pymunk.Vec2d(self.Resolution)
+	self.ball.body.position = res - (210, 200)
+	x = randint(100, 300)
+        self.robots[1].set_position( res - (50, x) )
+        self.robots[0].set_position( res - (250, 200) )
 
     def pause(self):
         self.running = not self.running
