@@ -32,7 +32,7 @@ class Main2(Strategy):
         self.positions.pop()
 
         std = np.std( np.array(self.positions), 0 )
-        if (std < 1).all():
+        if (std < 2).all():
             self.steer_both(0)
             self.drive_both(-3)
             self.kick()

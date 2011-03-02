@@ -25,7 +25,7 @@ class KickTest(Main2):
         except Exception, e:
             logging.warn("couldn't find ball: %s", e)
             return
-
+        if self.watch_stuck(): return
 
         if self.me.pos[0] == 0 or ballPos[0] == 0:
             self.stop()
