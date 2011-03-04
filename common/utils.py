@@ -88,7 +88,7 @@ def boxAngle(box):
     * "box.angle" appears to be the angle in degrees through which the
     points are rotated CLOCKWISE about "box.center"
     """
-    return -pi/2-radians(-box[2])
+    return radians(-box[2])
 
 def getArea(box):
     return box[1][0] * box[1][1]

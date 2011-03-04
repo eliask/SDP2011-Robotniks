@@ -208,7 +208,9 @@ class FeatureExtraction:
             col2=(255,0,0)
             cv.Circle( frame, intPoint(i), 3, col2, -1 )
 
-        dCenter = get_dirmarker( img2, pi-robot['orient'], 8, 10 )
+        dCenter = get_dirmarker( img2, pi-robot['orient'], 3, 4 )
+        if dCenter is None:
+            dCenter = get_dirmarker( img2, pi-robot['orient'], 8, 10 )
         if dCenter is None:
             dCenter = get_dirmarker( img2, pi-robot['orient'], 10, 4 )
         if dCenter is None:
