@@ -56,6 +56,9 @@ class GUI:
     def setCropRect(self, rect):
         self.vision.initComponents(rect)
 
+    def restore_crop(self):
+        self.vision.initComponents()
+
     def on_mouse(self, event, x, y, flags, param):
         if event == cv.CV_EVENT_LBUTTONDOWN:
             self.drag_start = (x,y)
@@ -263,6 +266,8 @@ class GUI:
         elif k == 'h':
             self.histogram = not self.histogram
 
+        elif k == 'q':
+            self.restore_crop()
         elif k == 'r':
             self.switchWindow('raw')
         elif k == ' ':
