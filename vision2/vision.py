@@ -26,8 +26,9 @@ class Vision():
         logging.debug('Vision initialised')
 
     def initComponents(self, crop=None):
+        undistort = False
         self.pre = Preprocessor(self.rawSize, self.threshold,
-                                self.simulator, crop=crop)
+                                undistort, crop=crop)
         self.featureEx = FeatureExtraction(self.pre.cropSize)
         self.gui = GUI(self.world, self.pre.cropSize, self.threshold, self)
         self.world.setResolution(self.pre.cropSize)

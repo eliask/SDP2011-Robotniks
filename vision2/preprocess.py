@@ -7,7 +7,7 @@ class Preprocessor:
     #cropRect = (0, 80, 640, 400) # Primary pitch
     cropRect = (0, 45, 640, 400) # Alt. pitch
 
-    def __init__(self, rawSize, threshold, simulator=None, crop=None):
+    def __init__(self, rawSize, threshold, undistort=True, crop=None):
         self.rawSize = rawSize
         if crop:
             self.cropRect = ( self.cropRect[0], self.cropRect[1] + crop[1],
@@ -15,7 +15,7 @@ class Preprocessor:
         self.initMatrices()
 
         self.cropSize = self.cropRect[2:]
-        self.standardised = simulator is not None
+        self.use_undistortion = undistort
         self.threshold = threshold
 
         if rawSize[0] < 600:
@@ -32,10 +32,10 @@ class Preprocessor:
 
         Returns an internal buffer.
         """
-        if self.standardised:
-            return frame
-        else:
+        if self.use_undistortion:
             return self.crop( self.undistort(frame) )
+        else:
+            return self.crop(frame)
 
     def crop(self, frame):
         logging.debug("Cropping a frame")
