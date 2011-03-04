@@ -203,7 +203,7 @@ class GUI:
         if not ent: return
         x,y = ent.pos
         radius = 30
-        cv.Circle(self.image, intPoint((x,y)), 8, color, -1)
+        #cv.Circle(self.image, intPoint((x,y)), 8, color, -1)
 
         o = ent.orientation; D=30
         cv.Circle(self.image, intPoint((x+D*cos(o), y+D*sin(o))),

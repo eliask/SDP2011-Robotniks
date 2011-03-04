@@ -215,11 +215,17 @@ class FeatureExtraction:
         robot['orient'] = -box_direction
 
         if self.overlay:
+            cv.SetImageROI(frame, robot['rect'])
+            tmp = cv.CloneImage(frame)
+            cv.CvtColor(img, tmp, cv.CV_GRAY2BGR)
+            cv.Add(frame, tmp, frame)
+            cv.ResetImageROI(frame)
+
             "Draw the corners of the bounding box"
             for i in getBoxCorners(robot['box']):
                 col2=(0,255,255)
                 col2=(255,0,0)
-                cv.Circle( frame, intPoint(i), 3, col2, -1 )
+                #cv.Circle( frame, intPoint(i), 3, col2, -1 )
 
         dCenter = get_dirmarker( img2, pi-robot['orient'], 3, 4 )
         if dCenter is None:
