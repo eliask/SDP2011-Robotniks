@@ -223,6 +223,11 @@ class GUI:
                 logging.info( "%s robot at angle: %.1f", robot, degrees(robot.orientation))
                 self.draw_ent(robot, colour)
 
+    def change_threshold(self, delta):
+        self.curThreshold = (self.curThreshold + delta) % len(self.thresholds)
+        _, _, vals = self.thresholds[self.curThreshold]
+        threshold.setValues(vals)
+
     def processInput(self):
         #c = cv.WaitKey(500)
         c = cv.WaitKey(5)
@@ -245,9 +250,7 @@ class GUI:
             if self.thresholdAdjustment:
                 threshold.createTrackbars(self.WindowName)
         elif k == 't':
-            self.curThreshold = (self.curThreshold + 1) % len(self.thresholds)
-            _, _, vals = self.thresholds[self.curThreshold]
-            threshold.setValues(vals)
+            self.change_threshold(1)
 
         elif k == 'o':
             self.overlay = not self.overlay
@@ -270,11 +273,11 @@ class GUI:
             self.channel = 3
 
         elif k == 'Q': # left arrow
-            self.left()
+            self.change_threshold(-1)
         elif k == 'S': # right arrow
-            self.right()
+            self.change_threshold(1)
         elif k == 'R': # up arrow
-            self.up()
+            self.change_threshold(1)
         elif k == 'T': # down arrow
-            self.right()
+            self.change_threshold(-1)
 
