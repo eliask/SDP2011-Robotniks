@@ -14,7 +14,7 @@ class BallEstimator(Kalman):
         Kalman.__init__(self, 4,2,0, self.transitionM)
 
     def getPos(self):
-        return map(float, (self.prediction[0], self.prediction[1]))
+        return map(float, (self.measurement[0], self.measurement[1]))
 
     def getVelocity(self):
         return map(float, (self.prediction[2], self.prediction[3]))
