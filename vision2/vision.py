@@ -56,7 +56,6 @@ class Vision():
         logging.debug("Updating GUI")
         if not self.headless:
             try:
-                bgsub = self.pre.remove_background(standard)
                 self.gui.updateWindow('raw', frame)
                 self.gui.updateWindow('standard', standard)
                 self.gui.draw(ents, startTime)

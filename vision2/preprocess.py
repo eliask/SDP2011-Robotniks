@@ -7,7 +7,7 @@ class Preprocessor:
     #cropRect = (0, 80, 640, 400) # Primary pitch
     cropRect = (0, 45, 640, 400) # Alt. pitch
 
-    def __init__(self, rawSize, threshold, simulator=None, bg=None, crop=None):
+    def __init__(self, rawSize, threshold, simulator=None, crop=None):
         self.rawSize = rawSize
         if crop:
             self.cropRect = ( self.cropRect[0], self.cropRect[1] + crop[1],
@@ -26,21 +26,6 @@ class Preprocessor:
 
         self.Idistort  = cv.CreateImage(self.rawSize, cv.IPL_DEPTH_8U, 3)
         self.Icrop     = cv.CreateImage(self.cropSize, cv.IPL_DEPTH_8U, 3)
-        self.Igray     = cv.CreateImage(self.cropSize, cv.IPL_DEPTH_8U, 1)
-        self.Imask     = cv.CreateImage(self.cropSize, cv.IPL_DEPTH_8U, 3)
-        self.Iobjects  = cv.CreateImage(self.cropSize, cv.IPL_DEPTH_8U, 3)
-        self.bg        = cv.CreateImage(self.cropSize, cv.IPL_DEPTH_8U, 3)
-
-        return # background subtraction is not currently used
-        if bg:
-            logging.debug("Loading dummy background image")
-            self.bg = cv.CreateImage(self.rawSize, cv.IPL_DEPTH_8U, 3)
-            cv.Zero(self.bg)
-        else:
-            logging.debug("Loading the background image")
-            self.bg = cv.LoadImage('background.jpg')
-            logging.debug("Processing the background image:")
-            self.bg = cv.CloneImage( self.crop(self.undistort(self.bg)) )
 
     def get_standard_form(self, frame):
         """Undistort an image, i.e. convert to standard format
@@ -91,40 +76,3 @@ class Preprocessor:
 
         self.Distortion = dmat
         self.Intrinsic  = imat
-
-    def bgsub(self, frame):
-        """Preprocess a frame
-        :: CvMat -> (CvMat, CvMat, CvMat)
-
-        This method preprocesses a frame by undistorting it using
-        prior camera calibration data and then removes the background
-        using an image of the background.
-        """
-        # if not self.standardised:
-        #     frame = self.get_standard_form(frame)
-        bgsub, mask = self.remove_background_values(frame)
-        return bgsub, mask
-
-    def remove_background(self, frame):
-        """Remove background, leaving robots and some noise.
-
-        It is not safe to modify the returned image, as it will be
-        re-initialised each time preprocess is run.
-        """
-        logging.debug("Performing background subtraction")
-        cv.Sub(frame, self.bg, self.Imask)
-        return self.Imask
-
-    def remove_background_values(self, frame):
-        self.Imask = self.remove_background(frame)
-
-        logging.debug("Using thresholded background subtracted image as a mask")
-        self.Igray = self.threshold.foreground(self.Imask)
-        cv.CvtColor(self.Imask, self.Igray, cv.CV_BGR2GRAY)
-        cv.Threshold(self.Igray, self.Igray, 200, 255, cv.CV_THRESH_OTSU)
-        cv.CvtColor(self.Igray, self.Imask, cv.CV_GRAY2BGR)
-
-        #Finally, return the salient bits of the original frame
-        cv.And(self.Imask, frame, self.Iobjects)
-
-        return self.Iobjects, self.Igray
