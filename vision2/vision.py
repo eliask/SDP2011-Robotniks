@@ -17,6 +17,7 @@ class Vision():
         self.headless = headless
         self.capture = Capture(self.rawSize, filenames, once)
         self.threshold = threshold.AltRaw()
+        self.threshold = threshold.PrimaryRaw()
         self.world = world
         self.simulator = simulator
 

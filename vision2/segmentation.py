@@ -40,7 +40,7 @@ def find_connected_components(frame):
                          reverse=True )
     return candidates
 
-def get_contours(frame):
+def get_contours(frame, approx=True):
     """Get contours from an image
     :: iplimage -> CvSeq
     """
@@ -61,11 +61,14 @@ def get_contours(frame):
 
     res = []
     while contours:
-        result = cv.ApproxPoly( contours,
-                                storage,
-                                cv.CV_POLY_APPROX_DP,
-                                cv.ArcLength(contours)*0.02,
-                                1 )
+        if not approx:
+            result = contours
+        else:
+            result = cv.ApproxPoly( contours,
+                                    storage,
+                                    cv.CV_POLY_APPROX_DP,
+                                    cv.ArcLength(contours)*0.02,
+                                    1 )
         res.append( result )
         contours = contours.h_next()
 

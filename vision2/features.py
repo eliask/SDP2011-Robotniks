@@ -125,7 +125,7 @@ class FeatureExtraction:
         return x,y, area
 
     def centralMoment(self, img):
-        contours = segmentation.get_contours(img)
+        contours = segmentation.get_contours(img, False)
         if not contours: return
         all_moments = map(self.computeMoment, contours)
         all_moments = filter(lambda x:x is not None, all_moments)
@@ -188,9 +188,17 @@ class FeatureExtraction:
             cv.Circle( out, point2, radius, (255,255,255), -1 )
 
             cv.And(out, img2, out)
+            center1 = self.centralMoment(out)
+            count1  = cv.CountNonZero(out)
+
             cv.Erode(out,out)
-            center = self.centralMoment(out)
-            return center
+            center2 = self.centralMoment(out)
+            count2  = cv.CountNonZero(out)
+
+            if count2 == 0 and count1 > 10:
+                return center1
+            else:
+                return center2
 
         box_direction = None; max_count = 0
         for angle in entOrientations(robot):
@@ -199,6 +207,9 @@ class FeatureExtraction:
             if count > max_count:
                 max_count = count
                 box_direction = angle
+
+        if box_direction is None:
+            return
 
         # Not the cleanest way to deal with this angle...
         robot['orient'] = -box_direction
@@ -218,9 +229,7 @@ class FeatureExtraction:
         if dCenter is None:
             dCenter = get_dirmarker( img2, pi-robot['orient'], 14, 8 )
         if dCenter is None:
-            dCenter = get_dirmarker( img2, pi-robot['orient'], 18, 4 )
-        if dCenter is None:
-            dCenter = get_dirmarker( img2, pi-robot['orient'], 18, 8 )
+            dCenter = get_dirmarker( img2, pi-robot['orient'], 10, 12 )
         if dCenter is None:
             return
 
