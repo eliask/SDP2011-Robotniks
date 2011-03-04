@@ -39,13 +39,6 @@ class GUI:
         cv.SetMouseCallback(self.WindowName, self.on_mouse)
         self.scale = self.vision.pre.rawSize[0] / self.world.PitchLength
 
-        def t1(x): self.vision.featureEx.hough_params[0] = x
-        def t2(x): self.vision.featureEx.hough_params[1] = x
-
-        #cv.NamedWindow("hough")
-        # cv.CreateTrackbar("P1", self.WindowName, 180, 1000, t1)
-        # cv.CreateTrackbar("P2", self.WindowName, 120, 1000, t2)
-
     def initThresholds(self):
         T = self.threshold
 
