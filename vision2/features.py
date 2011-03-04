@@ -118,19 +118,16 @@ class FeatureExtraction:
         cv.SetImageROI(frame, robot['rect'])
         img = thresh(frame)
         cv.ResetImageROI(frame)
+        thresholded_T = cv.CloneImage(img)
 
         offset = 40
         c = entCenter(robot)
-        nhood = ( max(0,c[0] - offset), max(0,c[1] - offset),
+        nhood = ( max(0,int(round(c[0])) - offset),
+                  max(0,int(round(c[1])) - offset),
                  2*offset, 2*offset )
         cv.SetImageROI(frame, nhood)
         img2 = self.threshold.dirmarker(frame)
         cv.ResetImageROI(frame)
-
-        cv.Dilate(img,img)
-        cv.Erode(img,img)
-        cv.Erode(img,img)
-        cv.Erode(img,img)
 
         def computeMoment(contour):
             moments = cv.Moments(contour, 1)
@@ -152,127 +149,88 @@ class FeatureExtraction:
             if area == 0: return
             return center / area
 
-        cv.SetImageROI(frame, nhood)
-        white = self.threshold.white(frame)
-        cv.ResetImageROI(frame)
+        def mask_end(img, angle):
+            """Mask out one end of the T given an angle of orientation
+
+            Returns a new image.
+            """
+            X,Y    = entCenter(robot)
+            Len,_  = entSize(robot)
+            Dist   = 5
+            point  = (X + (Dist+Len/2.0)*cos(angle),
+                     Y - (Dist+Len/2.0)*sin(angle))
+            point  = intPoint(point)
+            radius = int(round(Dist + Len/2.0))
+
+            #For visualisation:
+            #cv.Circle( frame, point, radius, (0,0,255), 2 )
+
+            rect = entRect(robot)
+            point2 = point[0]-rect[0], point[1]-rect[1]
+            out = cv.CloneImage(img)
+            cv.Circle( out, point2, radius, (0,0,0), -1 )
+            return out
+
+        def get_dirmarker(img, angle, Dist, radius):
+            X,Y = entCenter(robot)
+            Len,_ = entSize(robot)
+            point = (X + (Dist+Len/2.0)*cos(angle),
+                     Y - (Dist+Len/2.0)*sin(angle))
+            point = intPoint(point)
+
+            #For visualisation:
+            # cv.Circle( frame, point, radius, (0,200,200), 1 )
+
+            point2 = point[0]-nhood[0], point[1]-nhood[1]
+            out = cv.CloneImage(img)
+            cv.Zero(out)
+            cv.Circle( out, point2, radius, (255,255,255), -1 )
+
+            cv.And(out, img2, out)
+            cv.Erode(out,out)
+            center = centralMoment(out)
+            return center
+
+        box_direction = None; max_count = 0
+        for angle in entOrientations(robot):
+            masked = mask_end(thresholded_T, angle)
+            count = cv.CountNonZero(masked)
+            if count > max_count:
+                max_count = count
+                box_direction = angle
+
+        # Not the cleanest way to deal with this angle...
+        robot['orient'] = -box_direction
+
+        "Draw the corners of the bounding box"
+        for i in getBoxCorners(robot['box']):
+            col2=(0,255,255)
+            col2=(255,0,0)
+            cv.Circle( frame, intPoint(i), 3, col2, -1 )
+
+        dCenter = get_dirmarker( img2, pi-robot['orient'], 8, 10 )
+        if dCenter is None:
+            dCenter = get_dirmarker( img2, pi-robot['orient'], 10, 4 )
+        if dCenter is None:
+            dCenter = get_dirmarker( img2, pi-robot['orient'], 14, 8 )
+        if dCenter is None:
+            dCenter = get_dirmarker( img2, pi-robot['orient'], 18, 4 )
+        if dCenter is None:
+            dCenter = get_dirmarker( img2, pi-robot['orient'], 18, 8 )
+        if dCenter is None:
+            return
+
+        dCenter = tuple(dCenter + nhood[:2])
+        cv.Circle(frame, dCenter, 6, (0,0,255), 2)
 
         Tcenter = centralMoment(img)
-        if Tcenter is None: return
-        xcT,ycT = Tcenter
+        if Tcenter is not None:
+            Tcenter += entRect(robot)[:2]
+            robot['center'] = Tcenter
+        else:
+            robot['center'] = entCenter(robot)
 
-        Wcenter = centralMoment(white)
-        if Wcenter is None: return
-        xcW,ycW = Wcenter
-
-        R = robot['rect']; c = entCenter(robot)
-        TgeomCenter = entCenter(robot)
-        xT,yT = TgeomCenter
-        #xcW,ycW = xcW+R[0], ycW+R[1]
-        dx,dy = xT-xcW-nhood[0], yT-ycW-nhood[1]
-        robot['orient'] = atan2(dy,dx)
-
-        ### Absolute coords:
-        #cv.Circle(frame, tuple(TgeomCenter), 12, (50,50,200), -1)
-        # print Wcenter, TgeomCenter, Tcenter
-        # print xcW+nhood[0], ycW+nhood[1]
-
-        # cv.SetImageROI(frame, nhood)
-        ### Relative coords:
-        #cv.Circle(frame, tuple(Tcenter), 12, (200,50,140), -1)
-        # cv.Circle(frame, tuple(Wcenter), 12, (150,150,150), -1)
-        # cv.ResetImageROI(frame)
-        # cv.Circle( frame, (xcW+nhood[0], ycW+nhood[1]), 
-        #            8, (255,255,255), -1 )
-
-        return
-
-        circles = self.detectCircles(img2)
-        if False and circles:
-            x,y,radius = circles[0]
-            dx,dy = center[0]-x, center[1]-y
-            angle = atan2(dy,dx)
-            robot['orient'] = angle
-            return
-
-        radius = int(0.8*sqrt((x/area)**2 + (y/area)**2))
-        col=(255,255,255)
-        col=(0,0,0)
-        cv.Circle(img, (x/area, y/area), radius, col, -1)
-        objects = self.segment(img)
-
-        if objects:
-            robot['T_tip'] = objects[0]
-            tip_pos = entCenter(objects[0])
-            dy,dx = np.array(tip_pos) - center
-            angle = atan2(dy,dx)
-            robot['orient'] = angle
-            return
- 
-        C = segmentation.get_contours(img)
-        if not C: return
-
-        moments = cv.Moments(C[0], 1)
-        #moments = cv.Moments(img, 1)
-        y= cv.GetSpatialMoment(moments,0,1)
-        x= cv.GetSpatialMoment(moments,1,0)
-
-        area= cv.GetSpatialMoment(moments,0,0)
-        if area == 0: return
-        center = x/area, y/area
-        diff = center[0] - img.width/2.0, center[1] - img.height/2.0
-
-        angle = atan2(2*diff[1], 2*diff[0])
-        robot['orient'] = angle
-
-
-    hough_params = [140,15]
-    track=None
-    def detectCircles(self, rect, gray=False):
-        """Detect circles in the picture
-
-        the Hough circle transform parameters min_radius and max_radius
-        are adjusted as follows (for the 768x576 image):
-
-        * The black direction marker is around 8 to 11 pixels wide.
-        * The ball is around 12 and 16 pixels wide.
-
-        The above estimates are taken with GIMP. The lower bounds are
-        obtained using the darker, inner pixels and the upper bounds using
-        the lighter edge pixels. Since the Hough circle transform is
-        resistant against damage (it could work with only half of the
-        circle present), we stick with radii obtained from these measures
-        and not try to "account for" the cases where the circles are
-        somehow obscured and look smaller to the eye.
-        """
-        cv.Smooth(rect, rect, cv.CV_GAUSSIAN, 3,3)
-        s = self.segment(rect)
-        if len(s) == 1:
-            C = segmentation.get_contours(rect)
-            if not C: return []
-
-            moments = cv.Moments(C[0], 1)
-            area= cv.GetSpatialMoment(moments,0,0)
-
-            if area == 0: return []
-            y= cv.GetSpatialMoment(moments,0,1) / area
-            x= cv.GetSpatialMoment(moments,1,0) / area
-            return [(x,y,0)]
-
-        size = cv.GetSize(rect)
-        tmp = cv.CloneImage(rect)
-        storage = cv.CreateMat(100, 1, cv.CV_32FC3)
-
-
-        #Note: circles.total denotes the number of circles
-        circles = cv.HoughCircles(rect, storage, cv.CV_HOUGH_GRADIENT,
-                                  1, 40, 20, 10, 2, 30 )
-
-        out = cv.CreateImage(size, cv.IPL_DEPTH_8U, 3)
-        cv.CvtColor(rect, out, cv.CV_GRAY2BGR)
-
-        circles = [storage[i,0] for i in range(storage.rows)]
-        for x,y, radius in [storage[i,0] for i in range(storage.rows)]:
-            cv.Circle(out, (x,y), min(7,cv.Round(radius)), cv.CV_RGB(300,1,1), 2)
-        #cv.ShowImage("hough", out)
-
-        return circles
+        cx,cy = robot['center']
+        dx,dy = dCenter
+        robot['orient'] = atan2(cy-dy, cx-dx)
+        #cv.ShowImage(name, img3)

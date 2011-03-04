@@ -88,7 +88,7 @@ class Base(object):
 
         tmp = cv.CloneImage(frame)
         if magic:
-            cv.Smooth(tmp, tmp, cv.CV_GAUSSIAN, 3)
+            cv.Smooth(tmp, tmp, cv.CV_GAUSSIAN, 5)
         # Work in the correct colorspace
         self.colorspaceConv[colorspace](tmp)
 
@@ -120,7 +120,8 @@ class PrimaryRaw(Base):
 
 class AltRaw(Base):
     Tblue      = [ 'bgr', [160,  40,   45 ], [255, 210, 165] ]
+    Tblue      = [ 'hsv', [84,  108,  108 ], [132, 255, 255] ]
     Tyellow    = [ 'hsv', [14,   54,  220 ], [ 45, 255, 255] ]
     Tball      = [ 'bgr', [50,   50,  130 ], [130, 122, 255] ]
-    Tdirmarker = [ 'bgr', [50,   65,   55 ], [110, 150, 100] ]
+    Tdirmarker = [ 'bgr', [25,   25,   25 ], [110, 150, 100] ]
     Twhite     = [ 'bgr', [200, 200,  200 ], [255, 255, 255] ]

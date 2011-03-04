@@ -60,7 +60,7 @@ def entDim(ent):
 def boxDim(box):
     return np.array(box[1])
 
-def entOrientation(ent):
+def entOrientations(ent):
     """Return two possible orientations for an entity in radians
     :: Ent -> [angle, angle]
 
@@ -71,26 +71,24 @@ def entOrientation(ent):
     angle = entAngle(ent)
     w,h = entDim(ent)
     if w == h:
-        return [] # or raise Exception?
+        return [angle, angle+pi/2.0, angle+pi, angle+3*pi/2.0]
     elif w > h:
-        angles = [angle, angle+pi]
+        return [angle, angle+pi]
     else:
-        angles = [angle+pi/2, angle-pi/2]
-
-    return angles
+        return [angle+pi/2, angle-pi/2]
 
 def entAngle(ent):
     "The orientation of the entity's bounding box in (-pi/2, pi)"
     return boxAngle(ent['box'])
 def boxAngle(box):
-    """The orientation of the bounding box in (-pi/2, pi)
+    """The orientation of the bounding box in (0, pi)
 
     We negate the sign due to:
     http://tech.groups.yahoo.com/group/OpenCV/message/54146:
     * "box.angle" appears to be the angle in degrees through which the
     points are rotated CLOCKWISE about "box.center"
     """
-    return radians(-box[2])
+    return -pi/2-radians(-box[2])
 
 def getArea(box):
     return box[1][0] * box[1][1]
@@ -119,9 +117,8 @@ def pointInConvexPolygon(points, point):
         # polygon, it is within the polygon
         side = (y-y0)*(x1-x0) - (x-x0)*(y1-y0)
 
-        if side < 0 and previous > 0: # to the right
-            return False
-        if side > 0 and previous < 0: # to the right
+        if side < 0 and previous > 0 or side > 0 and previous < 0:
+            # the point is to the right of this line
             return False
         previous = side
 
@@ -133,15 +130,14 @@ def getBoxCorners(box):
     topleft = center - boxDim(box)/2.0
     W,H = boxDim(box)
     unrot = [ topleft, topleft+(W,0), topleft+(W,H), topleft+(0,H) ]
-    # TODO: verify that the angle is correct
-    rotated = rotatePoints( unrot, center, boxAngle(box) )
+    rotated = rotatePoints( unrot, center, -boxAngle(box) )
     return rotated
+
+def intPoint(point):
+    return tuple( map(lambda x:int(round(x)), point) )
 
 def imSize(im):
     return (im.width, im.height)
-
-def Point(x, y):
-    return cv.Point( int(x), int(y) )
 
 def enum(*sequential, **named):
     enums = dict(zip(sequential, range(len(sequential))), **named)
