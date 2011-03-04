@@ -199,14 +199,13 @@ class GUI:
 
     def draw_ent(self, ent, color=cv.CV_RGB(255,128,0) ):
         if not ent: return
-        #x,y = self.scale*ent.pos[0], self.scale*ent.pos[1]
         x,y = ent.pos
         radius = 30
-        cv.Circle(self.image, (x,y), cv.Round(min(15,radius)), color, 4)
+        cv.Circle(self.image, (x,y), 8, color, -1)
 
-        o = ent.orientation; D=40
+        o = ent.orientation; D=30
         cv.Circle(self.image, (x+D*cos(o), y+D*sin(o)),
-                  10, cv.CV_RGB(100,100,100), 5)
+                  6, cv.CV_RGB(200,200,200), -1)
 
     def drawFPS(self):
         cv.PutText( self.image, "FPS: %d" % round(self.fps), (10,20),
@@ -215,12 +214,13 @@ class GUI:
     def drawEntities(self, ents):
         pos = map(lambda x:self.scale*x, self.world.getBall().pos),
         cv.Circle( self.image, tuple(self.world.getBall().pos),
-                   10, (180,100,230), 3 )
+                   10, (180,100,230), 2 )
 
         for robot, colour in [('blue', (230,100,100)), ('yellow', (0,200,200))]:
             robot = self.world.getRobot(robot)
             if robot:
-                logging.info( "%s robot at angle: %.1f", robot, degrees(robot.orientation))
+                logging.info( "%s robot at angle: %.1f",
+                              robot, degrees(robot.orientation))
                 self.draw_ent(robot, colour)
 
     def change_threshold(self, delta):
