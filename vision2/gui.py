@@ -201,11 +201,11 @@ class GUI:
         if not ent: return
         x,y = ent.pos
         radius = 30
-        cv.Circle(self.image, (x,y), 8, color, -1)
+        cv.Circle(self.image, intPoint((x,y)), 8, color, -1)
 
         o = ent.orientation; D=30
-        cv.Circle(self.image, (x+D*cos(o), y+D*sin(o)),
-                  6, cv.CV_RGB(200,200,200), -1)
+        cv.Circle(self.image, intPoint((x+D*cos(o), y+D*sin(o))),
+                  6, (200,200,200), -1)
 
     def drawFPS(self):
         cv.PutText( self.image, "FPS: %d" % round(self.fps), (10,20),
@@ -213,7 +213,7 @@ class GUI:
 
     def drawEntities(self, ents):
         pos = map(lambda x:self.scale*x, self.world.getBall().pos),
-        cv.Circle( self.image, tuple(self.world.getBall().pos),
+        cv.Circle( self.image, intPoint(self.world.getBall().pos),
                    10, (180,100,230), 2 )
 
         for robot, colour in [('blue', (230,100,100)), ('yellow', (0,200,200))]:

@@ -220,7 +220,7 @@ class FeatureExtraction:
         if dCenter is None:
             return
 
-        dCenter = tuple(dCenter + nhood[:2])
+        dCenter = intPoint(dCenter + nhood[:2])
         cv.Circle(frame, dCenter, 6, (0,0,255), 2)
 
         Tcenter = self.centralMoment(img)
