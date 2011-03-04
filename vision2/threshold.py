@@ -58,7 +58,7 @@ class Base(object):
         Very good detection rate from full background and extremely few
         false positives.
         """
-        return self.threshold(frame, self.Tball, magic=True)
+        return self.threshold(frame, self.Tball, magic=False)
 
     @classmethod
     def blueT(self, frame):
