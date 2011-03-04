@@ -18,8 +18,7 @@ class RobotEstimator(Kalman):
         Kalman.__init__(self, 6,4,0, self.transitionM)
 
     def getOrientation(self):
-        X,Y = map(float, self.prediction[0:2])
-        #X,Y = map(float, self.measurement[0:2])
+        X,Y = map(float, self.measurement[0:2])
         return atan2(Y,X)
 
     def getPos(self):
