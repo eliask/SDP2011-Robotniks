@@ -15,6 +15,7 @@ class FeatureExtraction:
     def __init__(self, size, threshold=None):
         self.gray8 = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
         self.threshold = threshold
+        self.overlay = False
 
     def features(self, Iobjects, threshold):
         """Extract relevant features from objects
@@ -202,11 +203,12 @@ class FeatureExtraction:
         # Not the cleanest way to deal with this angle...
         robot['orient'] = -box_direction
 
-        "Draw the corners of the bounding box"
-        for i in getBoxCorners(robot['box']):
-            col2=(0,255,255)
-            col2=(255,0,0)
-            cv.Circle( frame, intPoint(i), 3, col2, -1 )
+        if self.overlay:
+            "Draw the corners of the bounding box"
+            for i in getBoxCorners(robot['box']):
+                col2=(0,255,255)
+                col2=(255,0,0)
+                cv.Circle( frame, intPoint(i), 3, col2, -1 )
 
         dCenter = get_dirmarker( img2, pi-robot['orient'], 3, 4 )
         if dCenter is None:
@@ -223,7 +225,9 @@ class FeatureExtraction:
             return
 
         dCenter = intPoint(dCenter + nhood[:2])
-        cv.Circle(frame, dCenter, 6, (0,0,255), 2)
+
+        if self.overlay:
+            cv.Circle(frame, dCenter, 6, (0,0,255), 2)
 
         Tcenter = self.centralMoment(img)
         if Tcenter is not None:

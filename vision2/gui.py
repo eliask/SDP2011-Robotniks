@@ -11,7 +11,7 @@ class GUI:
     WindowName = 'Robotniks'
     images = {}
     active = 'standard'
-    overlay = True
+    overlay = False
     histogram = False
     hist_visibility = 0.3
     Font = cv.InitFont(cv.CV_FONT_HERSHEY_SIMPLEX, 0.4, 0.4, 0, 1, 8)
@@ -38,6 +38,8 @@ class GUI:
         self.drag_start = None
         cv.SetMouseCallback(self.WindowName, self.on_mouse)
         self.scale = self.vision.pre.rawSize[0] / self.world.PitchLength
+
+        self.toggle_overlay()
 
     def initThresholds(self):
         T = self.threshold
@@ -228,6 +230,10 @@ class GUI:
         _, _, vals = self.thresholds[self.curThreshold]
         threshold.setValues(vals)
 
+    def toggle_overlay(self):
+        self.overlay = not self.overlay
+        self.vision.featureEx.overlay = not self.vision.featureEx.overlay
+
     def processInput(self):
         #c = cv.WaitKey(500)
         c = cv.WaitKey(5)
@@ -253,7 +259,7 @@ class GUI:
             self.change_threshold(1)
 
         elif k == 'o':
-            self.overlay = not self.overlay
+            self.toggle_overlay()
         elif k == 'h':
             self.histogram = not self.histogram
 
