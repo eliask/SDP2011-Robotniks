@@ -96,9 +96,13 @@ class GUI:
                 threshold.updateValues()
 
             name, thresh, vals = self.thresholds[self.curThreshold]
-            logging.info("Thresholding imag for: %s", name)
-            print ("Thresholding image for: %s" % name)
+            logging.info("Thresholding image for: %s", name)
             self.image = thresh(self.image)
+
+            P = cv.GetSize(self.image)
+            cv.PutText( self.image, "Threshold: %s" % name,
+                        (P[0]-150,P[1]-20),
+                        self.Font, (255,255,255,128) )
 
     def draw(self, ents, startTime):
         self.setFPS(startTime)
