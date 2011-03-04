@@ -75,10 +75,6 @@ class Base(object):
         return self.threshold(frame, self.Tdirmarker, magic=True)
 
     @classmethod
-    def white(self, frame):
-        return self.threshold(frame, self.Twhite, magic=True)
-
-    @classmethod
     def threshold(self, frame, record, op=cv.And, magic=False):
         """Threshold a frame using a record of min/max thresholds
 
@@ -116,7 +112,6 @@ class PrimaryRaw(Base):
     Tyellow    = [ 'hsv', [14,   54,  220 ], [ 45, 255, 255] ]
     Tball      = [ 'bgr', [36,   16,  164 ], [110, 100, 255] ]
     Tdirmarker = [ 'bgr', [50,   65,   55 ], [110, 150, 100] ]
-    Twhite     = [ 'bgr', [200, 200,  200 ], [255, 255, 255] ]
 
 class AltRaw(Base):
     Tblue      = [ 'bgr', [160,  40,   45 ], [255, 210, 165] ]
@@ -124,4 +119,3 @@ class AltRaw(Base):
     Tyellow    = [ 'hsv', [14,   54,  220 ], [ 45, 255, 255] ]
     Tball      = [ 'bgr', [50,   50,  130 ], [130, 122, 255] ]
     Tdirmarker = [ 'bgr', [25,   25,   25 ], [110, 150, 100] ]
-    Twhite     = [ 'bgr', [200, 200,  200 ], [255, 255, 255] ]

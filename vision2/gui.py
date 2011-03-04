@@ -49,7 +49,6 @@ class GUI:
               ("yellow T", T.yellowT, T.Tyellow),
               ("blue T", T.blueT, T.Tblue),
               ("dirmarker", T.dirmarker, T.Tdirmarker),
-              ("white", T.white, T.Twhite),
             ]
 
     def setCropRect(self, rect):
