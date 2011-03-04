@@ -114,6 +114,26 @@ class FeatureExtraction:
         return self.Sizes[name][0] < width  < self.Sizes[name][1] \
             and self.Sizes[name][2] < height < self.Sizes[name][3]
 
+    def computeMoment(self, contour):
+        moments = cv.Moments(contour, 1)
+
+        area= cv.GetSpatialMoment(moments,0,0)
+        if area == 0: return
+        x = cv.GetSpatialMoment(moments,1,0)
+        y = cv.GetSpatialMoment(moments,0,1)
+        return x,y, area
+
+    def centralMoment(self, img):
+        contours = segmentation.get_contours(img)
+        if not contours: return
+        all_moments = map(self.computeMoment, contours)
+        all_moments = filter(lambda x:x is not None, all_moments)
+        areas = map(lambda x:x[-1], all_moments)
+        center = sum( map(lambda x:np.array(x[:-1]), all_moments) )
+        area = sum(areas)
+        if area == 0: return
+        return center / area
+
     def getOrientation(self, frame, robot, name, thresh):
         cv.SetImageROI(frame, robot['rect'])
         img = thresh(frame)
@@ -128,26 +148,6 @@ class FeatureExtraction:
         cv.SetImageROI(frame, nhood)
         img2 = self.threshold.dirmarker(frame)
         cv.ResetImageROI(frame)
-
-        def computeMoment(contour):
-            moments = cv.Moments(contour, 1)
-
-            area= cv.GetSpatialMoment(moments,0,0)
-            if area == 0: return
-            x = cv.GetSpatialMoment(moments,1,0)
-            y = cv.GetSpatialMoment(moments,0,1)
-            return x,y, area
-
-        def centralMoment(img):
-            contours = segmentation.get_contours(img)
-            if not contours: return
-            all_moments = map(computeMoment, contours)
-            all_moments = filter(lambda x:x is not None, all_moments)
-            areas = map(lambda x:x[-1], all_moments)
-            center = sum( map(lambda x:np.array(x[:-1]), all_moments) )
-            area = sum(areas)
-            if area == 0: return
-            return center / area
 
         def mask_end(img, angle):
             """Mask out one end of the T given an angle of orientation
@@ -188,7 +188,7 @@ class FeatureExtraction:
 
             cv.And(out, img2, out)
             cv.Erode(out,out)
-            center = centralMoment(out)
+            center = self.centralMoment(out)
             return center
 
         box_direction = None; max_count = 0
@@ -223,7 +223,7 @@ class FeatureExtraction:
         dCenter = tuple(dCenter + nhood[:2])
         cv.Circle(frame, dCenter, 6, (0,0,255), 2)
 
-        Tcenter = centralMoment(img)
+        Tcenter = self.centralMoment(img)
         if Tcenter is not None:
             Tcenter += entRect(robot)[:2]
             robot['center'] = Tcenter
