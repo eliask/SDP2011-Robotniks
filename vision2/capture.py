@@ -95,7 +95,7 @@ class Capture:
 				frame = cv.LoadImage(get_name(self.cur_frame - 1))
 				break
                         elif len( os.listdir(".") ) > 0:
-				if get_name(1):
+				if frame_exists(1):
 					self.cur_frame = 1
                                 self.cur_frame += 1
 
