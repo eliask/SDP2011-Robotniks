@@ -43,11 +43,16 @@ class Friendly1(Main2):
         distB = dist(self.me.pos, behind)
 
         if distB < distL and distB < distR:
+            # Keep the previous destination if we're closer to it than
+            # the auxiliary ones. This happens when we are close to
+            # the ball or when we can go straight towards the ball.
             pass
 
         elif (right[0] - pos[0])*(left[1] - pos[1]) \
                 - (right[1] - pos[1])*(left[0] - pos[0]) < 0:
-            # We're to the "left" of the line
+            # We're on the wrong side of the line that divides the
+            # ball and the target goal 'decision boundary'.
+
             if distL < distR:
                 dest = left
             else:
@@ -57,9 +62,13 @@ class Friendly1(Main2):
             pygame.draw.circle(self.sim.screen, (60,60,255,130), dest, 15, 3)
 
         if dest == behind and distB < 50:
+            # If we are close enough to the ball, just switch to
+            # potential field guidance. Much larger thresholds will
+            # result in much lower performance.
             self.moveTo(pos + 10*self.pf(pos))
         else:
             self.moveTo(dest)
+
         #self.moveTo(dest)
 	# if dist(self.me.pos, behind) < 25:
         #     self.dash()
