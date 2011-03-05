@@ -1,5 +1,4 @@
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 
 // Lejos imports
 import lejos.pc.comm.*;
@@ -8,6 +7,7 @@ import lejos.pc.comm.*;
 public class PCBluetooth {
 
     private static DataOutputStream blueOutStream;
+    private static DataInputStream blueInStream;
     private static NXTComm communicator;
     private static String name = "NXT";
     private static String address = "00:16:53:07:D6:2B";
@@ -41,6 +41,7 @@ public class PCBluetooth {
             System.out.format("Connected to %s\n", nxtInfo.name);
             try {
                 blueOutStream = new DataOutputStream(communicator.getOutputStream());
+		blueInStream = new DataInputStream(communicator.getInputStream());
             } catch (Exception e) {
                 System.out.println("Failed");
             }
@@ -52,6 +53,12 @@ public class PCBluetooth {
         System.out.println("PCBluetooth: " + message);
         blueOutStream.writeInt(message);
         blueOutStream.flush();
+    }
+
+    public static int readMessage() throws IOException {
+	int message = blueInStream.readInt();
+	System.out.println("NXT: " + message);
+	return message;
     }
 
     // Closes the connection and the output stream
