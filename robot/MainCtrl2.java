@@ -17,14 +17,14 @@ public class MainCtrl2 {
 	
 
 	public static void main(String[] args) throws InterruptedException{
-		Thread mainReceiver = new Receiver();
+		Thread mainCommunicator = new Communicator();
 		Thread kickThread = new KickThread();
 		Thread driveThread = new DriveThread();
 		Thread steeringLeftThread = new SteeringLeftThread();
 		Thread steeringRightThread = new SteeringRightThread();
 		Thread counterThread = new CounterThread();
 		
-		mainReceiver.start();
+		mainCommunicator.start();
 		kickThread.start();
 		driveThread.start();
 		steeringLeftThread.start();
@@ -118,13 +118,13 @@ class ControlCentre{
 	}
 }
 
-class Receiver extends Thread {
+class Communicator extends Thread {
 	// Defines variables used for the managing bluetooth connection
 	private static BTConnection connection;
 	private static DataInputStream inputStream;
 	private static DataOutputStream outputStream;
 
-	public Receiver(){
+	public Communicator(){
 	}
 	public void run(){
 		connect();
@@ -211,8 +211,8 @@ class Receiver extends Thread {
 
 	}
 
-
-	private static void sendBackMessage(int messageBack) throws IOException{
+	// send sensor data back?
+	public static void sendBackMessage(int messageBack) throws IOException{
 		outputStream.writeInt(messageBack);
 		outputStream.flush();
 	}
