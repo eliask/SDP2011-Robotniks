@@ -24,7 +24,7 @@ colour = 'yellow'
 if len(sys.argv) > 1:
   colour = sys.argv[1]
 
-ai_name = 'friendly1'
+ai_name = 'null'
 if len(sys.argv) > 2:
   ai_name = sys.argv[2]
 
