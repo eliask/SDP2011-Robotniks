@@ -92,6 +92,7 @@ public class Server {
 		executor = Executors.newCachedThreadPool();
 		executor.execute(new ConnectionListener());
 		executor.execute(new KeepAlive());
+		if(!loopback){executor.execute(new BTListener());}
 
 		while(!finished){
 			if(restart){
@@ -110,6 +111,28 @@ public class Server {
 			s.close();
 		}
 		executor.shutdownNow();
+	}
+
+	class BTListener implements Runnable {
+		
+		public void run(){
+			while(!finished){
+                                try{
+				        int message = pcb.readMessage();
+				        for(Socket s: sockets){
+						try{
+                                                	OutputStream os = s.getOutputStream(); // lazy
+                                                	os.write(message); // try/catch this?
+						}catch(IOException e){
+							// probably dead connection, ignore
+						}
+        				}
+                                }catch(IOException e){
+					// disregard, carry on
+				}
+			}
+		}
+
 	}
 
 	class KeepAlive implements Runnable {
