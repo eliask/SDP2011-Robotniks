@@ -300,7 +300,7 @@ class DriveThread extends Thread{
 		while(true){
 			
 			int targetLeft = ControlCentre.getTargetDriveLeftVal();
-			LCD.drawString(Integer.toString(targetLeft)+",",4,1);
+			LCD.drawString(Integer.toString(targetLeft)+",",2,1);
 
 			switch(targetLeft){
 			case 0:
@@ -380,13 +380,8 @@ class SteeringLeftThread extends Thread{
 
 		while(true){
 			setToAngle(ControlCentre.getTargetSteeringAngleLeft());
-
-			String num = Integer.toString(getToAngle());
-			if (num.length() == 1)
-			    num = "  "+num;
-			if (num.length() == 2)
-			    num = " "+num;
-			LCD.drawString(num+" R", 7 ,1);
+			LCD.drawString("    R", 7 ,1);
+			LCD.drawString(Integer.toString(getToAngle()), 7 ,1);
 
 			if (((getToAngle() - getCurrentSteeringAngle())>0) && ((getToAngle() - getCurrentSteeringAngle())<180)){
 				motor_left.rotate((int)(Movement.rotConstant * (getToAngle() - getCurrentSteeringAngle())));
@@ -439,12 +434,8 @@ class SteeringRightThread extends Thread{
 		while(true){
 			setToAngle(ControlCentre.getTargetSteeringAngleRight());
 
-			String num = Integer.toString(getToAngle());
-			if (num.length() == 1)
-			    num = "  "+num;
-			if (num.length() == 2)
-			    num = " "+num;
-			LCD.drawString(num, 12 ,1);
+			LCD.drawString("  ", 13 ,1);
+			LCD.drawString(Integer.toString(getToAngle()), 12 ,1);
 
 			if (((getToAngle() - getCurrentSteeringAngle())>0) && ((getToAngle() - getCurrentSteeringAngle())<180)){
 				Movement.motor_right.rotate((int)(Movement.rotConstant * (getToAngle() - getCurrentSteeringAngle())));
