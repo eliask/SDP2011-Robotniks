@@ -159,13 +159,13 @@ class Communicator extends Thread {
         int N = 0;
 		while(atend == false){
 			N = N+1; //% 100;
-			LCD.drawString("N:"+Integer.toString(N), 0, 2);
+			LCD.drawString("Recv:"+Integer.toString(N), 2, 2);
 			try{
 				//Bluetooth.getConnectionStatus();
 			        int message = inputStream.readInt();
-				LCD.drawString("N:"+Integer.toString(N), 6, 3);
+				LCD.drawString("Rcvd:"+Integer.toString(N), 2, 3);
 				if (message >= (1<<26)){
-				    LCD.drawString("end"+Integer.toString(N), 5, 3);
+				    LCD.drawString("end"+Integer.toString(N), 12, 2);
 					atend = true;
 					//Thread atendDisplay = new ScreenWriter(Integer.toString(message),7);
 					LCD.drawString(Integer.toString(message),0,7);
@@ -174,12 +174,13 @@ class Communicator extends Thread {
 					LCD.drawString("stopped" + message, 0, 2);
 				} else if (message < (1<<26)){
 				    //Thread newMessageDisplay = new ScreenWriter(Integer.toString(message),6);
-					LCD.drawString("display"+Integer.toString(N), 5, 4);
+				    //LCD.drawString("display"+Integer.toString(N), 6, 0);
 					//newMessageDisplay.start();
-					LCD.drawString(Integer.toString(message), 0, 6);
-					LCD.drawString("parse"+Integer.toString(N), 5, 4);
+					LCD.drawString("        ", 5, 6);
+					LCD.drawString("Msg:"+Integer.toString(message), 0, 6);
+					//LCD.drawString("decode:"+Integer.toString(N), 6, 1);
 					parseMessage(message);
-					LCD.drawString("parsed"+Integer.toString(N), 5, 4);
+					//LCD.drawString("decoded:"+Integer.toString(N), 6, 0);
 				} 
 				//inputStream.close();
 				//inputStream = connection.openDataInputStream();
@@ -256,7 +257,7 @@ class CounterThread extends Thread{
     public void run(){
 	int count = 0;
 	while (true){
-	    LCD.drawString(Integer.toString(count++), 0,4);
+	    LCD.drawString("" + Integer.toString(count++), 6,0);
 	    count %= 1000;
 	    try{
 		Thread.sleep(100);
@@ -299,7 +300,7 @@ class DriveThread extends Thread{
 		while(true){
 			
 			int targetLeft = ControlCentre.getTargetDriveLeftVal();
-			LCD.drawString(Integer.toString(targetLeft)+",",2,1);
+			LCD.drawString(Integer.toString(targetLeft)+",",4,1);
 
 			switch(targetLeft){
 			case 0:
@@ -329,7 +330,7 @@ class DriveThread extends Thread{
 			}
 			
 			int targetRight = ControlCentre.getTargetDriveRightVal();
-			LCD.drawString(Integer.toString(targetRight)+",",4,1);
+			LCD.drawString(Integer.toString(targetRight)+" L",4,1);
 			switch(targetRight){
 			case 0:
 			    chip.setMotors(0,0,1);
@@ -380,7 +381,12 @@ class SteeringLeftThread extends Thread{
 		while(true){
 			setToAngle(ControlCentre.getTargetSteeringAngleLeft());
 
-			LCD.drawString(Integer.toString(getToAngle()), 6 ,1);
+			String num = Integer.toString(getToAngle());
+			if (num.length() == 1)
+			    num = "  "+num;
+			if (num.length() == 2)
+			    num = " "+num;
+			LCD.drawString(num+" R", 7 ,1);
 
 			if (((getToAngle() - getCurrentSteeringAngle())>0) && ((getToAngle() - getCurrentSteeringAngle())<180)){
 				motor_left.rotate((int)(Movement.rotConstant * (getToAngle() - getCurrentSteeringAngle())));
@@ -433,7 +439,12 @@ class SteeringRightThread extends Thread{
 		while(true){
 			setToAngle(ControlCentre.getTargetSteeringAngleRight());
 
-			LCD.drawString(Integer.toString(getToAngle()), 10 ,1);
+			String num = Integer.toString(getToAngle());
+			if (num.length() == 1)
+			    num = "  "+num;
+			if (num.length() == 2)
+			    num = " "+num;
+			LCD.drawString(num, 12 ,1);
 
 			if (((getToAngle() - getCurrentSteeringAngle())>0) && ((getToAngle() - getCurrentSteeringAngle())<180)){
 				Movement.motor_right.rotate((int)(Movement.rotConstant * (getToAngle() - getCurrentSteeringAngle())));
