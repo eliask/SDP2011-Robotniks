@@ -351,9 +351,8 @@ class DriveThread extends Thread{
 			    break;
 			}
 
-			Thread.sleep(10);
 		try{
-			Thread.sleep(100);
+			Thread.sleep(10);
 		}catch(InterruptedException e){
 		}
 		}
@@ -377,8 +376,11 @@ class SteeringLeftThread extends Thread{
 
 		while(true){
 			if(Movement.getCommandCount() == previousCommandCount) {
+			    try{
 				Thread.sleep(10);
-				continue;
+			    }catch(InterruptedException e){
+			    }
+			    continue;
 			}
 
 			previousCommandCount = Movement.getCommandCount();
@@ -418,10 +420,6 @@ class SteeringLeftThread extends Thread{
 			    continue;
 			}
 			motor_left.rotate( (int)Math.round(turn_angle) );
-			try{
-			    Thread.sleep(100);
-			}catch(InterruptedException e){
-			}
 		}
 	}
 
@@ -459,8 +457,11 @@ class SteeringRightThread extends Thread{
 
 		while(true){
 			if(Movement.getCommandCount() == previousCommandCount) {
+			    try{
 				Thread.sleep(10);
-				continue;
+			    }catch(InterruptedException e){
+			    }
+			    continue;
 			}
 
 			previousCommandCount = Movement.getCommandCount();
@@ -499,10 +500,6 @@ class SteeringRightThread extends Thread{
 			    continue;
 			}
 			motor_right.rotate( (int)Math.round(turn_angle) );
-			try{
-			    Thread.sleep(100);
-			}catch(InterruptedException e){
-			}
 		}
 	}
 

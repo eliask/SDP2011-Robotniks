@@ -11,6 +11,8 @@ class PenaltyD(Strategy):
     turning_start = 0
     direction = 0
     angle = -90
+    opponent_angle = 0
+
     def __init__(self, *args):
         Strategy.__init__(self, *args, name='penaltydef')
 
@@ -25,7 +27,16 @@ class PenaltyD(Strategy):
         ballPos = np.array( self.world.getBall().pos )
 	ball_y = ballPos[1]
 	self.turned = 0
+	opponent = self.getOpponent()
+	opp_angle = degrees(opponent.orientation)
+	change = 0
 
+	if self.opponent_angle == 0:
+		self.opponent_angle = opp_angle
+	else:
+		change = self.opponent_angle - opp_angle
+
+	# Turn both wheels
 	if self.turning_start == 0:
                 self.turning_start = time.time()
                 self.drive_both(0)
@@ -35,25 +46,35 @@ class PenaltyD(Strategy):
 		self.steer_both(radians(self.angle))
 	else:
 		self.turned = 1
-
+	
+	# Protect the gate
 	if self.turned == 1:
-		if self.me.pos[1] - 150 < 210 - self.me.pos[1]:
-			self.direction = 1
-		if self.direction == 0:
-			self.driveUp()
+		# check which side we are defending
+		if self.me.pos[0] >= 200:
+			direction = 1
 		else:
-			self.driveDown()
+			direction = -1
+		
+		if direction == -1:
+			if change < -3:
+				self.driveUp()
+			if change > 3:
+				self.driveDown()
+
+		if direction == 1:
+			if change > 3:
+				self.driveUp()
+			if change < -3:
+				self.driveDown()
 
     def driveUp(self):
-	if self.me.pos[1] > 150:
+	if self.me.pos[1] > 180:
 		self.drive_both(3)
 	else:
 		self.drive_both(0)
-		self.direction = 1
 
     def driveDown(self):
 	if self.me.pos[1] < 210:
 		self.drive_both(-3)
 	else:
 		self.drive_both(0)
-		self.direction = 0
