@@ -73,17 +73,7 @@ class Input:
         self.command_string = ''
 
         print "Command id:%d val:%d" % (N, num)
-        from strategy import apf
-        if N == 1:
-            apf.scaleT1 = num
-            #self.sim.apf_scale = num
-        elif N == 2:
-            apf.scaleT2 = num
-            #self.sim.apf_dist = num
-        elif N == 3:
-            apf.scaleA = num
-        elif N == 4:
-            apf.offset = num
+        self.sim.speed = int(num)
 
         return
         angle = radians(int( self.command_string[1:] ))
