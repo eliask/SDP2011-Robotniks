@@ -148,8 +148,7 @@ class Communicator extends Thread {
 
 	private static void collectMessage() throws InterruptedException{
 		boolean atend = false;
-        int N = 0;
-	Movement.setCommandCount(N);
+		int N = 0;
 		while(atend == false){
 			N = N+1; //% 100;
 			Movement.setCommandCount(N);
@@ -363,6 +362,7 @@ class SteeringLeftThread extends Thread{
 	public static final Motor motor_left = Motor.A;
 	private static int currentSteeringAngle = 0;
 	private static int toAngle = 0;
+	public final double thresholdAngle = 30.0;
 
 	public SteeringLeftThread(){
 	}
@@ -374,7 +374,10 @@ class SteeringLeftThread extends Thread{
 		int previousCommandCount = -1;
 
 		while(true){
-		    if(Movement.getCommandCount() > previousCommandCount){
+			if(Movement.getCommandCount() == previousCommandCount)
+				continue;
+
+			previousCommandCount = Movement.getCommandCount();
 			setToAngle(ControlCentre.getTargetSteeringAngleLeft());
 			int new_angle = getToAngle();
 			if (new_angle < 10)
@@ -389,6 +392,15 @@ class SteeringLeftThread extends Thread{
 			double delta = new_angle - cur_angle;
 			final double C = Movement.rotConstant;
 			double turn_angle = 0;
+
+			if (Math.abs(delta) < thresholdAngle/2.0) {
+				continue;
+			}
+			else if (Math.abs(delta) >= thresholdAngle/2.0 &&
+				 Math.abs(delta) < thresholdAngle) {
+				delta = thresholdAngle;
+			}
+
 			if (delta != 0 && Math.abs(delta) < 180) {
 			    turn_angle = C * delta;
 			}
@@ -406,8 +418,6 @@ class SteeringLeftThread extends Thread{
 			    Thread.sleep(100);
 			}catch(InterruptedException e){
 			}
-			previousCommandCount = Movement.getCommandCount();
-		    }
 		}
 	}
 
@@ -432,7 +442,7 @@ class SteeringRightThread extends Thread{
 	public static final Motor motor_right = Motor.B;
 	private static int currentSteeringAngle = 0;
 	private static int toAngle = 0;
-    
+	public final double thresholdAngle = 30.0;
 
 	public SteeringRightThread(){
 	}
@@ -444,9 +454,11 @@ class SteeringRightThread extends Thread{
 		int previousCommandCount = -1;
 
 		while(true){
-		    if(Movement.getCommandCount()> previousCommandCount){
-			setToAngle(ControlCentre.getTargetSteeringAngleRight());
+			if(Movement.getCommandCount() == previousCommandCount)
+				continue;
 
+			previousCommandCount = Movement.getCommandCount();
+			setToAngle(ControlCentre.getTargetSteeringAngleRight());
 			int new_angle = getToAngle();
 			if (new_angle < 10)
 			    LCD.drawString("  ", 13 ,1);
@@ -459,6 +471,14 @@ class SteeringRightThread extends Thread{
 			double delta = new_angle - cur_angle;
 			final double C = Movement.rotConstant;
 			double turn_angle = 0;
+
+			if (Math.abs(delta) < thresholdAngle/2.0) {
+				continue;
+			}
+			else if (Math.abs(delta) >= thresholdAngle/2.0 &&
+				 Math.abs(delta) < thresholdAngle) {
+				delta = thresholdAngle;
+			}
 
 			if (delta != 0 && Math.abs(delta) < 180) {
 			    turn_angle = C * delta;
@@ -477,9 +497,7 @@ class SteeringRightThread extends Thread{
 			    Thread.sleep(100);
 			}catch(InterruptedException e){
 			}
-			previousCommandCount = Movement.getCommandCount();
-		    }
-		    }
+		}
 	}
 
 	private synchronized int getCurrentSteeringAngle(){
