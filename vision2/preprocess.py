@@ -4,8 +4,7 @@ import logging
 from common.utils import *
 
 class Preprocessor:
-    #cropRect = (0, 80, 640, 400) # Primary pitch
-    cropRect = (0, 45, 640, 400) # Alt. pitch
+    cropRect = (0, 45, 640, 400)
 
     def __init__(self, rawSize, threshold, undistort=True, crop=None):
         self.rawSize = rawSize

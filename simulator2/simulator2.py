@@ -20,7 +20,7 @@ from strategy.apf import *
 
 class Simulator(object):
 
-    tickrate = 25.0
+    tickrate = 50.0
     speed = 1
     scale = 3 # pixel/cm
     offset = 4.0
