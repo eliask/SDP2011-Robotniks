@@ -49,22 +49,14 @@ class Movement {
 	public static final SensorPort port_comlight = SensorPort.S1;
 
 	// Defines the variable used to make sure no two movement command combinations are executed at once
-	private static int threadsRunning = 0;
+	private static int commandCounter = 0;
 
-	public static int getThreadsRunning(){
-		return threadsRunning;
+	public static int getCommandCount(){
+	    return commandCounter;
 	}
 
-	public synchronized static void setThreadsRunning(int totalThreads){
-		if (threadsRunning == 0){
-			threadsRunning = totalThreads; 
-		}
-	}
-
-	public synchronized static void decrementThreadsRunning(){
-		if (threadsRunning > 0){
-			threadsRunning--;
-		}
+	public synchronized static void setCommandCount(int CommandCount){
+	    commandCounter = CommandCount;
 	}
 
 }
@@ -157,8 +149,10 @@ class Communicator extends Thread {
 	private static void collectMessage() throws InterruptedException{
 		boolean atend = false;
         int N = 0;
+	Movement.setCommandCount(N);
 		while(atend == false){
 			N = N+1; //% 100;
+			Movement.setCommandCount(N);
 			LCD.drawString("Recv:"+Integer.toString(N), 2, 2);
 			try{
 				//Bluetooth.getConnectionStatus();
@@ -377,8 +371,10 @@ class SteeringLeftThread extends Thread{
 		motor_left.resetTachoCount();
 		motor_left.regulateSpeed(true);
 		Movement.motor_left.smoothAcceleration(true);
+		int previousCommandCount = -1;
 
 		while(true){
+		    if(Movement.getCommandCount() > previousCommandCount){
 			setToAngle(ControlCentre.getTargetSteeringAngleLeft());
 			int new_angle = getToAngle();
 			if (new_angle < 10)
@@ -406,10 +402,12 @@ class SteeringLeftThread extends Thread{
 			    continue;
 			}
 			motor_left.rotate( (int)Math.round(turn_angle) );
-		try{
-			Thread.sleep(100);
-		}catch(InterruptedException e){
-		}
+			try{
+			    Thread.sleep(100);
+			}catch(InterruptedException e){
+			}
+			previousCommandCount = Movement.getCommandCount();
+		    }
 		}
 	}
 
@@ -434,6 +432,7 @@ class SteeringRightThread extends Thread{
 	public static final Motor motor_right = Motor.B;
 	private static int currentSteeringAngle = 0;
 	private static int toAngle = 0;
+    
 
 	public SteeringRightThread(){
 	}
@@ -442,8 +441,10 @@ class SteeringRightThread extends Thread{
 		motor_right.resetTachoCount();
 		motor_right.regulateSpeed(true);
 		Movement.motor_right.smoothAcceleration(true);
+		int previousCommandCount = -1;
 
 		while(true){
+		    if(Movement.getCommandCount()> previousCommandCount){
 			setToAngle(ControlCentre.getTargetSteeringAngleRight());
 
 			int new_angle = getToAngle();
@@ -472,11 +473,13 @@ class SteeringRightThread extends Thread{
 			    continue;
 			}
 			motor_right.rotate( (int)Math.round(turn_angle) );
-		try{
-			Thread.sleep(100);
-		}catch(InterruptedException e){
-		}
-		}
+			try{
+			    Thread.sleep(100);
+			}catch(InterruptedException e){
+			}
+			previousCommandCount = Movement.getCommandCount();
+		    }
+		    }
 	}
 
 	private synchronized int getCurrentSteeringAngle(){
