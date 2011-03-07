@@ -1,5 +1,6 @@
-from communication.robot_interface2 import RealRobotInterface
+from robot_interface2 import RealRobotInterface
 import time
+from math import *
 
 IF = RealRobotInterface()
 
