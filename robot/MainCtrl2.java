@@ -43,28 +43,20 @@ class Movement {
 	public static final Motor motor_kick = Motor.C;
 
 	//Defines the number of motor turns to wheel turns
-	public static final double rotConstant = 3.5;
+	public static final double rotConstant = 56.0 / 24.0;
 
 	//Defines the sensor port used to power the communication light
 	public static final SensorPort port_comlight = SensorPort.S1;
 
 	// Defines the variable used to make sure no two movement command combinations are executed at once
-	private static int threadsRunning = 0;
+	private static int commandCounter = 0;
 
-	public static int getThreadsRunning(){
-		return threadsRunning;
+	public static int getCommandCount(){
+	    return commandCounter;
 	}
 
-	public synchronized static void setThreadsRunning(int totalThreads){
-		if (threadsRunning == 0){
-			threadsRunning = totalThreads; 
-		}
-	}
-
-	public synchronized static void decrementThreadsRunning(){
-		if (threadsRunning > 0){
-			threadsRunning--;
-		}
+	public synchronized static void setCommandCount(int CommandCount){
+	    commandCounter = CommandCount;
 	}
 
 }
@@ -157,8 +149,10 @@ class Communicator extends Thread {
 	private static void collectMessage() throws InterruptedException{
 		boolean atend = false;
         int N = 0;
+	Movement.setCommandCount(N);
 		while(atend == false){
 			N = N+1; //% 100;
+			Movement.setCommandCount(N);
 			LCD.drawString("Recv:"+Integer.toString(N), 2, 2);
 			try{
 				//Bluetooth.getConnectionStatus();
@@ -377,27 +371,43 @@ class SteeringLeftThread extends Thread{
 		motor_left.resetTachoCount();
 		motor_left.regulateSpeed(true);
 		Movement.motor_left.smoothAcceleration(true);
+		int previousCommandCount = -1;
 
 		while(true){
+		    if(Movement.getCommandCount() > previousCommandCount){
 			setToAngle(ControlCentre.getTargetSteeringAngleLeft());
-			LCD.drawString("    R", 7 ,1);
-			LCD.drawString(Integer.toString(getToAngle()), 7 ,1);
+			int new_angle = getToAngle();
+			if (new_angle < 10)
+			    LCD.drawString("  ", 8 ,1);
+			else if (new_angle < 100)
+			    LCD.drawString(" ", 9 ,1);
+			LCD.drawString(Integer.toString(new_angle), 7 ,1);
+			LCD.drawString("R", 11 ,1);
 
-			if (((getToAngle() - getCurrentSteeringAngle())>0) && ((getToAngle() - getCurrentSteeringAngle())<180)){
-				motor_left.rotate((int)(Movement.rotConstant * (getToAngle() - getCurrentSteeringAngle())));
-			} else if ((getToAngle() - getCurrentSteeringAngle()) >= 180){
-				motor_left.rotate((int)(Movement.rotConstant * -1 *(360- (getToAngle() - getCurrentSteeringAngle()))));
-			} else if (((getToAngle() - getCurrentSteeringAngle()) < 0) && ((getToAngle() - getCurrentSteeringAngle())>-180)){
-				motor_left.rotate((int)(Movement.rotConstant * ((getToAngle()-getCurrentSteeringAngle()))));
-			} else if ((getToAngle() - getCurrentSteeringAngle()) <= -180){
-				motor_left.rotate((int)(Movement.rotConstant * (360 + (getToAngle() -getCurrentSteeringAngle()))));
+			double cur_angle = getCurrentSteeringAngle();
+			setCurrentSteeringAngle(new_angle);
+			double delta = new_angle - cur_angle;
+			final double C = Movement.rotConstant;
+			double turn_angle = 0;
+			if (delta != 0 && Math.abs(delta) < 180) {
+			    turn_angle = C * delta;
 			}
-
-			setCurrentSteeringAngle((getToAngle() % 360)); 
-		try{
-			Thread.sleep(100);
-		}catch(InterruptedException e){
-		}
+			else if (delta >= 180 && delta < 360) {
+			    turn_angle = -C * (360 - delta);
+			}
+			else if (delta <= -180) {
+			    turn_angle = C * (360 + delta);
+			}
+			else { /* No turning needed */
+			    continue;
+			}
+			motor_left.rotate( (int)Math.round(turn_angle) );
+			try{
+			    Thread.sleep(100);
+			}catch(InterruptedException e){
+			}
+			previousCommandCount = Movement.getCommandCount();
+		    }
 		}
 	}
 
@@ -422,6 +432,7 @@ class SteeringRightThread extends Thread{
 	public static final Motor motor_right = Motor.B;
 	private static int currentSteeringAngle = 0;
 	private static int toAngle = 0;
+    
 
 	public SteeringRightThread(){
 	}
@@ -430,29 +441,45 @@ class SteeringRightThread extends Thread{
 		motor_right.resetTachoCount();
 		motor_right.regulateSpeed(true);
 		Movement.motor_right.smoothAcceleration(true);
+		int previousCommandCount = -1;
 
 		while(true){
+		    if(Movement.getCommandCount()> previousCommandCount){
 			setToAngle(ControlCentre.getTargetSteeringAngleRight());
 
-			LCD.drawString("  ", 13 ,1);
-			LCD.drawString(Integer.toString(getToAngle()), 12 ,1);
+			int new_angle = getToAngle();
+			if (new_angle < 10)
+			    LCD.drawString("  ", 13 ,1);
+			else if (new_angle < 100)
+			    LCD.drawString(" ", 14 ,1);
+			LCD.drawString(Integer.toString(new_angle), 12 ,1);
 
-			if (((getToAngle() - getCurrentSteeringAngle())>0) && ((getToAngle() - getCurrentSteeringAngle())<180)){
-				Movement.motor_right.rotate((int)(Movement.rotConstant * (getToAngle() - getCurrentSteeringAngle())));
-			} else if ((getToAngle() - getCurrentSteeringAngle()) >= 180){
-				Movement.motor_right.rotate((int)(Movement.rotConstant * -1 *(360- (getToAngle() - getCurrentSteeringAngle()))));
-			} else if (((getToAngle() - getCurrentSteeringAngle()) < 0) && ((getToAngle() - getCurrentSteeringAngle())>-180)){
-				Movement.motor_right.rotate((int)(Movement.rotConstant * ((getToAngle()-getCurrentSteeringAngle()))));
-			} else if ((getToAngle() - getCurrentSteeringAngle()) <= -180){
-				Movement.motor_right.rotate((int)(Movement.rotConstant * (360 + (getToAngle() - getCurrentSteeringAngle()))));
+			double cur_angle = getCurrentSteeringAngle();
+			setCurrentSteeringAngle(new_angle);
+			double delta = new_angle - cur_angle;
+			final double C = Movement.rotConstant;
+			double turn_angle = 0;
+
+			if (delta != 0 && Math.abs(delta) < 180) {
+			    turn_angle = C * delta;
 			}
-
-			setCurrentSteeringAngle((getToAngle() % 360)); 
-		try{
-			Thread.sleep(100);
-		}catch(InterruptedException e){
-		}
-		}
+			else if (delta >= 180 && delta < 360) {
+			    turn_angle = -C * (360 - delta);
+			}
+			else if (delta <= -180) {
+			    turn_angle = C * (360 + delta);
+			}
+			else { /* No turning needed */
+			    continue;
+			}
+			motor_right.rotate( (int)Math.round(turn_angle) );
+			try{
+			    Thread.sleep(100);
+			}catch(InterruptedException e){
+			}
+			previousCommandCount = Movement.getCommandCount();
+		    }
+		    }
 	}
 
 	private synchronized int getCurrentSteeringAngle(){
