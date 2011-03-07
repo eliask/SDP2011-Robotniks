@@ -45,6 +45,11 @@ class World(object):
                      'blue'   : RobotEstimator(),
                      }
 
+        for col in ('blue', 'yellow'):
+            self.est[col].text = []
+            self.est[col].target = None
+            self.est[col].target_time = 0
+
     def getResolution(self):
         return self.resolution
     def setResolution(self, res):
@@ -52,28 +57,35 @@ class World(object):
 
         # Left/right goals
         self.GoalPositions = \
-            [ (0, self.resolution[1]/2.0),
-              (self.resolution[0], self.resolution[1]/2.0),
+            [ (0.03*self.resolution[0], self.resolution[1]/2.0),
+              (0.97*self.resolution[0], self.resolution[1]/2.0),
               ]
 
-    def update(self, time, ents):
-        dt = time - self.time
-        self.time = time
+    def update(self, _time, ents):
+        dt = _time - self.time
+        self.time = _time
         self.ents = ents
         self.pointer = None
 
         self.est['ball'].update( ents['balls'], dt )
-        self.est['yellow'].update( ents['yellow'], dt )
-        self.est['blue'].update( ents['blue'], dt )
+        for colour in ('blue', 'yellow'):
+            if self.est[colour].target_time + 1.0 < time.time():
+                self.est[colour].target = None
+            self.est[colour].update( ents[colour], dt )
 
-        self.updateStates()
+        self.ents['time'] = self.time
+        self.states.append(self.ents)
+        if len(self.states) > self.max_states:
+            del self.states[0]
 
     def getRobot(self, colour):
         est = self.est[colour]
         robot = Robot()
-        robot.pos = est.getPos()
-        robot.velocity = est.getVelocity()
+        robot.pos         = est.getPos()
+        robot.velocity    = est.getVelocity()
         robot.orientation = est.getOrientation()
+        robot.text        = est.text
+        robot.target      = est.target
         return robot
 
     def getGoalPos(self, colour):
@@ -91,15 +103,20 @@ class World(object):
         self.GoalPositions = \
             [ self.GoalPositions[1], self.GoalPositions[0] ]
 
-
     def getBall(self):
         ball = Ball()
-        ball.pos =      self.est['ball'].getPos()
+        ball.pos      = self.est['ball'].getPos()
         ball.velocity = self.est['ball'].getVelocity()
         return ball
 
-    def updateStates(self):
-        self.ents['time'] = self.time
-        self.states.append(self.ents)
-        if len(self.states) > self.max_states:
-            del self.states[0]
+    def setTarget(self, colour, target):
+        self.est[colour].target = target
+        self.est[colour].target_time = time.time()
+
+    def addText(self, colour, line):
+        self.est[colour].text.insert(0, line)
+        if len( self.est[colour].text ) > 4:
+            self.est[colour].text.pop()
+
+    def setStatus(self, text):
+        self.status = text

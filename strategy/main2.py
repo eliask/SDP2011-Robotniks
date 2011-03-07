@@ -175,10 +175,13 @@ class Main2(Strategy):
         wanted destination. If they are, turning is stopped and
         driving commands are issued.
         """
+        self.setTarget(dest)
+
         if not self.turnTo(dest):
             #self.drive_both(0)
             return False
 
+        self.addText("moveTo(%s)" % pos2string(dest))
         self.log.debug("moveTo(%s)", pos2string(dest))
         #print dest, self.me.pos, type(dest), type(self.me.pos)
         _dist = dist(dest, self.me.pos)

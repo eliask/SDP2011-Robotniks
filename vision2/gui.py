@@ -202,9 +202,9 @@ class GUI:
 
         cv.ResetImageROI(image)
 
-    def draw_ent(self, ent, color=cv.CV_RGB(255,128,0) ):
+    def draw_ent(self, ent):
         if not ent: return
-        x,y = ent.pos
+        x,y = intPoint(ent.pos)
         radius = 30
         #cv.Circle(self.image, intPoint((x,y)), 8, color, -1)
 
@@ -212,21 +212,38 @@ class GUI:
         cv.Circle(self.image, intPoint((x+D*cos(o), y+D*sin(o))),
                   6, (200,200,200), -1)
 
+        if ent.text is not None:
+            x,y = (x-42, y+42)
+            for i, line in enumerate(ent.text):
+                cv.PutText( self.image, line, (x,y+12*i),
+                            self.Font, (0,200,200) )
+        if ent.target is not None:
+            cv.Line( self.image, intPoint(ent.pos), intPoint(ent.target),
+                     (180,0,180), 1, cv.CV_AA )
+
+
     def drawFPS(self):
         cv.PutText( self.image, "FPS: %d" % round(self.fps), (10,20),
-                    self.Font, (0,0,255,128) )
+                    self.Font, (0,0,255) )
 
     def drawEntities(self, ents):
         pos = map(lambda x:self.scale*x, self.world.getBall().pos),
         cv.Circle( self.image, intPoint(self.world.getBall().pos),
                    10, (180,100,230), 2 )
 
-        for robot, colour in [('blue', (230,100,100)), ('yellow', (0,200,200))]:
-            robot = self.world.getRobot(robot)
+        for colour, cval in [('blue', (230,100,100)), ('yellow', (0,200,200))]:
+            robot = self.world.getRobot(colour)
             if robot:
                 logging.info( "%s robot at angle: %.1f",
                               robot, degrees(robot.orientation))
-                self.draw_ent(robot, colour)
+                self.draw_ent(robot)
+
+            # Draw the goal line
+            top, bottom = self.world.getGoalPoints(colour)
+            cv.Line( self.image, intPoint(top), intPoint(bottom),
+                     cval, 1, cv.CV_AA )
+            for point in (top, bottom):
+                cv.Circle(self.image, intPoint(point), 3, cval, -1)
 
     def change_threshold(self, delta):
         self.curThreshold = (self.curThreshold + delta) % len(self.thresholds)

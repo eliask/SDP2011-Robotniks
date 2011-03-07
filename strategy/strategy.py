@@ -35,6 +35,11 @@ class Strategy(object):
     def draw(self):
         pass
 
+    def setTarget(self, target):
+        self.world.setTarget(self.colour, target)
+    def addText(self, text):
+        self.world.addText(self.colour, text)
+
     def getSelf(self):
         return self.world.getRobot(self.colour)
 
