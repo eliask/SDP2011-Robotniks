@@ -43,7 +43,7 @@ class Movement {
 	public static final Motor motor_kick = Motor.C;
 
 	//Defines the number of motor turns to wheel turns
-	public static final double rotConstant = 2.375;
+	public static final double rotConstant = 3.5;
 
 	//Defines the sensor port used to power the communication light
 	public static final SensorPort port_comlight = SensorPort.S1;
