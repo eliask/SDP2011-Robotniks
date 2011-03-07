@@ -2,16 +2,6 @@ import cv
 from common.utils import *
 import logging
 
-_red = cv.Scalar(0, 0, 255, 0)
-_green = cv.Scalar(0, 255, 0, 0)
-
-# Object areas for each entity
-Aball = (80,180) #120..140 seems typical
-Arobot = (2000,4000) # 2900..3000 seems typical
-
-contour_max_level=1
-contour_min_area=200
-
 def find_connected_components(frame):
     """Find connected components from an image.
     :: iplimage -> [ dict(box<CvBox2D>, rect<CvRect>) ]
@@ -73,6 +63,10 @@ def get_contours(frame, approx=True):
         contours = contours.h_next()
 
     return res
+
+_red = cv.Scalar(0, 0, 255, 0)
+_green = cv.Scalar(0, 255, 0, 0)
+contour_max_level=1
 
 def draw_contours(frame, contours):
     out = cv.CreateImage(cv.GetSize(frame), cv.IPL_DEPTH_8U, 3)

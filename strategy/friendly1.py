@@ -28,7 +28,7 @@ class Friendly1(Main2):
         if self.watch_stuck(): return
 
         if self.me.pos[0] == 0 or ballPos[0] == 0:
-            self.stop()
+            self.drive_both(0)
             print "POS 0"
             return
 
