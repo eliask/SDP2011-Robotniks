@@ -350,6 +350,8 @@ class DriveThread extends Thread{
 			    chip.setMotors(-1,3,1);
 			    break;
 			}
+
+			Thread.sleep(10);
 		try{
 			Thread.sleep(100);
 		}catch(InterruptedException e){
@@ -374,8 +376,10 @@ class SteeringLeftThread extends Thread{
 		int previousCommandCount = -1;
 
 		while(true){
-			if(Movement.getCommandCount() == previousCommandCount)
+			if(Movement.getCommandCount() == previousCommandCount) {
+				Thread.sleep(10);
 				continue;
+			}
 
 			previousCommandCount = Movement.getCommandCount();
 			setToAngle(ControlCentre.getTargetSteeringAngleLeft());
@@ -454,8 +458,10 @@ class SteeringRightThread extends Thread{
 		int previousCommandCount = -1;
 
 		while(true){
-			if(Movement.getCommandCount() == previousCommandCount)
+			if(Movement.getCommandCount() == previousCommandCount) {
+				Thread.sleep(10);
 				continue;
+			}
 
 			previousCommandCount = Movement.getCommandCount();
 			setToAngle(ControlCentre.getTargetSteeringAngleRight());
