@@ -75,14 +75,3 @@ class RobotInterface(object):
             self.steer_right_until = time.time() + 0.6
             self.steer_right(delta)
 
-    def reset(self): pass
-    def drive(self): pass
-    def stop(self): pass
-    def startSpinRight(self): pass
-    def startSpinLeft(self): pass
-    def stopSpin(self): pass
-    def setRobotDirection(self, angle): pass
-    def kick(self): pass
-    def spinRightShort(self): pass
-    def spinLeftShort(self): pass
-

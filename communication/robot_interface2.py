@@ -35,10 +35,10 @@ class RealRobotInterface(interface.RobotInterface):
         Prec = self.MotorPrecision
         logging.info( "drive_left: %d %s" %
                       ( self._drive_left & (Prec-1),
-                        {True:' Fwd',False:'Back'}[self._drive_left&Prec > 0] ))
+                        {False:' Fwd',True:'Back'}[self._drive_left&Prec > 0] ))
         logging.info( "drive_right: %d %s" %
                       ( self._drive_right & (Prec-1),
-                        {True:' Fwd',False:'Back'}[self._drive_right&Prec > 0] ))
+                        {False:' Fwd',True:'Back'}[self._drive_right&Prec > 0] ))
 
         logging.info( "steer_left: %d" % self._steer_left )
         logging.info( "steer_right: %d" % self._steer_right )
@@ -61,13 +61,13 @@ class RealRobotInterface(interface.RobotInterface):
         self.tick()
         message = self.encodeCommands()
         self.humanLogCommands()
-        
+
         if self.wait_until < time.time():
             self.wait_until = time.time() + 0.1
             self.client_socket.send('%d\n' % message)
         #self.initCommands()
 
-    def reset(self):
+    def kick(self):
         self._kick = True
 
     def reset(self):
@@ -79,7 +79,7 @@ class RealRobotInterface(interface.RobotInterface):
         speed setting.
         """
         Prec = self.MotorPrecision
-        return int(setting < 0)*Prec | (setting & (Prec-1))
+        return int(setting < 0)*Prec | (abs(setting) & (Prec-1))
 
     def drive(self, setting):
         """
