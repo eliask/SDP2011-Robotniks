@@ -43,7 +43,7 @@ class Movement {
 	public static final Motor motor_kick = Motor.C;
 
 	//Defines the number of motor turns to wheel turns
-	public static final double rotConstant = 3.5;
+	public static final double rotConstant = 56.0 / 24.0;
 
 	//Defines the sensor port used to power the communication light
 	public static final SensorPort port_comlight = SensorPort.S1;
@@ -380,20 +380,32 @@ class SteeringLeftThread extends Thread{
 
 		while(true){
 			setToAngle(ControlCentre.getTargetSteeringAngleLeft());
-			LCD.drawString("    R", 7 ,1);
-			LCD.drawString(Integer.toString(getToAngle()), 7 ,1);
+			int new_angle = getToAngle();
+			if (new_angle < 10)
+			    LCD.drawString("  ", 8 ,1);
+			else if (new_angle < 100)
+			    LCD.drawString(" ", 9 ,1);
+			LCD.drawString(Integer.toString(new_angle), 7 ,1);
+			LCD.drawString("R", 11 ,1);
 
-			if (((getToAngle() - getCurrentSteeringAngle())>0) && ((getToAngle() - getCurrentSteeringAngle())<180)){
-				motor_left.rotate((int)(Movement.rotConstant * (getToAngle() - getCurrentSteeringAngle())));
-			} else if ((getToAngle() - getCurrentSteeringAngle()) >= 180){
-				motor_left.rotate((int)(Movement.rotConstant * -1 *(360- (getToAngle() - getCurrentSteeringAngle()))));
-			} else if (((getToAngle() - getCurrentSteeringAngle()) < 0) && ((getToAngle() - getCurrentSteeringAngle())>-180)){
-				motor_left.rotate((int)(Movement.rotConstant * ((getToAngle()-getCurrentSteeringAngle()))));
-			} else if ((getToAngle() - getCurrentSteeringAngle()) <= -180){
-				motor_left.rotate((int)(Movement.rotConstant * (360 + (getToAngle() -getCurrentSteeringAngle()))));
+			double cur_angle = getCurrentSteeringAngle();
+			setCurrentSteeringAngle(new_angle);
+			double delta = new_angle - cur_angle;
+			final double C = Movement.rotConstant;
+			double turn_angle = 0;
+			if (delta != 0 && Math.abs(delta) < 180) {
+			    turn_angle = C * delta;
 			}
-
-			setCurrentSteeringAngle((getToAngle() % 360)); 
+			else if (delta >= 180 && delta < 360) {
+			    turn_angle = -C * (360 - delta);
+			}
+			else if (delta <= -180) {
+			    turn_angle = C * (360 + delta);
+			}
+			else { /* No turning needed */
+			    continue;
+			}
+			motor_left.rotate( (int)Math.round(turn_angle) );
 		try{
 			Thread.sleep(100);
 		}catch(InterruptedException e){
@@ -434,20 +446,32 @@ class SteeringRightThread extends Thread{
 		while(true){
 			setToAngle(ControlCentre.getTargetSteeringAngleRight());
 
-			LCD.drawString("  ", 13 ,1);
-			LCD.drawString(Integer.toString(getToAngle()), 12 ,1);
+			int new_angle = getToAngle();
+			if (new_angle < 10)
+			    LCD.drawString("  ", 13 ,1);
+			else if (new_angle < 100)
+			    LCD.drawString(" ", 14 ,1);
+			LCD.drawString(Integer.toString(new_angle), 12 ,1);
 
-			if (((getToAngle() - getCurrentSteeringAngle())>0) && ((getToAngle() - getCurrentSteeringAngle())<180)){
-				Movement.motor_right.rotate((int)(Movement.rotConstant * (getToAngle() - getCurrentSteeringAngle())));
-			} else if ((getToAngle() - getCurrentSteeringAngle()) >= 180){
-				Movement.motor_right.rotate((int)(Movement.rotConstant * -1 *(360- (getToAngle() - getCurrentSteeringAngle()))));
-			} else if (((getToAngle() - getCurrentSteeringAngle()) < 0) && ((getToAngle() - getCurrentSteeringAngle())>-180)){
-				Movement.motor_right.rotate((int)(Movement.rotConstant * ((getToAngle()-getCurrentSteeringAngle()))));
-			} else if ((getToAngle() - getCurrentSteeringAngle()) <= -180){
-				Movement.motor_right.rotate((int)(Movement.rotConstant * (360 + (getToAngle() - getCurrentSteeringAngle()))));
+			double cur_angle = getCurrentSteeringAngle();
+			setCurrentSteeringAngle(new_angle);
+			double delta = new_angle - cur_angle;
+			final double C = Movement.rotConstant;
+			double turn_angle = 0;
+
+			if (delta != 0 && Math.abs(delta) < 180) {
+			    turn_angle = C * delta;
 			}
-
-			setCurrentSteeringAngle((getToAngle() % 360)); 
+			else if (delta >= 180 && delta < 360) {
+			    turn_angle = -C * (360 - delta);
+			}
+			else if (delta <= -180) {
+			    turn_angle = C * (360 + delta);
+			}
+			else { /* No turning needed */
+			    continue;
+			}
+			motor_right.rotate( (int)Math.round(turn_angle) );
 		try{
 			Thread.sleep(100);
 		}catch(InterruptedException e){
