@@ -190,9 +190,11 @@ class KickThread extends Thread{
 
     public void run(){
         while (true){
-            try{
-                wait();
-            }catch(InterruptedException e){
+            synchronized (this) {
+                try{
+                    wait();
+                }catch(InterruptedException e){
+                }
             }
 
             if (targetKickState == true) {
@@ -384,9 +386,11 @@ class SteeringLeftThread extends SteeringThread{
         Movement.motor_left.smoothAcceleration(true);
 
         while(true){
-            try{
-                wait();
-            }catch(InterruptedException e){
+            synchronized (this) {
+                try{
+                    wait();
+                }catch(InterruptedException e){
+                }
             }
 
             int angle = getToAngle();
@@ -415,9 +419,11 @@ class SteeringRightThread extends SteeringThread{
         Movement.motor_right.smoothAcceleration(true);
 
         while(true){
-            try{
-                wait();
-            }catch(InterruptedException e){
+            synchronized (this) {
+                try{
+                    wait();
+                }catch(InterruptedException e){
+                }
             }
 
             int angle = getToAngle();
