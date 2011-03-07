@@ -32,12 +32,19 @@ class Main2(Strategy):
         self.positions.pop()
 
         std = np.std( np.array(self.positions), 0 )
-        if (std < 4).all():
+        if (std < 2).all():
             self.steer_both(0)
             self.drive_both(-3)
             self.kick()
             self.positions = []
+            self.drive_both(0)
             self.lock_until = self.getTimeUntil(0.2)
+
+            def go_back():
+                self.drive_both(-2)
+                self.lock_until = self.getTimeUntil(0.5)
+
+            self.post_lock = lambda:go_back
             self.log.warn("Detected robot being stuck, locking to backwards movement")
             return True
         else:

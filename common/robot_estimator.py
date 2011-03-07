@@ -22,8 +22,8 @@ class RobotEstimator(Kalman):
         return atan2(Y,X)
 
     def getPos(self):
-        #return tuple( map(float, self.measurement[2:4]) )
-        return tuple( map(float, self.prediction[2:4]) )
+        #return tuple( map(float, self.prediction[2:4]) )
+        return tuple( map(float, self.measurement[2:4]) )
 
     def getVelocity(self):
         return tuple( map(float, self.prediction[4:6]) )
