@@ -14,7 +14,7 @@ public class MainCtrl2 {
 	private static final Button button_left = Button.LEFT;
 	private static final Button button_right = Button.RIGHT;
 	private static final Button button_enter = Button.ENTER;
-	
+
 
 	public static void main(String[] args) throws InterruptedException{
 		Thread mainCommunicator = new Communicator();
@@ -23,14 +23,14 @@ public class MainCtrl2 {
 		Thread steeringLeftThread = new SteeringLeftThread();
 		Thread steeringRightThread = new SteeringRightThread();
 		Thread counterThread = new CounterThread();
-		
+
 		mainCommunicator.start();
 		kickThread.start();
 		driveThread.start();
 		steeringLeftThread.start();
 		steeringRightThread.start();
 		counterThread.start();
-	}   
+	}
 }
 
 class Movement {
@@ -138,7 +138,7 @@ class Communicator extends Thread {
 		tryingDisplay.start();
 		// Wait until connected
 		connection = Bluetooth.waitForConnection();
-		Thread connectedDisplay = new ScreenWriter("Connected", 7); 
+		Thread connectedDisplay = new ScreenWriter("Connected", 7);
 		connectedDisplay.start();
 		inputStream = connection.openDataInputStream();
 		outputStream = connection.openDataOutputStream();
@@ -174,14 +174,14 @@ class Communicator extends Thread {
 					//LCD.drawString("decode:"+Integer.toString(N), 6, 1);
 					parseMessage(message);
 					//LCD.drawString("decoded:"+Integer.toString(N), 6, 0);
-				} 
+				}
 				//inputStream.close();
 				//inputStream = connection.openDataInputStream();
 			} catch (IOException e) {
-				Thread errorConnection = new ScreenWriter("Error - connect back up", 7); 
+				Thread errorConnection = new ScreenWriter("Error - connect back up", 7);
 				errorConnection.start();
 				//connection = Bluetooth.waitForConnection();
-				Thread connectedDisplay = new ScreenWriter("Connection Opened", 7); 
+				Thread connectedDisplay = new ScreenWriter("Connection Opened", 7);
 				connectedDisplay.start();
 			}
 
@@ -291,7 +291,7 @@ class DriveThread extends Thread{
 	public void run(){
 		Multiplexor chip = new Multiplexor(SensorPort.S4);
 		while(true){
-			
+
 			int targetLeft = ControlCentre.getTargetDriveLeftVal();
 			LCD.drawString(Integer.toString(targetLeft)+",",2,1);
 
@@ -321,7 +321,7 @@ class DriveThread extends Thread{
 			    chip.setMotors(-1,3,0);
 			    break;
 			}
-			
+
 			int targetRight = ControlCentre.getTargetDriveRightVal();
 			LCD.drawString(Integer.toString(targetRight)+" L",4,1);
 			switch(targetRight){
@@ -351,9 +351,8 @@ class DriveThread extends Thread{
 			    break;
 			}
 
-			Thread.sleep(10);
 		try{
-			Thread.sleep(100);
+			Thread.sleep(10);
 		}catch(InterruptedException e){
 		}
 		}
@@ -377,22 +376,24 @@ class SteeringLeftThread extends Thread{
 
 		while(true){
 			if(Movement.getCommandCount() == previousCommandCount) {
+			    try{
 				Thread.sleep(10);
-				continue;
+			    }catch(InterruptedException e){
+			    }
+			    continue;
 			}
 
 			previousCommandCount = Movement.getCommandCount();
 			setToAngle(ControlCentre.getTargetSteeringAngleLeft());
 			int new_angle = getToAngle();
 			if (new_angle < 10)
-			    LCD.drawString("  ", 8 ,1);
+				LCD.drawString("  ", 8 ,1);
 			else if (new_angle < 100)
-			    LCD.drawString(" ", 9 ,1);
+				LCD.drawString(" ", 9 ,1);
 			LCD.drawString(Integer.toString(new_angle), 7 ,1);
 			LCD.drawString("R", 11 ,1);
 
-			double cur_angle = getCurrentSteeringAngle();
-			setCurrentSteeringAngle(new_angle);
+			int cur_angle = getCurrentSteeringAngle();
 			double delta = new_angle - cur_angle;
 			final double C = Movement.rotConstant;
 			double turn_angle = 0;
@@ -402,26 +403,24 @@ class SteeringLeftThread extends Thread{
 			}
 			else if (Math.abs(delta) >= thresholdAngle/2.0 &&
 				 Math.abs(delta) < thresholdAngle) {
-				delta = thresholdAngle;
+			    delta = thresholdAngle*delta/Math.abs(delta);
 			}
+			setCurrentSteeringAngle((int)(cur_angle+delta)%360);
 
 			if (delta != 0 && Math.abs(delta) < 180) {
-			    turn_angle = C * delta;
+				turn_angle = C * delta;
 			}
 			else if (delta >= 180 && delta < 360) {
-			    turn_angle = -C * (360 - delta);
+				turn_angle = -C * (360 - delta);
 			}
 			else if (delta <= -180) {
-			    turn_angle = C * (360 + delta);
+				turn_angle = C * (360 + delta);
 			}
 			else { /* No turning needed */
-			    continue;
+				continue;
 			}
+
 			motor_left.rotate( (int)Math.round(turn_angle) );
-			try{
-			    Thread.sleep(100);
-			}catch(InterruptedException e){
-			}
 		}
 	}
 
@@ -459,8 +458,11 @@ class SteeringRightThread extends Thread{
 
 		while(true){
 			if(Movement.getCommandCount() == previousCommandCount) {
+			    try{
 				Thread.sleep(10);
-				continue;
+			    }catch(InterruptedException e){
+			    }
+			    continue;
 			}
 
 			previousCommandCount = Movement.getCommandCount();
@@ -472,8 +474,7 @@ class SteeringRightThread extends Thread{
 			    LCD.drawString(" ", 14 ,1);
 			LCD.drawString(Integer.toString(new_angle), 12 ,1);
 
-			double cur_angle = getCurrentSteeringAngle();
-			setCurrentSteeringAngle(new_angle);
+			int cur_angle = getCurrentSteeringAngle();
 			double delta = new_angle - cur_angle;
 			final double C = Movement.rotConstant;
 			double turn_angle = 0;
@@ -483,26 +484,23 @@ class SteeringRightThread extends Thread{
 			}
 			else if (Math.abs(delta) >= thresholdAngle/2.0 &&
 				 Math.abs(delta) < thresholdAngle) {
-				delta = thresholdAngle;
+			    delta = thresholdAngle*delta/Math.abs(delta);
 			}
+			setCurrentSteeringAngle((int)(cur_angle+delta)%360);
 
 			if (delta != 0 && Math.abs(delta) < 180) {
-			    turn_angle = C * delta;
+				turn_angle = C * delta;
 			}
 			else if (delta >= 180 && delta < 360) {
-			    turn_angle = -C * (360 - delta);
+				turn_angle = -C * (360 - delta);
 			}
 			else if (delta <= -180) {
-			    turn_angle = C * (360 + delta);
+				turn_angle = C * (360 + delta);
 			}
 			else { /* No turning needed */
-			    continue;
+				continue;
 			}
 			motor_right.rotate( (int)Math.round(turn_angle) );
-			try{
-			    Thread.sleep(100);
-			}catch(InterruptedException e){
-			}
 		}
 	}
 

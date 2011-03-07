@@ -33,7 +33,15 @@ def repulsive_field_horizontal(X, pos, scale, max_dist):
     return np.array((-scale*dist, 0))
 
 def all_apf(pos, end, *args):
-    return ball_apf(pos, *args) + wall_apf(pos, end) + random_apf()
+    return ball_apf(pos, *args) \
+        + wall_apf(pos, end) \
+        + random_apf()
+
+def opponent_apf(target, pos):
+    scale = [1,1]
+    max_dist = 80
+    print target, pos
+    return repulsive_field(target, pos, scale, max_dist)
 
 def random_apf(scale=0.2):
     return (scale*np.random.random(), scale*np.random.random())
