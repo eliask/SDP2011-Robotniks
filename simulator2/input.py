@@ -2,7 +2,7 @@ from pygame.locals import *
 from math import *
 import logging
 import numpy as np
-import pygame
+import pygame, pymunk
 
 class Input:
 
@@ -55,10 +55,10 @@ class Input:
         if event.type == KEYDOWN:
             self.commandInput(event)
 
-        return
         if self.button_down:
-            self.sim.world.ents['ball'].pos = pygame.mouse.get_pos()
-            self.sim.world.ents['ball'].velocity = np.array([0,0])
+            self.sim.ball.body.position = pymunk.Vec2d(pygame.mouse.get_pos())
+            self.sim.ball.body.velocity = pymunk.Vec2d((0,0))
+            self.sim.ball.body.angular_velocity = 0
 
     def mouseInput(self, event):
         pos = event.pos

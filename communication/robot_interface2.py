@@ -113,6 +113,15 @@ class RealRobotInterface(interface.RobotInterface):
         self._steer_right = self.__steer(angle)
         self.steer_right_target = angle
 
+    def moveTo(self, speed, angle):
+        self.drive_both(speed)
+        self.steer_left(angle)
+        self._steer_right = 1
+
+    def orientTo(self, angle):
+        self.steer_left(angle)
+        self._steer_right = 2
+
     def shutdownServer(self):
         """
         Sends the shutdown signal to the robot and closes the socket.

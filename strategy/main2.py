@@ -177,6 +177,13 @@ class Main2(Strategy):
         """
         self.setTarget(dest)
 
+        if not self.sim:
+            dx,dy = np.array(dest) - self.me.pos
+            angle = atan2(dy,dx)
+            delta = angle - self.me.orientation
+            self.interface.moveTo(3, delta)
+            return True
+
         if not self.turnTo(dest):
             #self.drive_both(0)
             return False
@@ -208,11 +215,11 @@ class Main2(Strategy):
         the destination. While the wheels are turning, the robot will
         not drive.
         """
-        angle = atan2(dest[1], dest[0])
-        self.log.debug("turnTo(%.1f)", degrees(angle))
+        # angle = atan2(dest[1], dest[0])
 
         dx,dy = np.array(dest) - self.me.pos
         angle = atan2(dy,dx)
+        self.log.debug("turnTo(%.1f)", degrees(angle))
         orient = self.me.orientation
         delta = angle - orient
         self.steer_both(delta)
@@ -256,6 +263,13 @@ class Main2(Strategy):
         delta = abs(angle - self.me.orientation) % (2*pi)
         self.log.debug( "Difference between orientation and kicking angle: %.1f",
                         degrees(delta) )
+
+        if not self.sim:
+            dx,dy = np.array(dest) - self.me.pos
+            angle = atan2(dy,dx)
+            delta = angle - self.me.orientation
+            self.interface.orientTo(delta)
+            return True
 
         if angleDiffWithin(delta, radians(40)):
             self.turn_until = 0

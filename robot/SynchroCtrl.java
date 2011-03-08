@@ -59,17 +59,6 @@ class Movement {
 
     //Defines the sensor port used to power the communication light
     public static final SensorPort port_comlight = SensorPort.S1;
-
-    // Defines the variable used to make sure no two movement command
-    // combinations are executed at once
-    private static int commandCounter = 0;
-
-    public static int getCommandCount() {
-        return commandCounter;
-    }
-    public static void setCommandCount(int CommandCount) {
-        commandCounter = CommandCount;
-    }
 }
 
 
@@ -89,8 +78,7 @@ class CommandHandler extends Thread {
     }
 
     public void setTargetDriveVal(int left, int right){
-        SynchroCtrl.driveThread.setTargetDriveLeftVal(left);
-        SynchroCtrl.driveThread.setTargetDriveRightVal(right);
+        SynchroCtrl.driveThread.setTargetDriveVal(left, right);
         synchronized (SynchroCtrl.driveThread) {
             SynchroCtrl.driveThread.notify();
         }
@@ -104,7 +92,7 @@ class CommandHandler extends Thread {
     }
 
     public void run(){
-        while (true){
+        while(true) {
             RConsole.println("handler pre-wait");
             synchronized (this) {
                 try{
@@ -112,6 +100,7 @@ class CommandHandler extends Thread {
                 }catch(InterruptedException e){
                 }
             }
+
             RConsole.println("handler post-wait");
             executeCommand();
         }
@@ -140,23 +129,25 @@ class CommandHandler extends Thread {
 
     /* Wait until steering has finished. */
     private void waitForSteering() {
-        synchronized (SynchroCtrl.steeringLeftThread) {
-            try{
-                wait();
-            }catch(InterruptedException e){
+        while(true) {
+
+            synchronized (this) {
+                try{
+                    wait();
+                }catch(InterruptedException e){
+                }
+
+                if (SynchroCtrl.steeringLeftThread.Ready() &&
+                    SynchroCtrl.steeringRightThread.Ready()) {
+                    break;
+                }
             }
-        }
-        synchronized (SynchroCtrl.steeringRightThread) {
-            try{
-                wait();
-            }catch(InterruptedException e){
-            }
+
         }
     }
 
     /* Move towards some bearing at positive integer speed */
     private void moveTo(int angle, int speed) {
-
         setTargetDriveVal(0, 0);
         setTargetSteeringAngle(angle);
         waitForSteering();
@@ -167,15 +158,15 @@ class CommandHandler extends Thread {
 
     private void orientTo(int angle) {
         setTargetDriveVal(0, 0);
-        setTargetSteeringAngle(45);
+        setTargetSteeringAngle(135);
         waitForSteering();
 
         // TODO: There should be a way to estimate how to orient the
         // robot accurately, and ideally we would find the nearest
         // <=180 to turn towards.
-        setTargetDriveVal(2, 2);
+        setTargetDriveVal(2, -2);
         try{
-            Thread.sleep(4 * angle);
+            Thread.sleep(4*angle);
         } catch (InterruptedException e){
         }
         setTargetDriveVal(0, 0);
@@ -214,7 +205,6 @@ class Communicator extends Thread {
         RConsole.openUSB(5);
         RConsole.println("Start comm. loop");
         for (int N = 0 ;; ++N) {
-            Movement.setCommandCount(N);
             try{
                 //Bluetooth.getConnectionStatus();
                 LCD.drawString("Recv:"+Integer.toString(N), 8, 2);
@@ -244,12 +234,18 @@ class Communicator extends Thread {
         int steer_angle  = (message >>> 8)  & 511;
         int command_id   = (message >>> 17) & 511;
 
+        int dleft_dir    = (motor_dleft & 4) > 0 ? -1 : 1;
+        int drive_left   = dleft_dir * (motor_dleft & 3);
+
+        int dright_dir   = (motor_dright & 4) > 0 ? -1 : 1;
+        int drive_right   = dright_dir * (motor_dright & 3);
+
         RConsole.println("parseMessage");
         CommandHandler handler = SynchroCtrl.commandHandler;
         synchronized (handler) {
             handler.kick        = kick != 0;
-            handler.drive_left  = motor_dleft;
-            handler.drive_right = motor_dright;
+            handler.drive_left  = drive_left;
+            handler.drive_right = drive_right;
             handler.steer_angle = steer_angle;
             handler.command_id  = command_id;
 
@@ -313,78 +309,58 @@ class DriveThread extends Thread{
 
     private static int targetDriveLeftVal  = 0;
     private static int targetDriveRightVal = 0;
+    private int counter = 0;
+    boolean ready;
 
-    public void setTargetDriveLeftVal(int val) {
-        targetDriveLeftVal = val;
+    private int current_command = 0;
+    public boolean Ready() {
+        return current_command == counter && ready;
     }
-    public void setTargetDriveRightVal(int val) {
-        targetDriveRightVal = val;
+
+    public void setTargetDriveVal(int left, int right) {
+        targetDriveLeftVal  = left;
+        targetDriveRightVal = right;
+        ++counter;
     }
 
     public void run(){
         Multiplexor chip = new Multiplexor(SensorPort.S4);
+
+        int prev = -1;
         while(true){
-            RConsole.println("drive thread pre-wait");
-            synchronized (this) {
+            current_command = counter;
+            if(current_command == prev) {
                 try{
-                    wait();
+                    Thread.sleep(10);
                 }catch(InterruptedException e){
                 }
+                continue;
             }
-            RConsole.println("drive thread post-wait");
 
-            LCD.drawString("L"+Integer.toString(targetDriveLeftVal),0,1);
-            switch(targetDriveLeftVal){
-            case 0:
-            case 4:
+            ready = false;
+
+            int left = targetDriveLeftVal;
+            LCD.drawString("L"+Integer.toString(left),0,1);
+            if (left >= 0)
+                LCD.drawString(" ",2,1);
+
+            if (left == 0)
                 chip.setMotors(0,0,0);
-                break;
-            case 1:
-                chip.setMotors(1,1,0);
-                break;
-            case 2:
-                chip.setMotors(1,2,0);
-                break;
-            case 3:
-                chip.setMotors(1,3,0);
-                break;
-            case 5:
-                chip.setMotors(-1,1,0);
-                break;
-            case 6:
-                chip.setMotors(-1,2,0);
-                break;
-            case 7:
-                chip.setMotors(-1,3,0);
-                break;
-            }
+            else
+                chip.setMotors(left/Math.abs(left), Math.abs(left), 0);
 
-            LCD.drawString(Integer.toString(targetDriveRightVal)+"R",3,1);
-            switch(targetDriveRightVal){
-            case 0:
-            case 4:
+            int right = targetDriveRightVal;
+            LCD.drawString("R"+Integer.toString(right),3,1);
+            if (right >= 0)
+                LCD.drawString(" ",5,1);
+
+            if (right == 0)
                 chip.setMotors(0,0,1);
-                break;
-            case 1:
-                chip.setMotors(1,1,1);
-                break;
-            case 2:
-                chip.setMotors(1,2,1);
-                break;
-            case 3:
-                chip.setMotors(1,3,1);
-                break;
-            case 5:
-                chip.setMotors(-1,1,1);
-                break;
-            case 6:
-                chip.setMotors(-1,2,1);
-                break;
-            case 7:
-                chip.setMotors(-1,3,1);
-                break;
-            }
+            else
+                chip.setMotors(right/Math.abs(right), Math.abs(right), 1);
 
+            ready = true;
+            prev = current_command;
         }
     }
 }
@@ -393,18 +369,10 @@ class SteeringThread extends Thread{
     private static final double thresholdAngle = 30.0;
     private static final double thresholdAngleR = Math.toRadians(thresholdAngle);
     public static final double countModulo = Math.round(360 * Movement.rotConstant);
-    public static int counter = 0;
 
     private int currentSteeringCount = 0;
-    private int targetSteeringAngle = 0;
     private int toCount;
-
-    public void setTargetSteeringAngle(int val) {
-        targetSteeringAngle = val;
-    }
-
-    public SteeringThread(){
-    }
+    protected int targetSteeringAngle = 0;
 
     private void drawLCD(int angle) {
         if (angle < 10)
@@ -433,7 +401,12 @@ class SteeringThread extends Thread{
      */
     public int getDirection(int angle) {
         double deltaR = getDeltaAngleR(angle);
-        if (Math.abs(deltaR) <= Math.PI/2.0) {
+        double angle2 = Math.abs(deltaR) % (2*Math.PI);
+
+        if (angle2 > Math.PI)
+            angle2 = Math.PI - angle2;
+
+        if (Math.abs(angle2) <= Math.PI/2.0) {
             return 1;
         } else {
             return -1;
@@ -477,22 +450,8 @@ class SteeringThread extends Thread{
 
             int target = targetSteeringAngle;
             drawLCD(target);
-            SynchroCtrl.steeringLeftThread.setToAngle( target );
-            SynchroCtrl.steeringRightThread.setToAngle( target );
-            ++counter;
-
-            if (true) continue;
-
-            synchronized (SynchroCtrl.steeringLeftThread) {
-                synchronized (SynchroCtrl.steeringRightThread) {
-                    SynchroCtrl.steeringLeftThread.notify();
-                    SynchroCtrl.steeringRightThread.notify();
-                }
-            }
-
-            // SynchroCtrl.steeringLeftThread.setToCount( new_count );
-            // SynchroCtrl.steeringRightThread.setToCount( new_count );
-            RConsole.println("steer motors notify");
+            SynchroCtrl.steeringLeftThread.setTargetSteeringAngle( target );
+            SynchroCtrl.steeringRightThread.setTargetSteeringAngle( target );
         }
     }
 
@@ -503,12 +462,7 @@ class SteeringThread extends Thread{
         return (int)(Math.round(getCurrentSteeringCount() / Movement.rotConstant));
     }
     public int getCurrentSteeringCount() {
-        if (true)
-            return currentSteeringCount;
-        double left_count  = SynchroCtrl.steeringLeftThread.steering_count;
-        double right_count = SynchroCtrl.steeringRightThread.steering_count;
-        double avg = (0.5 * (left_count + right_count)) % countModulo;
-        return (int)Math.round(avg);
+        return currentSteeringCount;
     }
 
     public int getToCount(){
@@ -519,21 +473,35 @@ class SteeringThread extends Thread{
         toCount = count;
     }
     public void setToAngle(int angle){
-        setToCount((int)Math.round(angle / Movement.rotConstant));
+        setToCount((int)Math.round(angle * Movement.rotConstant));
     }
     public int getToAngle() {
         return (int)Math.round(getToCount() / Movement.rotConstant);
     }
+
+    public void setTargetSteeringAngle(int val) {
+        targetSteeringAngle = val;
+    }
+
 }
 
 abstract class SteeringMotorThread extends SteeringThread {
     private final Motor motor;
-    public int steering_count;
+    protected int counter = 0;
+    boolean ready;
 
+    private int current_command = 0;
+    public boolean Ready() {
+        return current_command == counter && ready;
+    }
+
+    public void setTargetSteeringAngle(int val) {
+        super.setTargetSteeringAngle(val);
+        ++counter;
+    }
 
     public SteeringMotorThread(Motor motor){
         this.motor = motor;
-        steering_count = 0;
     }
 
     public abstract void drawLCD(int count);
@@ -542,21 +510,20 @@ abstract class SteeringMotorThread extends SteeringThread {
         motor.resetTachoCount();
         motor.regulateSpeed(true);
         motor.smoothAcceleration(true);
-        int previousCommandCount = -1;
 
+        int prev = -1;
         while(true){
-            RConsole.println("steer motor pre-wait");
-            int new_ccount = SynchroCtrl.steeringThread.counter;
-            if(new_ccount == previousCommandCount) {
+            current_command = counter;
+            if(current_command == prev) {
                 try{
                     Thread.sleep(10);
                 }catch(InterruptedException e){
                 }
                 continue;
             }
-            previousCommandCount = new_ccount;
 
-            int target = getToAngle();
+            ready = false;
+            int target = targetSteeringAngle;
             double deltaD = getClosestAngle(target);
             int cur_count = getCurrentSteeringCount();
             int turn_count = (int)Math.round(Movement.rotConstant * deltaD);
@@ -564,24 +531,20 @@ abstract class SteeringMotorThread extends SteeringThread {
             new_count %= countModulo;
             setCurrentSteeringCount(new_count);
 
-            // synchronized (this) {
-            //     try{
-            //         wait();
-            //     }catch(InterruptedException e){
-            //     }
-            // }
-
-            RConsole.println("steer motor post-wait");
+            //LCD.drawString(Integer.toString(target)+" "+Integer.toString((int)deltaD), 1, 5);
             if (true)
-                drawLCD(target);
+                drawLCD((int)deltaD);
 
             if (turn_count != 0) {
                 motor.rotate(turn_count);
             }
 
-            // synchronized (this) {
-            //     notifyAll();
-            // }
+            ready = true;
+            prev = current_command;
+
+            synchronized (SynchroCtrl.commandHandler) {
+                SynchroCtrl.commandHandler.notify();
+            }
         }
     }
 
