@@ -23,6 +23,7 @@ public class SynchroCtrl {
     public static SteeringMotorThread steeringRightThread;
     public static CounterThread counterThread;
     public static CommandHandler commandHandler;
+	public static SensorChecker sensorCheck;
 
     public static void main(String[] args) throws InterruptedException{
         commandHandler = new CommandHandler();
@@ -33,6 +34,7 @@ public class SynchroCtrl {
         steeringLeftThread = new SteeringLeftThread();
         steeringRightThread = new SteeringRightThread();
         counterThread = new CounterThread();
+		sensorCheck = new SensorChecker();
 
         commandHandler.start();
         mainCommunicator.start();
@@ -42,6 +44,7 @@ public class SynchroCtrl {
         steeringLeftThread.start();
         steeringRightThread.start();
         //counterThread.start();
+		sensorCheck.start();
     }
 }
 
@@ -254,8 +257,8 @@ class Communicator extends Thread {
         }
     }
 
-    // send sensor data back?
-    public void sendBackMessage(int messageBack) throws IOException{
+    // send sensor data back
+    public static void sendBackMessage(int messageBack) throws IOException{
         outputStream.writeInt(messageBack);
         outputStream.flush();
     }
@@ -587,3 +590,63 @@ class SteeringRightThread extends SteeringMotorThread{
     }
 }
 
+class SensorChecker extends Thread{
+	// Define sensor ports
+	public static final SensorPort leftTouch = SensorPort.S1;
+	public static final SensorPort rightTouch = SensorPort.S2;
+	public static final SensorPort frontTouch = SensorPort.S3;
+	
+	public void run(){
+		// Set sensor ports to touch
+		TouchSensor front = new TouchSensor(frontTouch);
+		TouchSensor left = new TouchSensor(leftTouch);
+		TouchSensor right = new TouchSensor(rightTouch);
+		
+		// Screen messages
+		String fsensorstate;
+		String lsensorstate;
+		String rsensorstate;
+		int[] sensorMessage = new int[3];
+		
+		while (true) {
+			// Back message - made up of primes
+			// Mod on other side to check which sensors are on
+			if(front.isPressed()){
+				fsensorstate = "PRESSED";
+				sensorMessage[0] = 2;
+			} else {
+				fsensorstate = "FINE";
+				sensorMessage[0] = 1;
+			}
+			LCD.drawString("Front Sensor:" + fsensorstate, 0,4);
+			
+			if(left.isPressed()){
+				lsensorstate = "PRESSED";
+				sensorMessage[1] = 3;
+			} else {
+				lsensorstate = "FINE";
+				sensorMessage[1] = 1;
+			}
+			LCD.drawString("Left Sensor" + lsensorstate, 0,5);
+			
+			if(right.isPressed()){
+				rsensorstate = "PRESSED";
+				sensorMessage[2] = 5;
+			} else {
+				rsensorstate = "FINE";
+				sensorMessage[2] = 1;
+			}
+			LCD.drawString("Right Sensor" + rsensorstate, 0,6);
+			
+			try {
+				Communicator.sendBackMessage(sensorMessage[0]*sensorMessage[1]*sensorMessage[2]);
+			} catch (IOException e1) {
+			}
+			try{
+				Thread.sleep(100);
+			}catch(InterruptedException e){
+			}
+			
+		}
+	}
+}
