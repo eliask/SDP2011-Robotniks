@@ -20,21 +20,21 @@ strategy_dir = os.path.abspath('.') + '/strategy'
 world = World()
 v = Vision(world)
 
-colour = 'yellow'
+_colour = 'yellow'
 if len(sys.argv) > 1:
-  colour = sys.argv[1]
+  _colour = sys.argv[1]
 
 ai_name = 'null'
 if len(sys.argv) > 2:
   ai_name = sys.argv[2]
 
 ai = strategies[ai_name]( world, RealRobotInterface() )
-ai.setColour(colour)
+ai.setColour(_colour)
 
 def change_strategy(strategy):
   global ai
   ai = strategies[strategy]( world, RealRobotInterface() )
-  ai.setColour(colour)
+  ai.setColour(_colour)
   print 'Changed strategy to:', strategy
 
 goal = 'left'
@@ -44,7 +44,9 @@ def change_goal(new_goal):
   print 'Changed goal to:', goal
 
 def change_colour(colour):
-  ai.setColour(colour)
+  global _colour
+  _colour = colour
+  #ai.setColour(colour)
   print 'Changed colour to', colour
 
 # Setup the GUI components:
@@ -62,11 +64,11 @@ for strategy in strategies:
   strategy_select.add(strategy, strategy)
 hbox.add(strategy_select)
 
-left_goal_button = gooeypy.Button('Left Goal')
+left_goal_button = gooeypy.Button('Blue->Left')
 left_goal_button.click = lambda: change_goal('left')
 hbox.add(left_goal_button)
 
-right_goal_button = gooeypy.Button('Right Goal')
+right_goal_button = gooeypy.Button('Blue->Right')
 right_goal_button.click = lambda: change_goal('right')
 hbox.add(right_goal_button)
 
