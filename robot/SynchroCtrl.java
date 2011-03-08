@@ -25,6 +25,7 @@ public class SynchroCtrl {
     public static CommandHandler commandHandler;
 
     public static void main(String[] args) throws InterruptedException{
+        commandHandler = new CommandHandler();
         mainCommunicator = new Communicator();
         kickThread = new KickThread();
         driveThread = new DriveThread();
@@ -32,15 +33,14 @@ public class SynchroCtrl {
         steeringLeftThread = new SteeringLeftThread();
         steeringRightThread = new SteeringRightThread();
         counterThread = new CounterThread();
-        commandHandler = new CommandHandler();
 
+        commandHandler.start();
         mainCommunicator.start();
         kickThread.start();
         driveThread.start();
         steeringThread.start();
         steeringLeftThread.start();
         steeringRightThread.start();
-        commandHandler.start();
         //counterThread.start();
     }
 }
@@ -59,6 +59,17 @@ class Movement {
 
     //Defines the sensor port used to power the communication light
     public static final SensorPort port_comlight = SensorPort.S1;
+
+    // Defines the variable used to make sure no two movement command
+    // combinations are executed at once
+    private static int commandCounter = 0;
+
+    public static int getCommandCount() {
+        return commandCounter;
+    }
+    public static void setCommandCount(int CommandCount) {
+        commandCounter = CommandCount;
+    }
 }
 
 
@@ -70,14 +81,14 @@ class CommandHandler extends Thread {
     public static int steer_angle;
     public static int command_id;
 
-    public static void setKickState(boolean Val){
+    public void setKickState(boolean Val){
         SynchroCtrl.kickThread.setKickState(Val);
         synchronized (SynchroCtrl.kickThread) {
             SynchroCtrl.kickThread.notify();
         }
     }
 
-    public static void setTargetDriveVal(int left, int right){
+    public void setTargetDriveVal(int left, int right){
         SynchroCtrl.driveThread.setTargetDriveLeftVal(left);
         SynchroCtrl.driveThread.setTargetDriveRightVal(right);
         synchronized (SynchroCtrl.driveThread) {
@@ -85,7 +96,7 @@ class CommandHandler extends Thread {
         }
     }
 
-    public static void setTargetSteeringAngle(int Angle){
+    public void setTargetSteeringAngle(int Angle){
         SynchroCtrl.steeringThread.setTargetSteeringAngle(Angle);
         synchronized (SynchroCtrl.steeringThread) {
             SynchroCtrl.steeringThread.notify();
@@ -94,12 +105,14 @@ class CommandHandler extends Thread {
 
     public void run(){
         while (true){
+            RConsole.println("handler pre-wait");
             synchronized (this) {
                 try{
                     wait();
                 }catch(InterruptedException e){
                 }
             }
+            RConsole.println("handler post-wait");
             executeCommand();
         }
     }
@@ -180,30 +193,33 @@ class Communicator extends Thread {
         try{
             collectMessage();
         } catch (InterruptedException e){
-            LCD.drawString("Msg Col Interrupt", 7,0);
+            LCD.drawString("Msg Col Interrupt", 0,7);
         }
     }
 
     //Aims to establish a conection over Bluetooth
-    private static void connect(){
-        LCD.drawString("Trying to connect", 7,0);
+    private void connect(){
+        LCD.drawString("Trying to connect", 0,7);
 
         // Wait until connected
         connection = Bluetooth.waitForConnection();
-        LCD.drawString("Connected", 7,0);
+        LCD.drawString("Connected", 0,7);
 
         inputStream = connection.openDataInputStream();
         outputStream = connection.openDataOutputStream();
-        LCD.drawString("Connection opened", 7,0);
+        LCD.drawString("Connection opened", 0,7);
     }
 
     private void collectMessage() throws InterruptedException{
+        RConsole.openUSB(5);
+        RConsole.println("Start comm. loop");
         for (int N = 0 ;; ++N) {
+            Movement.setCommandCount(N);
             try{
                 //Bluetooth.getConnectionStatus();
-                LCD.drawString("Recv:"+Integer.toString(N), 2, 2);
+                LCD.drawString("Recv:"+Integer.toString(N), 8, 2);
                 int message = inputStream.readInt();
-                LCD.drawString("Rcvd:"+Integer.toString(N), 2, 3);
+                LCD.drawString("Rcvd:"+Integer.toString(N), 8, 3);
                 //LCD.drawString("display"+Integer.toString(N), 6, 0);
                 LCD.drawString("        ", 6, 6);
                 LCD.drawString("Msg: "+Integer.toString(message), 0, 6);
@@ -211,9 +227,9 @@ class Communicator extends Thread {
                 parseMessage(message);
                 //LCD.drawString("decoded:"+Integer.toString(N), 6, 0);
             } catch (IOException e) {
-                LCD.drawString("Error: connect back up", 7,0);
+                LCD.drawString("Error: connect back up", 0,7);
                 connection = Bluetooth.waitForConnection();
-                LCD.drawString("Connection opened", 7,0);
+                LCD.drawString("Connection opened", 0,7);
             }
 
         }
@@ -228,6 +244,7 @@ class Communicator extends Thread {
         int steer_angle  = (message >>> 8)  & 511;
         int command_id   = (message >>> 17) & 511;
 
+        RConsole.println("parseMessage");
         CommandHandler handler = SynchroCtrl.commandHandler;
         synchronized (handler) {
             handler.kick        = kick != 0;
@@ -236,12 +253,13 @@ class Communicator extends Thread {
             handler.steer_angle = steer_angle;
             handler.command_id  = command_id;
 
-            notify();
+            RConsole.println("notify handler");
+            handler.notify();
         }
     }
 
     // send sensor data back?
-    public static void sendBackMessage(int messageBack) throws IOException{
+    public void sendBackMessage(int messageBack) throws IOException{
         outputStream.writeInt(messageBack);
         outputStream.flush();
     }
@@ -270,15 +288,17 @@ class KickThread extends Thread{
 
     public void run(){
         while (true){
+            RConsole.println("kick thread pre-wait");
             synchronized (this) {
                 try{
                     wait();
                 }catch(InterruptedException e){
                 }
             }
+            RConsole.println("kick thread post-wait");
 
             if (targetKickState == true) {
-                LCD.drawString("KICK!",10,1);
+                LCD.drawString("KICK!",11,1);
                 Movement.motor_kick.setSpeed(900);
                 Movement.motor_kick.rotate((-120*(5/3)));
                 Movement.motor_kick.rotate((120*(5/3)));
@@ -304,14 +324,16 @@ class DriveThread extends Thread{
     public void run(){
         Multiplexor chip = new Multiplexor(SensorPort.S4);
         while(true){
+            RConsole.println("drive thread pre-wait");
             synchronized (this) {
                 try{
                     wait();
                 }catch(InterruptedException e){
                 }
             }
+            RConsole.println("drive thread post-wait");
 
-            LCD.drawString(Integer.toString(targetDriveLeftVal)+",",2,1);
+            LCD.drawString("L"+Integer.toString(targetDriveLeftVal),0,1);
             switch(targetDriveLeftVal){
             case 0:
             case 4:
@@ -337,7 +359,7 @@ class DriveThread extends Thread{
                 break;
             }
 
-            LCD.drawString(Integer.toString(targetDriveRightVal)+" L",4,1);
+            LCD.drawString(Integer.toString(targetDriveRightVal)+"R",3,1);
             switch(targetDriveRightVal){
             case 0:
             case 4:
@@ -370,11 +392,12 @@ class DriveThread extends Thread{
 class SteeringThread extends Thread{
     private static final double thresholdAngle = 30.0;
     private static final double thresholdAngleR = Math.toRadians(thresholdAngle);
-    private static final double C = Movement.rotConstant;
+    public static final double countModulo = Math.round(360 * Movement.rotConstant);
+    public static int counter = 0;
 
-    private static int currentSteeringAngle = 0;
-    private static int targetSteeringAngle = 0;
-    private static int toAngle;
+    private int currentSteeringCount = 0;
+    private int targetSteeringAngle = 0;
+    private int toCount;
 
     public void setTargetSteeringAngle(int val) {
         targetSteeringAngle = val;
@@ -385,9 +408,9 @@ class SteeringThread extends Thread{
 
     private void drawLCD(int angle) {
         if (angle < 10)
-            LCD.drawString("  ", 8 ,2);
+            LCD.drawString("  ", 8 ,1);
         else if (angle < 100)
-            LCD.drawString(" ", 9 ,2);
+            LCD.drawString(" ", 9, 1);
 
         LCD.drawString(Integer.toString(angle), 7 ,1);
     }
@@ -420,7 +443,7 @@ class SteeringThread extends Thread{
     /* Return an angle in [-90°, 90°].
      * Use with getDirection to move the robot correctly.
     */
-    private double getClosestAngle(int angle) {
+    public double getClosestAngle(int angle) {
         double deltaR = getDeltaAngleR(angle);
         double sign   = deltaR / Math.abs(deltaR);
 
@@ -443,96 +466,146 @@ class SteeringThread extends Thread{
 
     public void run(){
         while(true){
+            RConsole.println("steer thread pre-wait");
             synchronized (this) {
                 try{
                     wait();
                 }catch(InterruptedException e){
                 }
             }
-            drawLCD(targetSteeringAngle);
+            RConsole.println("steer thread post-wait");
 
-            double deltaD = getClosestAngle(targetSteeringAngle);
-            int cur_angle = getCurrentSteeringAngle();
-            int new_angle = (cur_angle + (int)Math.round(deltaD)) % 360;
-            setCurrentSteeringAngle(new_angle);
+            int target = targetSteeringAngle;
+            drawLCD(target);
+            SynchroCtrl.steeringLeftThread.setToAngle( target );
+            SynchroCtrl.steeringRightThread.setToAngle( target );
+            ++counter;
 
-            int turn_angle = (int)Math.round(C * deltaD);
-            SynchroCtrl.steeringLeftThread.setToAngle( turn_angle );
-            SynchroCtrl.steeringRightThread.setToAngle( turn_angle );
+            if (true) continue;
 
             synchronized (SynchroCtrl.steeringLeftThread) {
-                SynchroCtrl.steeringLeftThread.notify();
+                synchronized (SynchroCtrl.steeringRightThread) {
+                    SynchroCtrl.steeringLeftThread.notify();
+                    SynchroCtrl.steeringRightThread.notify();
+                }
             }
-            synchronized (SynchroCtrl.steeringRightThread) {
-                SynchroCtrl.steeringRightThread.notify();
-            }
+
+            // SynchroCtrl.steeringLeftThread.setToCount( new_count );
+            // SynchroCtrl.steeringRightThread.setToCount( new_count );
+            RConsole.println("steer motors notify");
         }
     }
 
-    public synchronized int getCurrentSteeringAngle(){
-        return currentSteeringAngle;
+    protected void setCurrentSteeringCount(int count){
+        currentSteeringCount = count;
+    }
+    public int getCurrentSteeringAngle() {
+        return (int)(Math.round(getCurrentSteeringCount() / Movement.rotConstant));
+    }
+    public int getCurrentSteeringCount() {
+        if (true)
+            return currentSteeringCount;
+        double left_count  = SynchroCtrl.steeringLeftThread.steering_count;
+        double right_count = SynchroCtrl.steeringRightThread.steering_count;
+        double avg = (0.5 * (left_count + right_count)) % countModulo;
+        return (int)Math.round(avg);
     }
 
-    private synchronized void setCurrentSteeringAngle(int Angle){
-        currentSteeringAngle = Angle;
+    public int getToCount(){
+        return toCount;
     }
 
-    public synchronized int getToAngle(){
-        return toAngle;
+    public void setToCount(int count){
+        toCount = count;
     }
-
-    public synchronized void setToAngle(int Angle){
-        toAngle = Angle;
+    public void setToAngle(int angle){
+        setToCount((int)Math.round(angle / Movement.rotConstant));
+    }
+    public int getToAngle() {
+        return (int)Math.round(getToCount() / Movement.rotConstant);
     }
 }
 
 abstract class SteeringMotorThread extends SteeringThread {
     private final Motor motor;
+    public int steering_count;
+
+
     public SteeringMotorThread(Motor motor){
         this.motor = motor;
+        steering_count = 0;
     }
 
-    public abstract void drawLCD(int angle);
+    public abstract void drawLCD(int count);
 
     public void run(){
         motor.resetTachoCount();
         motor.regulateSpeed(true);
         motor.smoothAcceleration(true);
+        int previousCommandCount = -1;
 
         while(true){
-            synchronized (this) {
+            RConsole.println("steer motor pre-wait");
+            int new_ccount = SynchroCtrl.steeringThread.counter;
+            if(new_ccount == previousCommandCount) {
                 try{
-                    wait();
+                    Thread.sleep(10);
                 }catch(InterruptedException e){
                 }
+                continue;
             }
-            int angle = getToAngle();
-            if (false)
-                drawLCD(angle);
+            previousCommandCount = new_ccount;
 
-            if (angle != 0)
-                motor.rotate(angle);
+            int target = getToAngle();
+            double deltaD = getClosestAngle(target);
+            int cur_count = getCurrentSteeringCount();
+            int turn_count = (int)Math.round(Movement.rotConstant * deltaD);
+            int new_count = cur_count + (int)Math.round(turn_count);
+            new_count %= countModulo;
+            setCurrentSteeringCount(new_count);
 
-            synchronized (this) {
-                notifyAll();
+            // synchronized (this) {
+            //     try{
+            //         wait();
+            //     }catch(InterruptedException e){
+            //     }
+            // }
+
+            RConsole.println("steer motor post-wait");
+            if (true)
+                drawLCD(target);
+
+            if (turn_count != 0) {
+                motor.rotate(turn_count);
             }
+
+            // synchronized (this) {
+            //     notifyAll();
+            // }
         }
     }
+
+    public int getClosestDirection(int target, int cur) {
+        int delta = target - cur;
+        int mod = (int)countModulo;
+        return (delta + mod/2) % mod - mod/2;
+    }
+
 }
+
 
 class SteeringLeftThread extends SteeringMotorThread{
     public SteeringLeftThread(){
         super(Movement.motor_left);
     }
 
-    public void drawLCD(int angle) {
-        if (angle < 10)
-            LCD.drawString("  ", 8 ,1);
-        else if (angle < 100)
-            LCD.drawString(" ", 9 ,1);
+    public void drawLCD(int count) {
+        if (count < 10)
+            LCD.drawString("  ", 1 ,2);
+        else if (count < 100)
+            LCD.drawString(" ", 2 ,2);
 
-        LCD.drawString(Integer.toString(angle), 7 ,1);
-        LCD.drawString("R", 11 ,1);
+        LCD.drawString(Integer.toString(count), 0 ,2);
     }
 }
 
@@ -541,13 +614,13 @@ class SteeringRightThread extends SteeringMotorThread{
         super(Movement.motor_right);
     }
 
-    public void drawLCD(int angle) {
-        if (angle < 10)
-            LCD.drawString("  ", 13 ,1);
-        else if (angle < 100)
-            LCD.drawString(" ", 14 ,1);
+    public void drawLCD(int count) {
+        if (count < 10)
+            LCD.drawString("  ", 5 ,2);
+        else if (count < 100)
+            LCD.drawString(" ", 6 ,2);
 
-        LCD.drawString(Integer.toString(angle), 12 ,1);
+        LCD.drawString(Integer.toString(count), 4 ,2);
     }
 }
 
