@@ -100,7 +100,8 @@ class RealRobotInterface(interface.RobotInterface):
         speed setting.
         """
         Prec = self.SteerPrecision
-        angle = int(round(degrees(_angle))) % 360
+        angle = int(round(degrees(_angle)))
+        angle %= 360
         return (angle & (Prec-1))
 
     def steer_left(self, angle):

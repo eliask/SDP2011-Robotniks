@@ -71,6 +71,7 @@ class World(object):
         for colour in ('blue', 'yellow'):
             if self.est[colour].target_time + 1.0 < time.time():
                 self.est[colour].target = None
+                self.est[colour].text   = []
             self.est[colour].update( ents[colour], dt )
 
         self.ents['time'] = self.time

@@ -254,6 +254,22 @@ class GUI:
         self.overlay = not self.overlay
         self.vision.featureEx.overlay = not self.vision.featureEx.overlay
 
+    def narrow_horizontal(self):
+        self.world.horizontal_ratio -= 0.01
+        if self.world.horizontal_ratio < 0:
+            self.world.horizontal_ratio = 0
+
+    def expand_horizontal(self):
+        self.world.horizontal_ratio -= 0.01
+
+    def narrow_vertical(self):
+        self.world.vertical_ratio -= 0.01
+        if self.world.vertical_ratio < 0:
+            self.world.vertical_ratio = 0
+
+    def expand_vertical(self):
+        self.world.vertical_ratio += 0.01
+
     def processInput(self):
         #c = cv.WaitKey(500)
         c = cv.WaitKey(5)
@@ -301,11 +317,15 @@ class GUI:
             self.channel = 3
 
         elif k == 'Q': # left arrow
-            self.change_threshold(-1)
+            #self.change_threshold(-1)
+            self.narrow_horizontal()
         elif k == 'S': # right arrow
-            self.change_threshold(1)
+            #self.change_threshold(1)
+            self.expand_horizontal()
         elif k == 'R': # up arrow
-            self.change_threshold(1)
+            self.expand_vertical()
+            #self.change_threshold(1)
         elif k == 'T': # down arrow
-            self.change_threshold(-1)
+            self.narrow_vertical()
+            #self.change_threshold(-1)
 

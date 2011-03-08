@@ -23,7 +23,7 @@ public class SynchroCtrl {
     public static SteeringMotorThread steeringRightThread;
     public static CounterThread counterThread;
     public static CommandHandler commandHandler;
-	public static SensorChecker sensorCheck;
+    public static SensorChecker sensorCheck;
 
     public static void main(String[] args) throws InterruptedException{
         commandHandler = new CommandHandler();
@@ -33,8 +33,8 @@ public class SynchroCtrl {
         steeringThread = new SteeringThread();
         steeringLeftThread = new SteeringLeftThread();
         steeringRightThread = new SteeringRightThread();
-        counterThread = new CounterThread();
-		sensorCheck = new SensorChecker();
+	sensorCheck = new SensorChecker();
+        //counterThread = new CounterThread();
 
         commandHandler.start();
         mainCommunicator.start();
@@ -43,8 +43,7 @@ public class SynchroCtrl {
         steeringThread.start();
         steeringLeftThread.start();
         steeringRightThread.start();
-        //counterThread.start();
-		sensorCheck.start();
+	sensorCheck.start();
     }
 }
 
@@ -121,10 +120,14 @@ class CommandHandler extends Thread {
 
         default:
             /* By default, just execute the raw commands: */
-            int dir = SynchroCtrl.steeringThread.getDirection(steer_angle);
-            setTargetDriveVal(dir*drive_left, dir*drive_right);
-            setTargetSteeringAngle(steer_angle);
-            break;
+	    int speedL = drive_left *
+		SynchroCtrl.steeringLeftThread.getDirection(steer_angle);
+	    int speedR = drive_right *
+		SynchroCtrl.steeringRightThread.getDirection(steer_angle);
+
+	    setTargetDriveVal(speedL, speedR);
+	    setTargetSteeringAngle(steer_angle);
+	    break;
         }
 
         setKickState(kick);
@@ -155,8 +158,9 @@ class CommandHandler extends Thread {
         setTargetSteeringAngle(angle);
         waitForSteering();
 
-        speed *= SynchroCtrl.steeringThread.getDirection(angle);
-        setTargetDriveVal(speed, speed);
+        int speedL = speed*SynchroCtrl.steeringLeftThread.getDirection(angle);
+        int speedR = speed*SynchroCtrl.steeringRightThread.getDirection(angle);
+        setTargetDriveVal(speedL, speedR);
     }
 
     private void orientTo(int angle) {
@@ -591,62 +595,63 @@ class SteeringRightThread extends SteeringMotorThread{
 }
 
 class SensorChecker extends Thread{
-	// Define sensor ports
-	public static final SensorPort leftTouch = SensorPort.S1;
-	public static final SensorPort rightTouch = SensorPort.S2;
-	public static final SensorPort frontTouch = SensorPort.S3;
+    // Define sensor ports
+    public static final SensorPort leftTouch = SensorPort.S1;
+    public static final SensorPort rightTouch = SensorPort.S2;
+    public static final SensorPort frontTouch = SensorPort.S3;
 	
-	public void run(){
-		// Set sensor ports to touch
-		TouchSensor front = new TouchSensor(frontTouch);
-		TouchSensor left = new TouchSensor(leftTouch);
-		TouchSensor right = new TouchSensor(rightTouch);
+    public void run(){
+	if (true) return;
+	// Set sensor ports to touch
+	TouchSensor front = new TouchSensor(frontTouch);
+	TouchSensor left = new TouchSensor(leftTouch);
+	TouchSensor right = new TouchSensor(rightTouch);
 		
-		// Screen messages
-		String fsensorstate;
-		String lsensorstate;
-		String rsensorstate;
-		int[] sensorMessage = new int[3];
+	// Screen messages
+	String fsensorstate;
+	String lsensorstate;
+	String rsensorstate;
+	int[] sensorMessage = new int[3];
 		
-		while (true) {
-			// Back message - made up of primes
-			// Mod on other side to check which sensors are on
-			if(front.isPressed()){
-				fsensorstate = "PRESSED";
-				sensorMessage[0] = 2;
-			} else {
-				fsensorstate = "FINE";
-				sensorMessage[0] = 1;
-			}
-			LCD.drawString("Front Sensor:" + fsensorstate, 0,4);
+	while (true) {
+	    // Back message - made up of primes
+	    // Mod on other side to check which sensors are on
+	    if(front.isPressed()){
+		fsensorstate = "PRESSED";
+		sensorMessage[0] = 2;
+	    } else {
+		fsensorstate = "FINE";
+		sensorMessage[0] = 1;
+	    }
+	    LCD.drawString("Front Sensor:" + fsensorstate, 0,4);
 			
-			if(left.isPressed()){
-				lsensorstate = "PRESSED";
-				sensorMessage[1] = 3;
-			} else {
-				lsensorstate = "FINE";
-				sensorMessage[1] = 1;
-			}
-			LCD.drawString("Left Sensor" + lsensorstate, 0,5);
+	    if(left.isPressed()){
+		lsensorstate = "PRESSED";
+		sensorMessage[1] = 3;
+	    } else {
+		lsensorstate = "FINE";
+		sensorMessage[1] = 1;
+	    }
+	    LCD.drawString("Left Sensor" + lsensorstate, 0,5);
 			
-			if(right.isPressed()){
-				rsensorstate = "PRESSED";
-				sensorMessage[2] = 5;
-			} else {
-				rsensorstate = "FINE";
-				sensorMessage[2] = 1;
-			}
-			LCD.drawString("Right Sensor" + rsensorstate, 0,6);
+	    if(right.isPressed()){
+		rsensorstate = "PRESSED";
+		sensorMessage[2] = 5;
+	    } else {
+		rsensorstate = "FINE";
+		sensorMessage[2] = 1;
+	    }
+	    LCD.drawString("Right Sensor" + rsensorstate, 0,6);
 			
-			try {
-				Communicator.sendBackMessage(sensorMessage[0]*sensorMessage[1]*sensorMessage[2]);
-			} catch (IOException e1) {
-			}
-			try{
-				Thread.sleep(100);
-			}catch(InterruptedException e){
-			}
+	    try {
+		Communicator.sendBackMessage(sensorMessage[0]*sensorMessage[1]*sensorMessage[2]);
+	    } catch (IOException e1) {
+	    }
+	    try{
+		Thread.sleep(100);
+	    }catch(InterruptedException e){
+	    }
 			
-		}
 	}
+    }
 }

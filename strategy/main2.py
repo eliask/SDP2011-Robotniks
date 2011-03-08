@@ -176,11 +176,14 @@ class Main2(Strategy):
         driving commands are issued.
         """
         self.setTarget(dest)
+        self.log.debug("moveTo(%s)", pos2string(dest))
 
         if not self.sim:
             dx,dy = np.array(dest) - self.me.pos
             angle = atan2(dy,dx)
             delta = angle - self.me.orientation
+            self.addText( "moveTo(%.1f/%s)" %
+                          (degrees(delta), pos2string(dest)) )
             self.interface.moveTo(3, delta)
             return True
 
@@ -188,8 +191,6 @@ class Main2(Strategy):
             #self.drive_both(0)
             return False
 
-        self.addText("moveTo(%s)" % pos2string(dest))
-        self.log.debug("moveTo(%s)", pos2string(dest))
         #print dest, self.me.pos, type(dest), type(self.me.pos)
         _dist = dist(dest, self.me.pos)
         #print _dist
@@ -265,7 +266,7 @@ class Main2(Strategy):
                         degrees(delta) )
 
         if not self.sim:
-            dx,dy = np.array(dest) - self.me.pos
+            dx,dy = np.array(ball) - self.me.pos
             angle = atan2(dy,dx)
             delta = angle - self.me.orientation
             self.interface.orientTo(delta)
