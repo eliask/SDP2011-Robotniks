@@ -227,9 +227,27 @@ class GUI:
                     self.Font, (0,0,255) )
 
     def drawEntities(self, ents):
-        pos = map(lambda x:self.scale*x, self.world.getBall().pos),
-        cv.Circle( self.image, intPoint(self.world.getBall().pos),
-                   10, (180,100,230), 2 )
+        points = self.world.getPitchPoints()
+        for p1,p2 in zip(points[1:]+points[:1], points[:-1]+points[-1:]):
+            cv.Line( self.image, intPoint(p1), intPoint(p2),
+                     (50,50,150), 1, cv.CV_AA )
+            cv.Circle(self.image, intPoint(p1), 4, (200,200,200), -1)
+
+        points = self.world.getPitchDecisionPoints()
+        for p1,p2 in zip(points[1:]+points[:1], points[:-1]+points[-1:]):
+            #cv.Circle(self.image, intPoint(p1), 4, (200,200,200), -1)
+            cv.Line( self.image, intPoint(p1), intPoint(p2),
+                     (150,150,150), 1, cv.CV_AA )
+
+        ball = self.world.getBall()
+        cv.Circle( self.image, intPoint(ball.pos), 10, (180,100,230), 2 )
+        offset = ball.pos + np.array(ball.velocity)
+        cv.Line( self.image, intPoint(ball.pos), intPoint(offset),
+                 (210,130,255), 1, cv.CV_AA )
+        x,y = ball.pos
+        mag = dist(ball.velocity, [0,0])
+        cv.PutText( self.image, "|v|=%.1f"%mag, (x,y+12),
+                    self.Font, (0,200,200) )
 
         for colour, cval in [('blue', (230,100,100)), ('yellow', (0,200,200))]:
             robot = self.world.getRobot(colour)
@@ -245,9 +263,6 @@ class GUI:
             for point in (top, bottom):
                 cv.Circle(self.image, intPoint(point), 3, cval, -1)
 
-        for point in self.world.getPitchPoints():
-            print point, intPoint(point)
-            cv.Circle(self.image, intPoint(point), 4, (200,200,200), -1)
 
     def change_threshold(self, delta):
         self.curThreshold = (self.curThreshold + delta) % len(self.thresholds)

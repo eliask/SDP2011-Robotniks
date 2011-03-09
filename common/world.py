@@ -33,8 +33,9 @@ class World(object):
                    # velocity vs. the recent past average
 
     # The entities we are interested in
-    entityNames = ('ball', 'blue', 'yellow')
+    entities = ('ball', 'blue', 'yellow')
 
+    res_scale_mult = 0.9
     vertical_ratio = 0.05
     horizontal_ratio = 0.04
 
@@ -57,7 +58,7 @@ class World(object):
         return self.resolution
     def setResolution(self, res):
         self.resolution = res
-        self.res_scale = 0.83 * res[0]/self.PitchLength
+        self.res_scale = self.res_scale_mult * res[0]/self.PitchLength
         self.setGoalPositions()
 
     def setGoalPositions(self):
@@ -82,6 +83,8 @@ class World(object):
             self.est[colour].update( ents[colour], dt )
 
         self.ents['time'] = self.time
+        self.ents['ball'] = self.getBall()
+
         self.states.append(self.ents)
         if len(self.states) > self.max_states:
             del self.states[0]
@@ -98,23 +101,28 @@ class World(object):
 
     Poffset = np.array([0,0])
     def getPitchBoundaries(self):
-        len_ratio = self.GoalLength / (2*(self.PitchWidth-self.GoalLength))
+        D = 0.95 * self.res_scale * self.GoalLength
 
         v, h = self.vertical_ratio, self.horizontal_ratio
-        Gtop1, Gbottom1 = self.getGoalPoints('blue')
-        Gtop2, Gbottom2 = self.getGoalPoints('yellow')
-        if Gtop1[0] > Gtop2[0]:
-            Gtop1, Gtop2 = Gtop2, Gtop1
-            Gbottom1, Gbottom2 = Gbottom2, Gbottom1
+        G1,G2 = self.getGoalPos('blue'), self.getGoalPos('yellow')
+        if G1[0] > G2[0]: G2 = G1
 
-        goalLen = abs(Gtop1[1] - Gbottom1[1])
-        top    = self.Poffset + [Gtop1[0], Gtop1[1] - len_ratio * goalLen]
-        bottom = self.Poffset + [Gbottom2[0], Gbottom2[1] + len_ratio * goalLen]
+        top    = self.Poffset + [G1[0], G1[1] - D]
+        bottom = self.Poffset + [G2[0], G2[1] + D]
 
-        return [top,bottom]
+        return np.array([top,bottom])
 
     def getPitchPoints(self):
         top, bottom = self.getPitchBoundaries()
+        return [top, (top[0],bottom[1]), bottom, (bottom[0],top[1])]
+
+    def getPitchDecisionBoundaries(self):
+        robot_ext = 15
+        top, bottom = self.getPitchBoundaries()
+        return [top + robot_ext, bottom - robot_ext]
+
+    def getPitchDecisionPoints(self):
+        top, bottom = self.getPitchDecisionBoundaries()
         return [top, (top[0],bottom[1]), bottom, (bottom[0],top[1])]
 
     def getGoalPos(self, colour):
@@ -125,7 +133,7 @@ class World(object):
 
     def getGoalPoints(self, colour):
         center = self.getGoalPos(colour)
-        D = self.res_scale * self.GoalLength/2.0
+        D = 0.88 * self.res_scale * self.GoalLength/2.0
         return [ self.Poffset + [center[0], center[1] - D],
                  self.Poffset + [center[0], center[1] + D] ]
 
@@ -133,10 +141,29 @@ class World(object):
         self.GoalPositions = \
             [ self.GoalPositions[1], self.GoalPositions[0] ]
 
+    def ball_velocity(self):
+        N=10
+        if len(self.states) < N: return np.array([0,0])
+
+        past = map(lambda x:np.array(x['ball'].pos), self.states[-N:])
+        # w=3; n=9
+        # gauss1d = np.exp( -0.5 * w/n * np.array(range(-(n-1), n, 2))**2 )
+        # gauss1d /= sum(gauss1d)
+        # print past
+        # smoothed1 = np.convolve(gauss1d, map(lambda x:x[0],past), 'same')
+        # smoothed2 = np.convolve(gauss1d, map(lambda x:x[1],past), 'same')
+        # print smoothed1, smoothed2
+        # smoothed = map(np.array, zip(smoothed1, smoothed2))
+        # delta = smoothed[-1] - smoothed[0]
+
+        delta = past[-1] - past[0]
+        return delta
+
     def getBall(self):
         ball = Ball()
         ball.pos      = self.est['ball'].getPos()
         ball.velocity = self.est['ball'].getVelocity()
+        ball.velocity = self.ball_velocity()
         return ball
 
     def setTarget(self, colour, target):
