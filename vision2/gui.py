@@ -245,6 +245,10 @@ class GUI:
             for point in (top, bottom):
                 cv.Circle(self.image, intPoint(point), 3, cval, -1)
 
+        for point in self.world.getPitchPoints():
+            print point, intPoint(point)
+            cv.Circle(self.image, intPoint(point), 4, (200,200,200), -1)
+
     def change_threshold(self, delta):
         self.curThreshold = (self.curThreshold + delta) % len(self.thresholds)
         _, _, vals = self.thresholds[self.curThreshold]
@@ -317,15 +321,19 @@ class GUI:
             self.channel = 3
 
         elif k == 'Q': # left arrow
+            self.world.Poffset[0] -= 1
             #self.change_threshold(-1)
-            self.narrow_horizontal()
+            #self.narrow_horizontal()
         elif k == 'S': # right arrow
+            self.world.Poffset[0] += 1
             #self.change_threshold(1)
-            self.expand_horizontal()
+            #self.expand_horizontal()
         elif k == 'R': # up arrow
-            self.expand_vertical()
+            self.world.Poffset[1] -= 1
+            #self.expand_vertical()
             #self.change_threshold(1)
         elif k == 'T': # down arrow
-            self.narrow_vertical()
+            self.world.Poffset[1] += 1
+            #self.narrow_vertical()
             #self.change_threshold(-1)
 

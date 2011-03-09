@@ -35,6 +35,9 @@ class World(object):
     # The entities we are interested in
     entityNames = ('ball', 'blue', 'yellow')
 
+    vertical_ratio = 0.05
+    horizontal_ratio = 0.04
+
     def __init__(self):
         self.name = "Real World"
         self.time = time.time()
@@ -54,11 +57,15 @@ class World(object):
         return self.resolution
     def setResolution(self, res):
         self.resolution = res
+        self.res_scale = 0.83 * res[0]/self.PitchLength
+        self.setGoalPositions()
 
+    def setGoalPositions(self):
+        h = self.horizontal_ratio
         # Left/right goals
         self.GoalPositions = \
-            [ (0.03*self.resolution[0], self.resolution[1]/2.0),
-              (0.97*self.resolution[0], self.resolution[1]/2.0),
+            [ (h*self.resolution[0], self.resolution[1]/2.0),
+              ((1-h)*self.resolution[0], self.resolution[1]/2.0),
               ]
 
     def update(self, _time, ents):
@@ -89,6 +96,27 @@ class World(object):
         robot.target      = est.target
         return robot
 
+    Poffset = np.array([0,0])
+    def getPitchBoundaries(self):
+        len_ratio = self.GoalLength / (2*(self.PitchWidth-self.GoalLength))
+
+        v, h = self.vertical_ratio, self.horizontal_ratio
+        Gtop1, Gbottom1 = self.getGoalPoints('blue')
+        Gtop2, Gbottom2 = self.getGoalPoints('yellow')
+        if Gtop1[0] > Gtop2[0]:
+            Gtop1, Gtop2 = Gtop2, Gtop1
+            Gbottom1, Gbottom2 = Gbottom2, Gbottom1
+
+        goalLen = abs(Gtop1[1] - Gbottom1[1])
+        top    = self.Poffset + [Gtop1[0], Gtop1[1] - len_ratio * goalLen]
+        bottom = self.Poffset + [Gbottom2[0], Gbottom2[1] + len_ratio * goalLen]
+
+        return [top,bottom]
+
+    def getPitchPoints(self):
+        top, bottom = self.getPitchBoundaries()
+        return [top, (top[0],bottom[1]), bottom, (bottom[0],top[1])]
+
     def getGoalPos(self, colour):
         if colour == 'blue':
             return self.GoalPositions[0]
@@ -97,8 +125,9 @@ class World(object):
 
     def getGoalPoints(self, colour):
         center = self.getGoalPos(colour)
-        return map( np.array, [(center[0], 0.6*center[1]),
-                               (center[0], 1.4*center[1])] )
+        D = self.res_scale * self.GoalLength/2.0
+        return [ self.Poffset + [center[0], center[1] - D],
+                 self.Poffset + [center[0], center[1] + D] ]
 
     def swapGoals(self):
         self.GoalPositions = \
