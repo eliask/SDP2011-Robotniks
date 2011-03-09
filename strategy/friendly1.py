@@ -94,7 +94,7 @@ class Friendly1(Main2):
         top, bottom = self.world.getPitchDecisionBoundaries()
         #print top, bottom, p
         return p[0] < top[0] or p[0] > bottom[0] \
-            or c = p[1] < top[1] or p[1] > bottom[1]
+            or p[1] < top[1] or p[1] > bottom[1]
 
     def intercept(self):
         ball = self.world.getBall()
