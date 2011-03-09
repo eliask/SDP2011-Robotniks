@@ -105,7 +105,7 @@ class World(object):
 
         v, h = self.vertical_ratio, self.horizontal_ratio
         G1,G2 = self.getGoalPos('blue'), self.getGoalPos('yellow')
-        if G1[0] > G2[0]: G2 = G1
+        if G1[0] > G2[0]: G1, G2 = G2, G1
 
         top    = self.Poffset + [G1[0], G1[1] - D]
         bottom = self.Poffset + [G2[0], G2[1] + D]

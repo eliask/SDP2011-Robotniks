@@ -35,7 +35,9 @@ class Friendly1(Main2):
 	if self.canKick(ballPos):
             self.kick()
 
-        self.intercept()
+        if self.intercept():
+            print "INTERCEPT"
+            return
 
 	vballs = self.getVirtualBalls(ballPos)
         left,right,behind = vballs
@@ -48,6 +50,7 @@ class Friendly1(Main2):
         oobs = map(self.out_of_bounds, vballs)
         oobL, oobR, oobB = oobs
         if not False in oobs:
+            print "BALL STUCK"
             return self.defensive()
 
         if distB < distL and distB < distR \
@@ -94,13 +97,20 @@ class Friendly1(Main2):
         top, bottom = self.world.getPitchDecisionBoundaries()
         #print top, bottom, p
         return p[0] < top[0] or p[0] > bottom[0] \
-            or c = p[1] < top[1] or p[1] > bottom[1]
+            or p[1] < top[1] or p[1] > bottom[1]
+
+    def out_of_bounds2(self, p):
+        top, bottom = self.world.getPitchBoundaries()
+        return p[0] < top[0] or p[0] > bottom[0] \
+            or p[1] < top[1] or p[1] > bottom[1]
 
     def intercept(self):
         ball = self.world.getBall()
         v = ball.velocity
         dpos = np.array(self.me.pos) - ball.pos
-        if dpos[0] == 0 or dist(v, [0,0]) < 20: return False
+        if self.out_of_bounds2(ball.pos) or \
+                dpos[0] == 0 or dist(v, [0,0]) < 33:
+            return False
 
         angle = atan2(v[1], v[0])
         Y = dpos[0] * sin(angle)
@@ -109,14 +119,26 @@ class Friendly1(Main2):
 
         self.setTarget(projected)
 
-        if v[0] * dpos[0] > 0:
+        if v[0] * dpos[0] > 0 and abs(dpos[0]) > 12:
             self.moveTo(projected)
             return True
         else:
             return False
 
+    def boundLegalMove(self, dest):
+        top, bottom = self.world.getPitchDecisionBoundaries()
+        bounded = np.array( self.me.pos[:] )
+        for i in range(2):
+            bounded[i] = max(top[i], min(bottom[i], dest[i]))
+        return bounded
+
     def defensive(self):
-        pass
+        ball = self.world.getBall()
+        self.moveTo(ball.pos)
+
+    def moveTo(self, dest):
+        bounded = self.boundLegalMove(dest)
+        super(Friendly1, self).moveTo(bounded)
 
     def getVirtualBalls(self, ball_pos):
 	goal_pos = self.getOpponentGoalPos()
@@ -129,7 +151,7 @@ class Friendly1(Main2):
         Gx,Gy = goal_pos[0]-ball_pos[0], goal_pos[1]-ball_pos[1]
         angle = atan2(Gy,Gx)
 
-	offset = 75
+	offset = 50
         offset2 = 50
         G1x = ball_pos[0] - offset*sin(angle) - offset2*cos(angle)
         G1y = ball_pos[1] + offset*cos(angle) - offset2*sin(angle)
