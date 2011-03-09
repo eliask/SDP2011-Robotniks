@@ -108,12 +108,12 @@ class GUI:
         logging.debug("Applying threshold")
         self.applyThreshold()
         logging.debug("Processing input")
-        self.processInput()
         logging.debug("Displaying overlay")
         self.displayHistogram()
         self.displayOverlay(ents)
         logging.debug("Showing image")
         self.drawMouseSelection()
+        self.processInput()
         cv.ShowImage(self.WindowName, self.image)
 
     def drawMouseSelection(self):
