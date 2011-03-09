@@ -108,7 +108,7 @@ class Base(object):
 class PrimaryRaw(Base):
     Tblue      = [ 'hsv', [84,  108,  108 ], [132, 255, 255] ]
     Tyellow    = [ 'hsv', [14,   54,  235 ], [ 45, 255, 255] ]
-    Tball      = [ 'bgr', [0,    0,   130 ], [126, 146, 255] ]
+    Tball      = [ 'bgr', [0,    0,   180 ], [126, 146, 255] ]
     Tdirmarker = [ 'bgr', [0,    22,   22 ], [144, 160, 164] ]
 
 class AltRaw(Base):
