@@ -33,16 +33,25 @@ class Friendly1(Main2):
             return
 
 	if self.canKick(ballPos):
-		self.kick()
+            self.kick()
 
-	left,right,behind = self.getVirtualBalls(ballPos)
+        self.intercept()
+
+	vballs = self.getVirtualBalls(ballPos)
+        left,right,behind = vballs
 
         dest = behind
 	pos = self.me.pos
         distL, distR = dist(self.me.pos, left), dist(self.me.pos, right)
         distB = dist(self.me.pos, behind)
 
-        if distB < distL and distB < distR:
+        oobs = map(self.out_of_bounds, vballs)
+        oobL, oobR, oobB = oobs
+        if not False in oobs:
+            return self.defensive()
+
+        if distB < distL and distB < distR \
+                and not oobB:
             # Keep the previous destination if we're closer to it than
             # the auxiliary ones. This happens when we are close to
             # the ball or when we can go straight towards the ball.
@@ -53,6 +62,13 @@ class Friendly1(Main2):
             # We're on the wrong side of the line that divides the
             # ball and the target goal 'decision boundary'.
 
+            if oobL and oobR:
+                left = right = behind
+            elif oobL:
+                left = right
+            elif oobR:
+                right = left
+
             if distL < distR:
                 dest = left
             else:
@@ -61,17 +77,46 @@ class Friendly1(Main2):
         if self.sim:
             pygame.draw.circle(self.sim.screen, (60,60,255,130), dest, 15, 3)
 
-        if dest == behind and distB < 50:
+        if dest == behind and distB < 100:
             # If we are close enough to the ball, just switch to
             # potential field guidance. Much larger thresholds will
             # result in much lower performance.
-            self.moveTo(pos + 10*self.pf(pos))
+            if self.orientToKick():
+                self.moveTo(ballPos) # + 10*self.pf(pos))
         else:
             self.moveTo(dest)
 
         #self.moveTo(dest)
 	# if dist(self.me.pos, behind) < 25:
         #     self.dash()
+
+    def out_of_bounds(self, p):
+        top, bottom = self.world.getPitchDecisionBoundaries()
+        #print top, bottom, p
+        return p[0] < top[0] or p[0] > bottom[0] \
+            or c = p[1] < top[1] or p[1] > bottom[1]
+
+    def intercept(self):
+        ball = self.world.getBall()
+        v = ball.velocity
+        dpos = np.array(self.me.pos) - ball.pos
+        if dpos[0] == 0 or dist(v, [0,0]) < 20: return False
+
+        angle = atan2(v[1], v[0])
+        Y = dpos[0] * sin(angle)
+        top, bottom = self.world.getPitchDecisionBoundaries()
+        projected = self.me.pos[0], max(top[1], min(bottom[1], Y))
+
+        self.setTarget(projected)
+
+        if v[0] * dpos[0] > 0:
+            self.moveTo(projected)
+            return True
+        else:
+            return False
+
+    def defensive(self):
+        pass
 
     def getVirtualBalls(self, ball_pos):
 	goal_pos = self.getOpponentGoalPos()
@@ -84,8 +129,8 @@ class Friendly1(Main2):
         Gx,Gy = goal_pos[0]-ball_pos[0], goal_pos[1]-ball_pos[1]
         angle = atan2(Gy,Gx)
 
-	offset = 50
-        offset2 = 30
+	offset = 75
+        offset2 = 50
         G1x = ball_pos[0] - offset*sin(angle) - offset2*cos(angle)
         G1y = ball_pos[1] + offset*cos(angle) - offset2*sin(angle)
 
