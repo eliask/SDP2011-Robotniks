@@ -25,7 +25,7 @@ class KickTest(Main2):
         except Exception, e:
             logging.warn("couldn't find ball: %s", e)
             return
-        if self.watch_stuck(): return
+        #if self.watch_stuck(): return
 
         if self.me.pos[0] == 0 or ballPos[0] == 0:
             self.drive_both(0)
@@ -35,11 +35,47 @@ class KickTest(Main2):
 	if self.canKick(ballPos):
 		self.kick()
 
+	self.ballTrajectory(ballPos, self.world.getBall().velocity)
+	"""
 	v = self.getVirtualBalls(ballPos)
 	self.moveTo(v[2])
 	if dist(self.me.pos, v[1]) < 10:
 		self.drive_both(0)
+	"""
 
+    def ballTrajectory(self, pos, velocity):
+	time = 5
+	dT = 0.01
+	p = 0
+	posX, posY = pos[0], pos[1]
+	velX, velY = velocity[0], velocity[1]
+	while p < time:
+		nextPosX = posX + velX*dT
+		nextPosY = posY + velY*dT
+		if nextPosX > 680: 
+			velX = -velX
+			posX = 680 
+			posY = nextPosY
+		elif nextPosX < 12: 
+			velX = -velX
+			posX = 12 
+			posY = nextPosY
+		elif nextPosY < 12: 
+			velY = -velY	
+			posY = 12
+			posX = nextPosX
+		elif nextPosY > 370:
+			velY = -velY
+			posY = 370 
+			posX = nextPosX			
+		else:
+			posX = nextPosX
+			posY = nextPosY
+		pygame.draw.circle(self.sim.screen, (60,60,255,130), (posX,posY), 2, 2)
+		p += dT
+		
+		
+	
     def canKick(self, target_pos):
 	#	to get the angle between [-pi, pi]
 	if self.me.orientation > pi:
