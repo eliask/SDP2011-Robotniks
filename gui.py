@@ -20,33 +20,40 @@ strategy_dir = os.path.abspath('.') + '/strategy'
 world = World()
 v = Vision(world)
 
-_colour = 'yellow'
+colour = 'yellow'
 if len(sys.argv) > 1:
-  _colour = sys.argv[1]
+  colour = sys.argv[1]
 
 ai_name = 'null'
 if len(sys.argv) > 2:
   ai_name = sys.argv[2]
 
+goal = 'left'
+if len(sys.argv) > 3:
+  goal = sys.argv[3]
+
 ai = strategies[ai_name]( world, RealRobotInterface() )
-ai.setColour(_colour)
+ai.setColour(colour)
 
 def change_strategy(strategy):
   global ai
   ai = strategies[strategy]( world, RealRobotInterface() )
-  ai.setColour(_colour)
+  ai.setColour(colour)
   print 'Changed strategy to:', strategy
 
-goal = 'left'
 def change_goal(new_goal):
+  global goal
   if goal != new_goal:
+    goal = new_goal
     world.swapGoals()
-  print 'Changed goal to:', goal
+    print 'Changed goal to:', goal
+  else:
+    print 'Goal is already:', goal
 
-def change_colour(colour):
-  global _colour
-  _colour = colour
-  #ai.setColour(colour)
+def change_colour(new_colour):
+  global colour
+  colour = new_colour
+  ai.setColour(colour)
   print 'Changed colour to', colour
 
 # Setup the GUI components:
