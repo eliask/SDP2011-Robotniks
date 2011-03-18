@@ -321,29 +321,29 @@ class GUI:
             threshold.trackbar_window = None
             if self.thresholdAdjustment:
                 threshold.createTrackbars(self.WindowName)
-        elif k == 't':
+        elif k == 't': # Threshold
             self.change_threshold(1)
 
-        elif k == 'o':
+        elif k == 'o': # Overlay
             self.toggle_overlay()
-        elif k == 'h':
+        elif k == 'h': # Histogram
             self.histogram = not self.histogram
 
-        elif k == 'q':
+        elif k == 'q': # 'quit' cropping
             self.restore_crop()
-        elif k == 'r':
+        elif k == 'r': # Switch to raw image (uncropped)
             self.switchWindow('raw')
-        elif k == ' ':
+        elif k == ' ': # Switched to 'standard image' (cropped)
             self.switchWindow('standard')
             self.curThreshold = 0
 
-        elif k == '0':
+        elif k == '0': # Display all colour channels
             self.channel = 0
-        elif k == '1':
+        elif k == '1': # Display channel 1 (blue)
             self.channel = 1
-        elif k == '2':
+        elif k == '2': # Display channel 2 (green)
             self.channel = 2
-        elif k == '3':
+        elif k == '3': # Display channel 3 (red)
             self.channel = 3
 
         elif k == 'Q': # left arrow
