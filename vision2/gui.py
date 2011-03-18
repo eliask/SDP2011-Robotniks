@@ -102,6 +102,7 @@ class GUI:
                         self.Font, (255,255,255,128) )
 
     def draw(self, ents, startTime):
+        self.ents = ents
         self.setFPS(startTime)
         self.setActiveImage()
         self.selectImageChannel()
@@ -293,6 +294,7 @@ class GUI:
     def expand_vertical(self):
         self.world.vertical_ratio += 0.01
 
+    paused = False
     def processInput(self):
         #c = cv.WaitKey(500)
         c = cv.WaitKey(5)
@@ -301,7 +303,12 @@ class GUI:
         if k == 27: #ESC
             self.quit = True
 
-        elif k == 's':
+        elif k == 'p': # Pause
+            self.paused = not self.paused
+            while self.paused:
+                self.draw(self.ents, 0)
+
+        elif k == 's': # Screenshot
             filename = time.strftime('snapshots/%Y%m%d-%H%M%S.jpg')
             cv.SaveImage(filename, self.image)
             logging.info("Screenshot saved at %s", filename)
