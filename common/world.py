@@ -40,7 +40,7 @@ class World(object):
     horizontal_ratio = 0.04
 
     framerate = 25.0
-    max_velocity = 100.0
+    max_velocity = 200.0
 
     def __init__(self):
         self.name = "Real World"
@@ -89,6 +89,8 @@ class World(object):
         self.ents['ball'] = self.getBall()
         for col in ('blue', 'yellow'):
             self.ents['est_'+col] = self.getRobot(col)
+
+        self.ents['ball_trajectory'] = self.__getBallTrajectory()
 
         self.states.append(self.ents)
         if len(self.states) > self.max_states:
@@ -146,29 +148,20 @@ class World(object):
         self.GoalPositions = \
             [ self.GoalPositions[1], self.GoalPositions[0] ]
 
-    def ball_velocity(self):
-        N=10
-        if len(self.states) < N: return np.array([0,0])
+    def ball_velocity(self, new_pos):
+        N=4
+        if len(self.states) < N-1: return np.array([0,0])
 
-        past = map(lambda x:np.array(x['ball'].pos), self.states[-N:])
-        # w=3; n=9
-        # gauss1d = np.exp( -0.5 * w/n * np.array(range(-(n-1), n, 2))**2 )
-        # gauss1d /= sum(gauss1d)
-        # print past
-        # smoothed1 = np.convolve(gauss1d, map(lambda x:x[0],past), 'same')
-        # smoothed2 = np.convolve(gauss1d, map(lambda x:x[1],past), 'same')
-        # print smoothed1, smoothed2
-        # smoothed = map(np.array, zip(smoothed1, smoothed2))
-        # delta = smoothed[-1] - smoothed[0]
-
+        past = map(lambda x:np.array(x['ball'].pos), self.states[-(N-1):])
+        past.append(new_pos)
         delta = past[-1] - past[0]
-        return delta
+        return delta * self.framerate / N
 
     def getBall(self):
         ball = Ball()
         ball.pos      = self.est['ball'].getPos()
-        ball.velocity = self.est['ball'].getVelocity()
-        ball.velocity = self.ball_velocity()
+        #ball.velocity = self.est['ball'].getVelocity()
+        ball.velocity = self.ball_velocity(ball.pos)
         return ball
 
     def setTarget(self, colour, target):
@@ -184,37 +177,57 @@ class World(object):
         self.status = text
 
     def getBallTrajectory(self):
+        N = 5
+        def median(z):
+            x = sorted(z, key=lambda x:x[0])[int((N-1)/2)][0]
+            y = sorted(z, key=lambda x:x[1])[int((N-1)/2)][1]
+            return (x,y)
+
+        if len(self.states) < N: return self.ents['ball_trajectory']
+        past = map(lambda x:np.array(x['ball_trajectory']), self.states[-N:])
+
+        # avg = sum(past[x] for x in range(N)) / N
+        # return avg
+        avgs = []
+        for i in range(len(past[0])):
+            avg = median([past[x][i] for x in range(N)])
+            avgs.append(avg)
+        return avgs
+
+    def __getBallTrajectory(self):
         ball = self.getBall()
         top, bottom = self.getPitchBoundaries()
 
-        dT = 0.05
+        dT = 0.5
         friction = 0.927 ** dT
-	maxTime = 5; maxDist = dist(top, bottom)
-	p = 0; _dist = 0
+	maxTime = 5
+        maxDist = dist(top, bottom)
+	p = 0
+        _dist = 0
+
 	posX, posY = ball.pos
 	v = np.array( ball.velocity )
+        mag = dist(v,[0,0])
+        if mag > self.max_velocity:
+            v *= self.max_velocity/mag
 
         trajectory = []
-	while p < maxTime and _dist < maxDist:
+	while p < maxTime:
             v *= friction
             nextPosX = posX + v[0]*dT
             nextPosY = posY + v[1]*dT
             if nextPosX > bottom[0]:
                 v[0] = -v[0]
-                posX = bottom[0] - (nextPosX - bottom[0])
-                posY = nextPosY
+                nextPosX = bottom[0] - (nextPosX - bottom[0])
             if nextPosX < top[0]:
                 v[0] = -v[0]
-                posX = top[0] - (nextPosX - top[0])
-                posY = nextPosY
+                nextPosX = top[0] - (nextPosX - top[0])
             if nextPosY < top[1]:
                 v[1] = -v[1]
-                posY = top[1] - (nextPosY - top[1])
-                posX = nextPosX
+                nextPosY = top[1] - (nextPosY - top[1])
             if nextPosY > bottom[1]:
                 v[1] = -v[1]
-                posY = bottom[1] - (nextPosY - bottom[1])
-                posX = nextPosX
+                nextPosY = bottom[1] - (nextPosY - bottom[1])
 
             posX = nextPosX
             posY = nextPosY
