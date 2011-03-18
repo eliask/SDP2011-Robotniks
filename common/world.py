@@ -39,6 +39,9 @@ class World(object):
     vertical_ratio = 0.05
     horizontal_ratio = 0.04
 
+    framerate = 25.0
+    max_velocity = 100.0
+
     def __init__(self):
         self.name = "Real World"
         self.time = time.time()
@@ -70,20 +73,22 @@ class World(object):
               ]
 
     def update(self, _time, ents):
-        dt = _time - self.time
+        self.dt = _time - self.time
         self.time = _time
         self.ents = ents
         self.pointer = None
 
-        self.est['ball'].update( ents['balls'], dt )
+        self.est['ball'].update( ents['balls'], self.dt )
         for colour in ('blue', 'yellow'):
             if self.est[colour].target_time + 1.0 < time.time():
                 self.est[colour].target = None
                 self.est[colour].text   = []
-            self.est[colour].update( ents[colour], dt )
+            self.est[colour].update( ents[colour], self.dt )
 
         self.ents['time'] = self.time
         self.ents['ball'] = self.getBall()
+        for col in ('blue', 'yellow'):
+            self.ents['est_'+col] = self.getRobot(col)
 
         self.states.append(self.ents)
         if len(self.states) > self.max_states:
@@ -177,3 +182,44 @@ class World(object):
 
     def setStatus(self, text):
         self.status = text
+
+    def getBallTrajectory(self):
+        ball = self.getBall()
+        top, bottom = self.getPitchBoundaries()
+
+        dT = 0.05
+        friction = 0.927 ** dT
+	maxTime = 5; maxDist = dist(top, bottom)
+	p = 0; _dist = 0
+	posX, posY = ball.pos
+	v = np.array( ball.velocity )
+
+        trajectory = []
+	while p < maxTime and _dist < maxDist:
+            v *= friction
+            nextPosX = posX + v[0]*dT
+            nextPosY = posY + v[1]*dT
+            if nextPosX > bottom[0]:
+                v[0] = -v[0]
+                posX = bottom[0] - (nextPosX - bottom[0])
+                posY = nextPosY
+            if nextPosX < top[0]:
+                v[0] = -v[0]
+                posX = top[0] - (nextPosX - top[0])
+                posY = nextPosY
+            if nextPosY < top[1]:
+                v[1] = -v[1]
+                posY = top[1] - (nextPosY - top[1])
+                posX = nextPosX
+            if nextPosY > bottom[1]:
+                v[1] = -v[1]
+                posY = bottom[1] - (nextPosY - bottom[1])
+                posX = nextPosX
+
+            posX = nextPosX
+            posY = nextPosY
+            trajectory.append((posX,posY))
+            p += dT
+            _dist += dT*sqrt(v[0]**2 + v[1]**2)
+
+        return trajectory

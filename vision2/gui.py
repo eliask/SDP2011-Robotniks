@@ -227,6 +227,10 @@ class GUI:
                     self.Font, (0,0,255) )
 
     def drawEntities(self, ents):
+        traj = self.world.getBallTrajectory()
+        for t in traj:
+            cv.Circle(self.image, intPoint(t), 1, (50,50,50), -1)
+
         points = self.world.getPitchPoints()
         for p1,p2 in zip(points[1:]+points[:1], points[:-1]+points[-1:]):
             cv.Line( self.image, intPoint(p1), intPoint(p2),
