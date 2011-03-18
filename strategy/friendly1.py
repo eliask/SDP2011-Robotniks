@@ -113,7 +113,7 @@ class Friendly1(Main2):
             return False
 
         angle = atan2(v[1], v[0])
-        Y = dpos[0] * sin(angle)
+        Y = ball.pos[1] + dpos[0] * sin(angle)
         top, bottom = self.world.getPitchDecisionBoundaries()
         projected = self.me.pos[0], max(top[1], min(bottom[1], Y))
 
