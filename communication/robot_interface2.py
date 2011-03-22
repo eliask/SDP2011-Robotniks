@@ -18,11 +18,6 @@ class RealRobotInterface(interface.RobotInterface):
         self.client_socket.connect(("localhost", 6879))
         logging.info("Connected to robot interface server")
 
-        self.steer_left_target = 0
-        self.steer_right_target = 0
-        self.steer_left_until = 0
-        self.steer_right_until = 0
-
         self.wait_until = 0
 
     def humanLogCommands(self):
@@ -65,7 +60,7 @@ class RealRobotInterface(interface.RobotInterface):
         if self.wait_until < time.time():
             self.wait_until = time.time() + 0.1
             self.client_socket.send('%d\n' % message)
-        #self.initCommands()
+        self.initCommands()
 
     def kick(self):
         self._kick = True

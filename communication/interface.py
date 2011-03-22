@@ -24,6 +24,10 @@ class RobotInterface(object):
         else:
             self.replay_logger = None
 
+        self._drive_left = 0
+        self._drive_right = 0
+        self._steer_left = 0
+        self._steer_right = 0
         self.initCommands()
 
     def recordCommands(self):
@@ -41,10 +45,6 @@ class RobotInterface(object):
         "Resets the commands to the defaults."
         self._reset = False
         self._kick  = False
-        self._drive_left = 0
-        self._drive_right = 0
-        self._steer_left = 0
-        self._steer_right = 0
 
     def tick(self):
         """Perform communication interface state update.
