@@ -1,52 +1,50 @@
 import logging
-from utils import *
-from kalman import *
+from utils import pos2string, entCenter, dist
+from desp import DESP
+import numpy as np
+from math import atan2
 
-class RobotEstimator(Kalman):
-    # p_x, p_y, v_x, v_y, orient, motor dir
-    transitionM = [ [ 1, 0, 0, 0, 0, 0 ], # bearing (X component)
-                    [ 0, 1, 0, 0, 0, 0 ], # bearing (Y component)
-                    [ 0, 0, 1, 0, D, 0 ], # p_x
-                    [ 0, 0, 0, 1, 0, D ], # p_y
-                    [ 0, 0, 0, 0, 1, 0 ], # v_x
-                    [ 0, 0, 0, 0, 0, 1 ], # v_y
-                    ]
+class RobotEstimator(object):
 
     def __init__(self):
-        # We measure: p_x, p_y, orientation
-        # ( We control: motor direction, etc. )
-        Kalman.__init__(self, 6,4,0, self.transitionM)
+        # TODO: optimise parameters
+        self.Os = DESP(0.4)
+        self.Ps = DESP(0.4)
+        self.Vs = DESP(0.5)
+
+        self.orientation = np.array([0,0])
+        self.velocity    = np.array([0,0])
 
     def getOrientation(self):
-        X,Y = map(float, self.measurement[0:2])
+        X,Y = self.orientation
         return atan2(Y,X)
 
-    def getPos(self):
-        #return tuple( map(float, self.prediction[2:4]) )
-        return tuple( map(float, self.measurement[2:4]) )
+    def getPos(self, T=0):
+        return self.Ps.predict(T)
 
     def getVelocity(self):
-        return tuple( map(float, self.prediction[4:6]) )
+        return self.velocity
 
     def update(self, robots, dt):
-        self.predict(dt)
         logging.debug( 'Predicted robot position: %s',
                        pos2string(self.getPos()) )
 
-        if len(robots) == 0 or robots[0] is None:
-            self.measurement = self.prediction[:4]
-        else:
+        pos = self.getPos()
+        orient = self.orientation
+        if len(robots) > 0 and robots[0] is not None:
             def robot_dist(x):
                 return dist( self.getPos(), entCenter(x) )
 
             robots_sorted = sorted( robots, key=robot_dist )
             best_match = robots_sorted[0]
             pos = entCenter(best_match)
-            self.measurement[2] = pos[0]
-            self.measurement[3] = pos[1]
             if 'orient' in best_match:
                 angle = best_match['orient']
-                self.measurement[0] = cos(angle)
-                self.measurement[1] = sin(angle)
+                orient[:] = np.cos(angle), np.sin(angle)
 
-        self.correct(self.measurement)
+        self.Os.update(orient)
+        self.Ps.update(pos)
+        self.Vs.update(pos)
+
+        self.orientation = self.Os.predict(1./dt)
+        self.velocity = self.Vs.predict(1./dt) - pos

@@ -1,33 +1,27 @@
 import logging
-from utils import *
-from kalman import *
+from utils import pos2string, entCenter, dist
+from desp import DESP
+import numpy as np
 
-class BallEstimator(Kalman):
-
-    transitionM = [ [ 1, 0, D, 0 ], # p_x
-                    [ 0, 1, 0, D ], # p_y
-                    [ 0, 0, 1, 0 ], # v_x
-                    [ 0, 0, 0, 1 ], # v_y
-                    ]
+class BallEstimator(object):
 
     def __init__(self):
-        Kalman.__init__(self, 4,2,0, self.transitionM)
+        self.Vs = DESP(0.4)
+        self.Ps = DESP(0.7)
+        self.velocity = np.array([0,0])
 
-    def getPos(self):
-        return map(float, (self.measurement[0], self.measurement[1]))
+    def getPos(self, T=0):
+        return self.Ps.predict(T)
 
     def getVelocity(self):
-        return map(float, (self.prediction[2], self.prediction[3]))
+        return self.velocity
 
     def update(self, balls, dt):
-        #print self.getPos()
-        self.predict(dt)
         logging.debug( 'Predicted ball position: %s',
                        pos2string(self.getPos()) )
 
-        if len(balls) == 0:
-            self.measurement = self.prediction[:2]
-        else:
+        pos = self.getPos()
+        if len(balls) > 0:
             def ball_dist(x):
                 return dist( self.getPos(), entCenter(x) )
 
@@ -35,7 +29,7 @@ class BallEstimator(Kalman):
             best_match = balls_sorted[0]
             pos = entCenter(best_match)
 
-            self.measurement[0] = pos[0]
-            self.measurement[1] = pos[1]
+        self.Ps.update(pos)
+        self.Vs.update(pos)
 
-        self.correct(self.measurement)
+        self.velocity = self.Vs.predict(1./dt) - pos

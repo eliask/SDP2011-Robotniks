@@ -73,7 +73,8 @@ class World(object):
               ]
 
     def update(self, _time, ents):
-        self.dt = _time - self.time
+        #self.dt = _time - self.time
+        self.dt = 1./self.framerate
         self.time = _time
         self.ents = ents
         self.pointer = None
@@ -148,20 +149,10 @@ class World(object):
         self.GoalPositions = \
             [ self.GoalPositions[1], self.GoalPositions[0] ]
 
-    def ball_velocity(self, new_pos):
-        N=4
-        if len(self.states) < N-1: return np.array([0,0])
-
-        past = map(lambda x:np.array(x['ball'].pos), self.states[-(N-1):])
-        past.append(new_pos)
-        delta = past[-1] - past[0]
-        return delta * self.framerate / N
-
     def getBall(self):
         ball = Ball()
         ball.pos      = self.est['ball'].getPos()
-        #ball.velocity = self.est['ball'].getVelocity()
-        ball.velocity = self.ball_velocity(ball.pos)
+        ball.velocity = self.est['ball'].getVelocity()
         return ball
 
     def setTarget(self, colour, target):
@@ -177,20 +168,19 @@ class World(object):
         self.status = text
 
     def getBallTrajectory(self):
-        N = 5
+        N = 3
         def median(z):
             x = sorted(z, key=lambda x:x[0])[int((N-1)/2)][0]
             y = sorted(z, key=lambda x:x[1])[int((N-1)/2)][1]
             return (x,y)
+        mean = lambda z: sum(z)/len(z)
 
         if len(self.states) < N: return self.ents['ball_trajectory']
         past = map(lambda x:np.array(x['ball_trajectory']), self.states[-N:])
 
-        # avg = sum(past[x] for x in range(N)) / N
-        # return avg
         avgs = []
         for i in range(len(past[0])):
-            avg = median([past[x][i] for x in range(N)])
+            avg = mean( [past[x][i] for x in range(N)] )
             avgs.append(avg)
         return avgs
 
@@ -198,7 +188,7 @@ class World(object):
         ball = self.getBall()
         top, bottom = self.getPitchBoundaries()
 
-        dT = 0.5
+        dT = 0.1
         friction = 0.927 ** dT
 	maxTime = 5
         maxDist = dist(top, bottom)
