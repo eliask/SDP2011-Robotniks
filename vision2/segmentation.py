@@ -37,7 +37,7 @@ def get_contours(frame, approx=True):
     # A workaround for OpenCV 2.0 crash on receiving a (nearly) black image
     nonzero = cv.CountNonZero(frame)
     logging.debug("Segmentation got an image with %d nonzero pixels", nonzero)
-    if nonzero < 20:
+    if nonzero < 20 or nonzero > 10000:
         return []
 
     storage = cv.CreateMemStorage(0)
