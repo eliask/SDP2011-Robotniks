@@ -14,8 +14,8 @@ class World(object):
     BallDiameter = 4.5
     BallRadius   = BallDiameter/2.0
     GoalLength   = 58.5
-    RobotLength  = 20.0
-    RobotWidth   = 18.0
+    RobotLength  = 22.0
+    RobotWidth   = 19.0
     KickerReach  = 5.0
     PitchDim     = PitchLength, PitchWidth
 
@@ -110,11 +110,12 @@ class World(object):
         return robot
 
     def getRobotPoints(self, pos, orient):
-        W,H = self.res_scale/2. * np.array([self.RobotLength, self.RobotWidth])
-        points = [(-W,-H), (W,-H), (W,H), (-W,H)]
-        rotated = rotatePoints(points, [0, -7.*self.res_scale], orient)
-        points = map(lambda x: pos + np.array(x), rotated)
-        return points
+        L,W = self.res_scale/2. * np.array([self.RobotLength, self.RobotWidth])
+        O = -3. * self.res_scale
+        points = [(-L+O,-W), (L+O,-W), (L+O,W), (-L+O,W)]
+        rotated = rotatePoints(points, [0,0], orient)
+        rotated = map(lambda x: pos + np.array(x), rotated)
+        return rotated
 
     Poffset = np.array([0,0])
     def getPitchBoundaries(self):
