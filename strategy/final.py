@@ -9,7 +9,6 @@ import pygame
 import common.world
 
 class Final(Main2):
-    "A basic module for testing the kicker"
 
     def __init__(self, *args):
         Main2.__init__(self, *args, name='final')
