@@ -33,10 +33,10 @@ class RobotInterface(object):
 
     def recordCommands(self):
         time_since_init = time.time() - self.start_time
-        command_string = "%d,%d,%d,%d,%d,%d" \
+        command_string = "%d,%d,%d,%d,%d,%d,%d" \
             % ( int(self._reset), int(self._kick),
                 self._drive_left, self._drive_right,
-                self._steer_left, self._steer_right )
+                self._steer_left, self._steer_right, self._arg )
 
         if self.replay_logger:
             self.replay_logger.debug(
