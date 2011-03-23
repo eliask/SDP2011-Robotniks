@@ -119,7 +119,7 @@ class World(object):
 
     Poffset = np.array([0,0])
     def getPitchBoundaries(self):
-        D = 0.95 * self.res_scale * self.GoalLength
+        D = 0.99 * self.res_scale * self.GoalLength
 
         v, h = self.vertical_ratio, self.horizontal_ratio
         G1,G2 = self.getGoalPos('blue'), self.getGoalPos('yellow')
