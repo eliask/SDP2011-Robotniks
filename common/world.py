@@ -199,7 +199,7 @@ class World(object):
         top, bottom = self.getPitchBoundaries()
 
         dT = 0.1
-        friction = 0.927 ** dT
+        friction = 0.60 ** dT
 	maxTime = 5
         maxDist = dist(top, bottom)
 	p = 0
