@@ -71,6 +71,7 @@ class CommandHandler extends Thread {
     public static int drive_right;
     public static int steer_angle;
     public static int command_id;
+    public static int command_arg;
 
     public void setKickState(boolean Val){
         SynchroCtrl.kickThread.setKickState(Val);
@@ -111,7 +112,7 @@ class CommandHandler extends Thread {
     private void executeCommand() {
         switch (command_id) {
         case 1:
-            moveTo(steer_angle, drive_left, true);
+            moveTo(steer_angle, drive_left, command_arg, true);
             break;
 
         case 2:
@@ -119,7 +120,7 @@ class CommandHandler extends Thread {
             break;
 
         case 3:
-            moveTo(steer_angle, drive_left, false);
+            moveTo(steer_angle, drive_left, command_arg, false);
             break;
 
         default:
@@ -165,11 +166,13 @@ class CommandHandler extends Thread {
         }
     }
 
-    /* Move towards some bearing at positive integer speed */
-    private void moveTo(int angle, int speed, boolean strict) {
+    /* Move towards some bearing at positive integer speed.
+       - dist is distance to travel in centimetres.
+     */
+    private void moveTo(int angle, int speed, int dist, boolean strict) {
         setTargetSteeringAngle(angle);
         double deltaD = SynchroCtrl.steeringThread.getClosestAngle(angle);
-        final int thresh = 3;
+        final int thresh = 0;
         if (deltaD > thresh) {
             setTargetDriveVal(0, 0);
             if (strict)
@@ -181,10 +184,13 @@ class CommandHandler extends Thread {
         int speedL = speed*SynchroCtrl.steeringLeftThread.getDirection(angle);
         int speedR = speed*SynchroCtrl.steeringRightThread.getDirection(angle);
 
-        final double[] X = { 36.03, 31.30};
+        final double[] X = { 108.09 / Math.abs(speed), 31.30};
         int sleep_time = (int)Math.round( X[0]*angle + X[1] );
-
         setTargetDriveVal(speedL, speedR);
+        try{
+            Thread.sleep(sleep_time);
+        } catch (InterruptedException e){
+        }
     }
 
     private void orientTo(int angle) {
@@ -279,6 +285,7 @@ class Communicator extends Thread {
         int motor_dright = (message >>> 5)  & 7;
         int steer_angle  = (message >>> 8)  & 511;
         int command_id   = (message >>> 17) & 511;
+        int command_arg  = (message >>> 26);
 
         int dleft_dir    = (motor_dleft & 4) > 0 ? -1 : 1;
         int drive_left   = dleft_dir * (motor_dleft & 3);
@@ -294,6 +301,7 @@ class Communicator extends Thread {
             handler.drive_right = drive_right;
             handler.steer_angle = steer_angle;
             handler.command_id  = command_id;
+            handler.command_arg = command_arg;
 
             RConsole.println("notify handler");
             handler.notify();

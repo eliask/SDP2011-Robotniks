@@ -48,6 +48,7 @@ class RealRobotInterface(interface.RobotInterface):
         message |= self._drive_right << 5
         message |= self._steer_left << 8
         message |= self._steer_right << 17
+        message |= self._arg << 26
 
         return message
 
@@ -109,9 +110,10 @@ class RealRobotInterface(interface.RobotInterface):
         self._steer_right = self.__steer(angle)
         self.steer_right_target = angle
 
-    def moveTo(self, speed, angle):
+    def moveTo(self, speed, angle, _dist):
         self.drive_both(speed)
         self.steer_left(angle)
+        self._arg = _dist
         self._steer_right = 1
 
     def orientTo(self, angle):

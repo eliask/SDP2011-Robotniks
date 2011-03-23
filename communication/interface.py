@@ -28,6 +28,7 @@ class RobotInterface(object):
         self._drive_right = 0
         self._steer_left = 0
         self._steer_right = 0
+        self._arg = 0
         self.initCommands()
 
     def recordCommands(self):
