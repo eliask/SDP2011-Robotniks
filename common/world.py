@@ -40,6 +40,7 @@ class World(object):
     horizontal_ratio = 0.04
 
     framerate = 25.0
+    min_velocity = 10.0
     max_velocity = 200.0
 
     def __init__(self):
@@ -198,6 +199,8 @@ class World(object):
 	posX, posY = ball.pos
 	v = np.array( ball.velocity )
         mag = dist(v,[0,0])
+        if mag < self.min_velocity:
+            v *= 0
         if mag > self.max_velocity:
             v *= self.max_velocity/mag
 
