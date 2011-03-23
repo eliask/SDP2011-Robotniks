@@ -267,10 +267,15 @@ class GUI:
         # Draw detected ball position and velocity
         ball = self.world.getBall()
         cv.Circle( self.image, intPoint(ball.pos), 10, (180,100,230), 2 )
+
+        cv.Circle( self.image, intPoint(ball.pos),
+                   int(round(self.world.ball_dradius)),
+                   (180,0,180), 1 )
+
         offset = ball.pos + np.array(ball.velocity)
         cv.Line( self.image, intPoint(ball.pos), intPoint(offset),
                  (210,130,255), 1, cv.CV_AA )
-        x,y = ball.pos
+        x,y = intPoint(ball.pos)
         mag = dist(ball.velocity, [0,0])
         cv.PutText( self.image, "|v|=%.1f"%mag, (x,y+12),
                     self.Font, (0,200,200) )
@@ -289,6 +294,9 @@ class GUI:
             for point in (top, bottom):
                 cv.Circle(self.image, intPoint(point), 3, cval, -1)
 
+            # ball decision circle tangent points
+            for p in self.world.getBallDecisionPoints(colour):
+                cv.Circle( self.image, intPoint(p), 4, cval, 1)
 
     def change_threshold(self, delta):
         self.curThreshold = (self.curThreshold + delta) % len(self.thresholds)

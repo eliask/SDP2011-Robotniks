@@ -65,6 +65,7 @@ class World(object):
     def setResolution(self, res):
         self.resolution = res
         self.res_scale = self.res_scale_mult * res[0]/self.PitchLength
+        self.ball_dradius = self.res_scale * 24
         self.setGoalPositions()
 
     def setGoalPositions(self):
@@ -76,7 +77,6 @@ class World(object):
               ]
 
     def update(self, _time, ents):
-        #self.dt = _time - self.time
         self.dt = 1./self.framerate
         self.time = _time
         self.ents = ents
@@ -182,6 +182,21 @@ class World(object):
 
     def setStatus(self, text):
         self.status = text
+
+    def getBallDecisionPoints(self, colour):
+        ball = self.getBall()
+        robot = self.getRobot(colour)
+        _dist = dist(ball.pos, robot.pos)
+        angle1 = asin(self.ball_dradius / _dist)
+
+        dx,dy = ball.pos - robot.pos
+        angle2 = atan2(dy,dx)
+        Len = sqrt(_dist**2 - self.ball_dradius**2)
+        angles = [ angle2 - angle1, angle2 + angle1 ]
+
+        tangent_points = \
+            map(lambda x:robot.pos+[Len*cos(x),Len*sin(x)], angles)
+        return tangent_points
 
     def getBallTrajectory(self):
         N = 3
