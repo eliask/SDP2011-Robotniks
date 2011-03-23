@@ -105,7 +105,15 @@ class World(object):
         robot.orientation = est.getOrientation()
         robot.text        = est.text
         robot.target      = est.target
+        robot.points      = self.getRobotPoints(robot.pos, robot.orientation)
         return robot
+
+    def getRobotPoints(self, pos, orient):
+        W,H = self.res_scale/2. * np.array([self.RobotLength, self.RobotWidth])
+        points = [(-W,-H), (W,-H), (W,H), (-W,H)]
+        rotated = rotatePoints(points, [0,0], -orient)
+        points = map(lambda x: pos + np.array(x), rotated)
+        return points
 
     Poffset = np.array([0,0])
     def getPitchBoundaries(self):

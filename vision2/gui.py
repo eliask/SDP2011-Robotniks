@@ -213,6 +213,13 @@ class GUI:
         cv.Circle(self.image, intPoint((x+D*cos(o), y+D*sin(o))),
                   6, (200,200,200), -1)
 
+        # Draw estimated robot boundaries
+        points = ent.points
+        for p1,p2 in zip(points[1:]+points[:1], points[:-1]+points[-1:]):
+            cv.Line( self.image, intPoint(p1), intPoint(p2),
+                     (200,200,0), 1, cv.CV_AA )
+            cv.Circle(self.image, intPoint(p1), 2, (255,255,100), -1)
+
         if ent.text is not None:
             x,y = (x-42, y+42)
             for i, line in enumerate(ent.text):
@@ -229,8 +236,7 @@ class GUI:
 
     def drawEntities(self, ents):
         # Draw predicted ball trajectory
-        traj = self.world.getBallTrajectory()
-        for t in traj:
+        for t in self.world.getBallTrajectory():
             cv.Circle(self.image, intPoint(t), 2, (50,50,50), -1)
 
         # Draw estimated pitch boundaries
