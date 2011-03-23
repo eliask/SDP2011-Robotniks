@@ -8,7 +8,7 @@ class BallEstimator(object):
     def __init__(self):
         self.Vs = DESP(0.4)
         self.Ps = DESP(0.7)
-        self.velocity = np.array([0,0])
+        self.velocity = np.array([0.,0.])
 
     def getPos(self, T=0):
         return self.Ps.predict(T)

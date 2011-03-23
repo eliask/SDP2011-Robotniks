@@ -2,18 +2,16 @@ import logging
 from utils import pos2string, entCenter, dist
 from desp import DESP
 import numpy as np
-from math import atan2
+from math import cos, sin, atan2
 
 class RobotEstimator(object):
 
     def __init__(self):
-        # TODO: optimise parameters
-        self.Os = DESP(0.4)
         self.Ps = DESP(0.4)
         self.Vs = DESP(0.5)
 
-        self.orientation = np.array([0,0])
-        self.velocity    = np.array([0,0])
+        self.orientation = np.array([0.,0.])
+        self.velocity    = np.array([0.,0.])
 
     def getOrientation(self):
         X,Y = self.orientation
@@ -30,7 +28,6 @@ class RobotEstimator(object):
                        pos2string(self.getPos()) )
 
         pos = self.getPos()
-        orient = self.orientation
         if len(robots) > 0 and robots[0] is not None:
             def robot_dist(x):
                 return dist( self.getPos(), entCenter(x) )
@@ -40,11 +37,8 @@ class RobotEstimator(object):
             pos = entCenter(best_match)
             if 'orient' in best_match:
                 angle = best_match['orient']
-                orient[:] = np.cos(angle), np.sin(angle)
+                self.orientation[:] = cos(angle), sin(angle)
 
-        self.Os.update(orient)
         self.Ps.update(pos)
         self.Vs.update(pos)
-
-        self.orientation = self.Os.predict(1./dt)
         self.velocity = self.Vs.predict(1./dt) - pos
