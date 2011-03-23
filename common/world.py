@@ -58,6 +58,8 @@ class World(object):
             self.est[col].target = None
             self.est[col].target_time = 0
 
+        self.overwrite_ball = None
+
     def getResolution(self):
         return self.resolution
     def setResolution(self, res):
@@ -161,7 +163,11 @@ class World(object):
 
     def getBall(self):
         ball = Ball()
-        ball.pos      = self.est['ball'].getPos()
+        if self.overwrite_ball:
+            ball.pos = self.overwrite_ball
+        else:
+            ball.pos = self.est['ball'].getPos()
+
         ball.velocity = self.est['ball'].getVelocity()
         return ball
 

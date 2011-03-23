@@ -32,12 +32,13 @@ class GUI:
         self.B         = cv.CreateImage(size, cv.IPL_DEPTH_8U, 1)
 
         self.hist_image = None
-
+        self.scale = self.vision.pre.rawSize[0] / self.world.PitchLength
         cv.NamedWindow(self.WindowName)
+
         self.initThresholds()
         self.drag_start = None
+        self.place_ball = False
         cv.SetMouseCallback(self.WindowName, self.on_mouse)
-        self.scale = self.vision.pre.rawSize[0] / self.world.PitchLength
 
         self.toggle_overlay()
 
@@ -60,6 +61,16 @@ class GUI:
         self.vision.initComponents()
 
     def on_mouse(self, event, x, y, flags, param):
+        if event == cv.CV_EVENT_RBUTTONDOWN:
+            self.place_ball = True
+
+        if self.place_ball:
+            self.world.overwrite_ball = (x,y)
+
+        if event == cv.CV_EVENT_RBUTTONUP:
+            self.place_ball = False
+            self.world.overwrite_ball = None
+
         if event == cv.CV_EVENT_LBUTTONDOWN:
             self.drag_start = (x,y)
 
