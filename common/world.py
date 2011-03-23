@@ -112,7 +112,7 @@ class World(object):
     def getRobotPoints(self, pos, orient):
         W,H = self.res_scale/2. * np.array([self.RobotLength, self.RobotWidth])
         points = [(-W,-H), (W,-H), (W,H), (-W,H)]
-        rotated = rotatePoints(points, [0,0], -orient)
+        rotated = rotatePoints(points, [0, -7.*self.res_scale], orient)
         points = map(lambda x: pos + np.array(x), rotated)
         return points
 
