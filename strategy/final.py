@@ -26,66 +26,54 @@ class Final(Main2):
             print "Ball or self at 0: doing nothing"
             return
 
-        if self.watch_stuck(): return
+        #if self.watch_stuck(): return
 
-	if self.canKick(ballPos):
+	if self.canKick():
             self.kick()
 
         if self.intercept():
             print "INTERCEPT"
             return
 
-	vballs = self.getVirtualBalls(ballPos)
-        left,right,behind = vballs
+        D = self.getBallDecisionPoints()
+        gpoint = self.getBallGoalPoint()
+        oobs = map(self.out_of_bounds, D+[gpoint])
 
-        dest = behind
-	pos = self.me.pos
-        distL, distR = dist(self.me.pos, left), dist(self.me.pos, right)
-        distB = dist(self.me.pos, behind)
-
-        oobs = map(self.out_of_bounds, vballs)
-        oobL, oobR, oobB = oobs
+        print oobs
         if not False in oobs:
             print "BALL STUCK"
             return self.defensive()
 
-        print
+        if oobs[-1]: del gpoint
+        if oobs[1]: del D[1]
+        if oobs[0]: del D[0]
 
-        if distB < distL and distB < distR \
-                and not oobB:
-            # Keep the previous destination if we're closer to it than
-            # the auxiliary ones. This happens when we are close to
-            # the ball or when we can go straight towards the ball.
-            pass
+        _dist1 = dist(self.me.pos, D[0])
+        _dist2 = dist(self.me.pos, D[1])
+        _distG = dist(self.me.pos, gpoint)
+        print _dist1, _dist2, _distG
+        if gpoint and _distG < _dist1 and _distG < _dist2:
+            return self.targetBall()
 
-        elif (right[0] - pos[0])*(left[1] - pos[1]) \
-                - (right[1] - pos[1])*(left[0] - pos[0]) < 0:
-            # We're on the wrong side of the line that divides the
-            # ball and the target goal 'decision boundary'.
-
-            if oobL and oobR:
-                left = right = behind
-            elif oobL:
-                left = right
-            elif oobR:
-                right = left
-
-            if distL < distR:
-                dest = left
-            else:
-                dest = right
-
-        if self.sim:
-            pygame.draw.circle(self.sim.screen, (60,60,255,130), dest, 15, 3)
-
-        if dest == behind and distB < 100:
-            # If we are close enough to the ball, just switch to
-            # potential field guidance. Much larger thresholds will
-            # result in much lower performance.
-            if self.orientToKick():
-                self.moveTo(ballPos) # + 10*self.pf(pos))
+        goal = self.getOpponentGoalPos()
+        if D[1] and _dist1 > _dist2:
+            self.moveTo(D[1])
         else:
-            self.moveTo(dest)
+            self.moveTo(D[0])
+
+    def targetBall(self):
+        ball = self.world.getBall()
+        self.moveTo(ball)
+
+    def canKick(self):
+        ball = self.world.getBall().pos
+        orient = self.me.orientation
+	if dist(self.me.pos, ball) < 50:
+            dx,dy = ball - self.me.pos
+            delta = orient - atan2(dy,dx)
+            delta = atan2(sin(delta), cos(delta))
+            if abs(delta) < radians(35):
+                return True
 
     def out_of_bounds(self, p):
         top, bottom = self.world.getPitchDecisionBoundaries()

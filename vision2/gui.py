@@ -295,8 +295,11 @@ class GUI:
                 cv.Circle(self.image, intPoint(point), 3, cval, -1)
 
             # ball decision circle tangent points
-            for p in self.world.getBallDecisionPoints(colour):
+            for _angle, p in self.world.getBallDecisionPoints(colour):
                 cv.Circle( self.image, intPoint(p), 4, cval, 1)
+
+            R, P = 5, self.world.getBallGoalPoint(colour)
+            cv.Circle( self.image, intPoint(P), R, cval, 3)
 
     def change_threshold(self, delta):
         self.curThreshold = (self.curThreshold + delta) % len(self.thresholds)

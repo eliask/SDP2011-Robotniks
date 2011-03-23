@@ -186,17 +186,37 @@ class World(object):
     def getBallDecisionPoints(self, colour):
         ball = self.getBall()
         robot = self.getRobot(colour)
-        _dist = dist(ball.pos, robot.pos)
-        angle1 = asin(self.ball_dradius / _dist)
+        return self.getCircleTangents(ball.pos,
+                                      self.ball_dradius,
+                                      robot.pos)
 
-        dx,dy = ball.pos - robot.pos
+    def getBallGoalPoint(self, colour):
+        ball = self.getBall()
+        angle = self.getBallGoalDirection(colour)
+        point = ball.pos + self.ball_dradius * \
+            np.array([cos(angle), sin(angle)])
+
+        return point
+
+    def getBallGoalDirection(self, colour):
+        ball = self.getBall()
+        dx,dy = ball.pos - self.getGoalPos(colour)
+        angle = atan2(dy,dx)
+        return angle
+
+    def getCircleTangents(self, circle, radius, point):
+        _dist = dist(circle, point)
+        if _dist < radius: return []
+        angle1 = asin(radius / _dist)
+
+        dx,dy = circle - point
         angle2 = atan2(dy,dx)
-        Len = sqrt(_dist**2 - self.ball_dradius**2)
         angles = [ angle2 - angle1, angle2 + angle1 ]
 
-        tangent_points = \
-            map(lambda x:robot.pos+[Len*cos(x),Len*sin(x)], angles)
-        return tangent_points
+        Len = sqrt(_dist**2 - radius**2)
+        points = map(lambda x:point+[Len*cos(x),Len*sin(x)], angles)
+
+        return zip(angles, points)
 
     def getBallTrajectory(self):
         N = 3
