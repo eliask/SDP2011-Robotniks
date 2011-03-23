@@ -211,7 +211,7 @@ class Simulator(object):
     def timestep(self):
         self.space.step(1/self.tickrate)
         map(lambda x:x.tick(), self.robots)
-        self.ball.body.velocity *= 0.997
+        self.ball.body.velocity *= 0.98
         self.runAI()
 
         ball = self.ball.body.position
