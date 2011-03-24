@@ -7,7 +7,7 @@ import common.world
 import simulator2.world as simworld
 import getopt, sys
 import logging
-logging.basicConfig(level=logging.DEBUG)
+#logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger("simulator2.launcher")
 
 def usage():

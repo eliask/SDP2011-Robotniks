@@ -77,8 +77,8 @@ class Friendly1(Main2):
             else:
                 dest = right
 
-        if self.sim:
-            pygame.draw.circle(self.sim.screen, (60,60,255,130), dest, 15, 3)
+        # if self.sim:
+        #     pygame.draw.circle(self.sim.screen, (60,60,255,130), dest, 15, 3)
 
         if dest == behind and distB < 100:
             # If we are close enough to the ball, just switch to
@@ -168,10 +168,10 @@ class Friendly1(Main2):
 
         v1, v2, v3 = G1, G2, G3
 
-        if self.sim:
-            pygame.draw.circle(self.sim.screen, (123,0,222,130), v1, 5, 5)
-            pygame.draw.circle(self.sim.screen, (123,0,222,130), v2, 5, 5)
-            pygame.draw.circle(self.sim.screen, (60,60,255,130), v3, 5, 5)
+        # if self.sim:
+        #     pygame.draw.circle(self.sim.screen, (123,0,222,130), v1, 5, 5)
+        #     pygame.draw.circle(self.sim.screen, (123,0,222,130), v2, 5, 5)
+        #     pygame.draw.circle(self.sim.screen, (60,60,255,130), v3, 5, 5)
 
 	return [v1, v2, v3]
 

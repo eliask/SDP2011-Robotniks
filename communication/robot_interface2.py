@@ -113,7 +113,7 @@ class RealRobotInterface(interface.RobotInterface):
     def moveTo(self, speed, angle, _dist):
         self.drive_both(speed)
         self.steer_left(angle)
-        self._arg = min(30, int(round(_dist)))
+        self._arg = max(0, min(30, int(round(_dist))))
         self._steer_right = 1
 
     def orientTo(self, angle):
