@@ -37,15 +37,15 @@ class PenaltyD(Strategy):
 		change = self.opponent_angle - opp_angle
 
 	# Turn both wheels
-	if self.turning_start == 0:
+	"""if self.turning_start == 0:
                 self.turning_start = time.time()
                 self.drive_both(0)
 		if self.me.pos[0] > 400:
 			self.angle = 90
 	if time.time() - self.turning_start < 0.3:
 		self.steer_both(radians(self.angle))
-	else:
-		self.turned = 1
+	else:"""
+	self.turned = 1
 	
 	# Protect the gate
 	if self.turned == 1:
