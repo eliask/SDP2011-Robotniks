@@ -16,6 +16,8 @@ class PenaltyD(Main2):
         Main2.__init__(self, *args, name='penaltydef')
 
     def run(self):
+        self.interface.disableAuto()
+        
         if self.lock_until > time.time():
             return
         else:
@@ -38,10 +40,13 @@ class PenaltyD(Main2):
         
         if self.startX == 0:
             self.startX = self.me.pos[0]
-            return self.moveTo((self.startX, Y), speed=1)
+            self.moveTo((self.startX, Y), speed=1)
+            return self.interface.sendMessage(True)
         
         def foo():
             self.drive_both(self.speed)
             self.speed = - self.speed
+            self.interface.sendMessage(True)
         self.post_lock = foo
-        self.lock_until = self.getTimeUntil(0.2)
+        self.lock_until = self.getTimeUntil(0.8)
+

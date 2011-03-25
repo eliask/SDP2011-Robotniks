@@ -19,6 +19,7 @@ class RealRobotInterface(interface.RobotInterface):
         logging.info("Connected to robot interface server")
 
         self.wait_until = 0
+        self.auto = True
         self.disable_timeout = 0
 
     def humanLogCommands(self):
@@ -57,11 +58,11 @@ class RealRobotInterface(interface.RobotInterface):
         self.auto = False
         self.disable_timeout = time.time() + 2.0
 
-    def sendMessage(self):
+    def sendMessage(self, force=False):
         "Sends the current commands to the robot."
         self.tick()
 
-        if not self.auto:
+        if not force and not self.auto:
             if self.disable_timeout < time.time():
                 self.auto = True
             else:
