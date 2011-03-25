@@ -246,6 +246,9 @@ class GUI:
                     self.Font, (0,0,255) )
 
     def drawEntities(self, ents):
+        cv.PutText( self.image, self.world.getStatus(), (400,10),
+                    self.Font, (0,200,200) )
+
         # Draw predicted ball trajectory
         for t in self.world.getBallTrajectory():
             cv.Circle(self.image, intPoint(t), 2, (50,50,50), -1)
@@ -295,11 +298,17 @@ class GUI:
                 cv.Circle(self.image, intPoint(point), 3, cval, -1)
 
             # ball decision circle tangent points
-            for _angle, p in self.world.getBallDecisionPoints(colour):
+            for _angle, p in zip(*self.world.getBallDecisionPoints(colour)):
                 cv.Circle( self.image, intPoint(p), 4, cval, 1)
 
-            R, P = 5, self.world.getBallGoalPoint(colour)
-            cv.Circle( self.image, intPoint(P), R, cval, 3)
+            angles = self.world.getBallGoalCone(colour)
+            points = map(lambda x:ball.pos+self.world.ball_dradius \
+                             * np.array([cos(x),sin(x)]), angles)
+            for p in points:
+                cv.Circle( self.image, intPoint(p), 3, cval, -1 )
+
+            _angle, P = self.world.getBallGoalPoint(colour)
+            cv.Circle( self.image, intPoint(P), 5, cval, 3 )
 
     def change_threshold(self, delta):
         self.curThreshold = (self.curThreshold + delta) % len(self.thresholds)

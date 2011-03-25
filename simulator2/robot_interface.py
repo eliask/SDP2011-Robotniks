@@ -22,7 +22,7 @@ class SimRobotInterface(RobotInterface):
     ang_accel = 6
     friction = 0.8
     epsilon = radians(3)
-    latency = 0.3
+    latency = 0.
 
     def __init__(self, *args):
         RobotInterface.__init__(self, *args)

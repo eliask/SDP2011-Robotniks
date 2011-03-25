@@ -21,10 +21,10 @@ class Input:
             K_f : ( lambda:robot.drive_left(-3),  lambda:robot.drive_left(0) ),
             K_s : ( lambda:robot.drive_right(-3), lambda:robot.drive_right(0) ),
 
-            K_a : ( lambda:robot.steer_left_incr(45), None ),
-            K_q : ( lambda:robot.steer_left_incr(-45), None ),
-            K_d : ( lambda:robot.steer_right_incr(45), None ),
-            K_e : ( lambda:robot.steer_right_incr(-45), None ),
+            K_a : ( lambda:robot.steer_left_incr(90), None ),
+            K_q : ( lambda:robot.steer_left_incr(-90), None ),
+            K_d : ( lambda:robot.steer_right_incr(90), None ),
+            K_e : ( lambda:robot.steer_right_incr(-90), None ),
             K_SPACE : ( robot.kick,   None ),
             K_RETURN : ( self.command,   None ),
 

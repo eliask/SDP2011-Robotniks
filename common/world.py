@@ -58,6 +58,9 @@ class World(object):
             self.est[col].target = None
             self.est[col].target_time = 0
 
+        self.status = ""
+        self.status_time = 0
+        self.predict_time = 0
         self.overwrite_ball = None
 
     def getResolution(self):
@@ -163,10 +166,14 @@ class World(object):
 
     def getBall(self):
         ball = Ball()
+
         if self.overwrite_ball:
             ball.pos = np.array(self.overwrite_ball)
         else:
             ball.pos = self.est['ball'].getPos()
+
+        if self.predict_time > 0:
+            pass
 
         ball.velocity = self.est['ball'].getVelocity()
         return ball
@@ -182,6 +189,12 @@ class World(object):
 
     def setStatus(self, text):
         self.status = text
+        self.status_time = time.time()
+
+    def getStatus(self):
+        if self.status_time < time.time() + 0.5:
+            self.status = ""
+        return self.status
 
     def getBallDecisionPoints(self, colour):
         ball = self.getBall()
@@ -190,13 +203,28 @@ class World(object):
                                       self.ball_dradius,
                                       robot.pos)
 
+    def getBallGoalCone(self, colour):
+        ball = self.getBall()
+        top, bottom = self.getGoalPoints(colour)
+        dx,dy = ball.pos - top
+        top_angle = atan2(dy,dx)
+        dx,dy = ball.pos - bottom
+        bottom_angle = atan2(dy,dx)
+        return top_angle, bottom_angle
+
+    def angleInRange(self, angle1, angle, angle2):
+        _angle1 = 0
+        _angle2 = (angle2 - angle1) % (2*pi)
+        _angle = (angle - angle1) % (2*pi)
+        return _angle1 <= _angle <= _angle2
+
     def getBallGoalPoint(self, colour):
         ball = self.getBall()
         angle = self.getBallGoalDirection(colour)
         point = ball.pos + self.ball_dradius * \
             np.array([cos(angle), sin(angle)])
 
-        return point
+        return angle, point
 
     def getBallGoalDirection(self, colour):
         ball = self.getBall()
@@ -206,7 +234,8 @@ class World(object):
 
     def getCircleTangents(self, circle, radius, point):
         _dist = dist(circle, point)
-        if _dist < radius: return []
+        if _dist < radius:
+            _dist = radius
         angle1 = asin(radius / _dist)
 
         dx,dy = circle - point
@@ -216,9 +245,9 @@ class World(object):
         Len = sqrt(_dist**2 - radius**2)
         points = map(lambda x:point+[Len*cos(x),Len*sin(x)], angles)
 
-        return zip(angles, points)
+        return angles, points
 
-    def getBallTrajectory(self):
+    def getBallTrajectory(self, max_time=0):
         N = 3
         def median(z):
             x = sorted(z, key=lambda x:x[0])[int((N-1)/2)][0]
@@ -235,13 +264,14 @@ class World(object):
             avgs.append(avg)
         return avgs
 
-    def __getBallTrajectory(self):
+    def __getBallTrajectory(self, max_time=0):
         ball = self.getBall()
         top, bottom = self.getPitchBoundaries()
 
         dT = 0.1
-        friction = 0.60 ** dT
-	maxTime = 5
+        friction = 0.78 ** dT
+	if max_time == 0:
+            max_time = 5.0
         maxDist = dist(top, bottom)
 	p = 0
         _dist = 0
@@ -255,7 +285,7 @@ class World(object):
             v *= self.max_velocity/mag
 
         trajectory = []
-	while p < maxTime:
+	while p < max_time:
             v *= friction
             nextPosX = posX + v[0]*dT
             nextPosY = posY + v[1]*dT

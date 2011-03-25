@@ -20,8 +20,8 @@ class Final(Main2):
             logging.warn("couldn't find self: %s", e)
             return
 
-        ballPos = self.world.getBall().pos
-        if self.me.pos[0] == 0 or ballPos[0] == 0:
+        ball = self.world.getBall()
+        if self.me.pos[0] == 0 or ball.pos[0] == 0:
             self.drive_both(0)
             print "Ball or self at 0: doing nothing"
             return
@@ -31,35 +31,89 @@ class Final(Main2):
 	if self.canKick():
             self.kick()
 
-        if self.intercept():
-            print "INTERCEPT"
-            return
+        # if self.intercept():
+        #     print "INTERCEPT"
+        #     return
 
-        D = self.getBallDecisionPoints()
-        gpoint = self.getBallGoalPoint()
-        oobs = map(self.out_of_bounds, D+[gpoint])
+        Dang, Dp = self.getBallDecisionPoints()
+        Gang, Gp = self.getBallGoalPoint()
+        oobs = map(self.out_of_bounds2, Dp+[Gp])
 
-        print oobs
         if not False in oobs:
-            print "BALL STUCK"
+            self.addText("OOB defensive")
             return self.defensive()
 
-        if oobs[-1]: del gpoint
-        if oobs[1]: del D[1]
-        if oobs[0]: del D[0]
+        _ball_dist = self.dist(ball.pos)
 
-        _dist1 = dist(self.me.pos, D[0])
-        _dist2 = dist(self.me.pos, D[1])
-        _distG = dist(self.me.pos, gpoint)
-        print _dist1, _dist2, _distG
-        if gpoint and _distG < _dist1 and _distG < _dist2:
-            return self.targetBall()
+        opp = self.getOpponent()
+        _opponent_is_far = self.dist(opp.pos) > 200
 
+        my_goal = self.getMyGoalPos()
         goal = self.getOpponentGoalPos()
-        if D[1] and _dist1 > _dist2:
-            self.moveTo(D[1])
+        _goal_is_far = self.dist(goal) > 2.5 * self.world.ball_dradius
+
+        ball_dist_thresh = 3/2. * self.world.ball_dradius
+        _ball_is_far = _ball_dist > ball_dist_thresh
+        _opponent_near_ball = dist(opp.pos, ball.pos) <= ball_dist_thresh
+
+        _behind_precisely = self.world.angleInRange(Dang[0], Gang, Dang[1])
+
+        goal_sign = {False:-1,True:1}[goal[0]<my_goal[0]]
+        _behind_general_dir = \
+            goal_sign*(self.me.pos[0] - ball.pos[0]) > 25 or _behind_precisely
+
+        # XXX: defensive and nearestTangent/oppNearKick oscillate !!!
+
+        if _ball_is_far:
+            if _opponent_near_ball:
+                self.addText("defensive")
+                return self.defensive()
+            else:
+                self.addText("opponent far move")
+                return self.moveTo(Gp)
+
+        ### ball is near ###
+
+        if _behind_precisely:
+            return self.moveTo(ball.pos)
+
+        ### not _behind_precisely ###
+
+        if not _behind_general_dir:
+            return self.nearestTangent()
+
+        ### _behind_general_dir ###
+
+        if _opponent_near_ball:
+            return self.defensive()
+
+        ### opponent is far from ball ###
+
+        if not _goal_is_far:
+            self.moveTo(Gp)
+
+        ### goal is far ###
+
+
+        ### failing EVERYTHING ###
+        self.moveTo(ball.pos)
+
+    def nearestTangent(self):
+        Dang, Dp = self.getBallDecisionPoints()
+        oobs = map(self.out_of_bounds2, Dp)
+        if oobs[0]: return self.moveTo(Dp[1])
+        if oobs[1]: return self.moveTo(Dp[0])
+
+        _dist0 = self.dist(Dp[0])
+        _dist1 = self.dist(Dp[1])
+
+        if _dist1 > _dist0:
+            return self.moveTo(Dp[0])
         else:
-            self.moveTo(D[0])
+            return self.moveTo(Dp[1])
+
+    def dist(self, target):
+        return dist(self.me.pos, target)
 
     def targetBall(self):
         ball = self.world.getBall()
@@ -85,6 +139,16 @@ class Final(Main2):
         return p[0] < top[0] or p[0] > bottom[0] \
             or p[1] < top[1] or p[1] > bottom[1]
 
+    def carefulKick(self):
+        self.orientToKick()
+        # ball = self.getBall()
+        # #if not self.oriented(): self.orientTo(ball.pos)
+        # else: self.moveTo(ball.pos)
+
+    def intercept2(self):
+        "Intercept using projected ball trajectories"
+        pass
+
     def intercept(self):
         ball = self.world.getBall()
         v = ball.velocity
@@ -94,7 +158,7 @@ class Final(Main2):
             return False
 
         angle = atan2(v[1], v[0])
-        Y = ball.pos[1] + dpos[0] * sin(angle)
+        Y = ball.pos[1] - dpos[0] * sin(angle)
         top, bottom = self.world.getPitchDecisionBoundaries()
         projected = self.me.pos[0], max(top[1], min(bottom[1], Y))
 
@@ -114,12 +178,14 @@ class Final(Main2):
         return bounded
 
     def defensive(self):
+        self.world.setStatus("DEFEND")
         ball = self.world.getBall()
-        self.moveTo(ball.pos)
+        midpoint = (ball.pos + self.getMyGoalPos()) / 2.
+        self.moveTo(midpoint)
 
-    def moveTo(self, dest):
+    def moveTo(self, dest, force=False):
         bounded = self.boundLegalMove(dest)
-        super(Final, self).moveTo(bounded)
+        super(Final, self).moveTo(bounded, force)
 
     def getVirtualBalls(self, ball_pos):
 	goal_pos = self.getOpponentGoalPos()
