@@ -164,7 +164,7 @@ class World(object):
     def getBall(self):
         ball = Ball()
         if self.overwrite_ball:
-            ball.pos = self.overwrite_ball
+            ball.pos = np.array(self.overwrite_ball)
         else:
             ball.pos = self.est['ball'].getPos()
 

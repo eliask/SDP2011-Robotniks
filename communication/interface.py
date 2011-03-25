@@ -27,7 +27,11 @@ class RobotInterface(object):
         self._drive_left = 0
         self._drive_right = 0
         self._steer_left = 0
+        self.steer_left_target = 0
+        self.steer_left_until = 0
         self._steer_right = 0
+        self.steer_right_target = 0
+        self.steer_right_until = 0
         self._arg = 0
         self.initCommands()
 
