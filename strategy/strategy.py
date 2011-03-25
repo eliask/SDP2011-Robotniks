@@ -38,6 +38,7 @@ class Strategy(object):
     def setTarget(self, target):
         self.world.setTarget(self.colour, target)
     def addText(self, text):
+        print self.colour, text
         self.world.addText(self.colour, text)
 
     def getSelf(self):

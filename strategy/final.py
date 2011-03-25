@@ -39,6 +39,11 @@ class Final(Main2):
         Gang, Gp = self.getBallGoalPoint()
         oobs = map(self.out_of_bounds2, Dp+[Gp])
 
+        my_goal = self.getMyGoalPos()
+        goal = self.getOpponentGoalPos()
+        if self.out_of_bounds(self.me.pos):
+            self.moveTo( np.array([self.me.pos[0], goal[1]]) )
+
         if not False in oobs:
             self.addText("OOB defensive")
             return self.defensive()
@@ -48,57 +53,81 @@ class Final(Main2):
         opp = self.getOpponent()
         _opponent_is_far = self.dist(opp.pos) > 200
 
-        my_goal = self.getMyGoalPos()
-        goal = self.getOpponentGoalPos()
         _goal_is_far = self.dist(goal) > 2.5 * self.world.ball_dradius
 
         ball_dist_thresh = 3/2. * self.world.ball_dradius
         _ball_is_far = _ball_dist > ball_dist_thresh
         _opponent_near_ball = dist(opp.pos, ball.pos) <= ball_dist_thresh
 
-        _behind_precisely = self.world.angleInRange(Dang[0], Gang, Dang[1])
+        _behind_precisely = False and self.world.angleInRange(Dang[0], Gang, Dang[1])
 
-        goal_sign = {False:-1,True:1}[goal[0]<my_goal[0]]
         _behind_general_dir = \
-            goal_sign*(self.me.pos[0] - ball.pos[0]) > 25 or _behind_precisely
+            (ball.pos[0] - Gp[0]) * (ball.pos[0] - self.me.pos[0]) >= 0 \
+            and abs(ball.pos[0] - self.me.pos[0]) > 40 \
+            or _behind_precisely
 
-        # XXX: defensive and nearestTangent/oppNearKick oscillate !!!
-
-        if _ball_is_far:
-            if _opponent_near_ball:
-                self.addText("defensive")
-                return self.defensive()
-            else:
-                self.addText("opponent far move")
-                return self.moveTo(Gp)
+        # if _ball_is_far:
+        #     if _opponent_near_ball:
+        #         self.addText("defensive")
+        #         return self.defensive()
+        #     else:
+        #         self.addText("opponent far move")
+        #         return self.moveTo(Gp)
 
         ### ball is near ###
 
         if _behind_precisely:
+            self.addText("behind precisely")
             return self.moveTo(ball.pos)
 
         ### not _behind_precisely ###
 
         if not _behind_general_dir:
+            self.addText("nearest tangent")
             return self.nearestTangent()
 
         ### _behind_general_dir ###
+        self.addText("behind general")
 
-        if _opponent_near_ball:
+        if False and _opponent_near_ball:
+            self.addText("opponent near def")
             return self.defensive()
 
         ### opponent is far from ball ###
 
         if not _goal_is_far:
+            self.addText("goal near")
             self.moveTo(Gp)
 
         ### goal is far ###
 
 
         ### failing EVERYTHING ###
+        self.addText("fallback")
         self.moveTo(ball.pos)
 
     def nearestTangent(self):
+        ball = self.world.getBall()
+        if self.world.ball_dradius >= self.dist(ball.pos):
+            _dist_ball = self.dist(ball.pos)
+            innerR = max(1,min(_dist_ball, 3/4.*self.world.ball_dradius))
+
+            dx,dy = ball.pos - self.me.pos
+            angle = atan2(dy,dx)
+            inner_tan = ball.pos + innerR * np.array([cos(-angle), sin(-angle)])
+            tan_normals = [ [sin(angle), cos(angle)], [sin(-angle), cos(-angle)] ]
+
+            # NB. approximation
+            deltaR = self.world.ball_dradius - innerR
+            tan_normals = map(lambda x:inner_tan+innerR*np.array(x), tan_normals)
+            Gang, Gp = self.getBallGoalPoint()
+
+            D = map(lambda x:dist(Gp, x), tan_normals)
+            if D[0] < D[1]:
+                return self.moveTo(tan_normals[0])
+            else:
+                return self.moveTo(tan_normals[1])
+
         Dang, Dp = self.getBallDecisionPoints()
         oobs = map(self.out_of_bounds2, Dp)
         if oobs[0]: return self.moveTo(Dp[1])

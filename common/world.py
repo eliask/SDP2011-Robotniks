@@ -140,7 +140,7 @@ class World(object):
         return [top, (top[0],bottom[1]), bottom, (bottom[0],top[1])]
 
     def getPitchDecisionBoundaries(self):
-        robot_ext = 15
+        robot_ext = 28
         top, bottom = self.getPitchBoundaries()
         return [top + robot_ext, bottom - robot_ext]
 
@@ -205,7 +205,7 @@ class World(object):
 
     def getBallGoalCone(self, colour):
         ball = self.getBall()
-        top, bottom = self.getGoalPoints(colour)
+        top, bottom = self.getGoalPoints( other_colour(colour) )
         dx,dy = ball.pos - top
         top_angle = atan2(dy,dx)
         dx,dy = ball.pos - bottom
@@ -213,14 +213,18 @@ class World(object):
         return top_angle, bottom_angle
 
     def angleInRange(self, angle1, angle, angle2):
+        # NB. Horribly broken
         _angle1 = 0
         _angle2 = (angle2 - angle1) % (2*pi)
         _angle = (angle - angle1) % (2*pi)
-        return _angle1 <= _angle <= _angle2
+        if pi - _angle2 > 0:
+            return _angle2 <= _angle <= 2*pi
+        else:
+            return _angle1 <= _angle <= _angle2
 
     def getBallGoalPoint(self, colour):
         ball = self.getBall()
-        angle = self.getBallGoalDirection(colour)
+        angle = self.getBallGoalDirection( other_colour(colour) )
         point = ball.pos + self.ball_dradius * \
             np.array([cos(angle), sin(angle)])
 

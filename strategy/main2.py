@@ -184,11 +184,10 @@ class Main2(Strategy):
             delta = angle - self.me.orientation
             self.addText( "moveTo(%.1f/%s)" %
                           (degrees(delta), pos2string(dest)) )
-            _dist = 0.5 * (dx**2+dy**2) / self.world.res_scale
-            max_dist = 50
+            _dist = 0.2 * (dx**2+dy**2) / self.world.res_scale
             if force:
                 _dist *= 1.5
-            self.interface.moveTo( 3, delta, min(max_dist, _dist) )
+            self.interface.moveTo( 3, delta, _dist )
             return True
 
         if not self.turnTo(dest):

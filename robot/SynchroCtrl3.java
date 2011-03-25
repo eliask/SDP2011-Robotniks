@@ -8,7 +8,7 @@ import lejos.nxt.comm.*;
 
 
 // Collect commands, write to screen
-public class SynchroCtrl {
+public class SynchroCtrl3 {
 
     //Defines the buttons
     private static final Button button_left = Button.LEFT;
@@ -74,23 +74,23 @@ class CommandHandler extends Thread {
     public static int command_arg;
 
     public void setKickState(boolean Val){
-        SynchroCtrl.kickThread.setKickState(Val);
-        synchronized (SynchroCtrl.kickThread) {
-            SynchroCtrl.kickThread.notify();
+        SynchroCtrl3.kickThread.setKickState(Val);
+        synchronized (SynchroCtrl3.kickThread) {
+            SynchroCtrl3.kickThread.notify();
         }
     }
 
     public void setTargetDriveVal(int left, int right){
-        SynchroCtrl.driveThread.setTargetDriveVal(left, right);
-        synchronized (SynchroCtrl.driveThread) {
-            SynchroCtrl.driveThread.notify();
+        SynchroCtrl3.driveThread.setTargetDriveVal(left, right);
+        synchronized (SynchroCtrl3.driveThread) {
+            SynchroCtrl3.driveThread.notify();
         }
     }
 
     public void setTargetSteeringAngle(int Angle){
-        SynchroCtrl.steeringThread.setTargetSteeringAngle(Angle);
-        synchronized (SynchroCtrl.steeringThread) {
-            SynchroCtrl.steeringThread.notify();
+        SynchroCtrl3.steeringThread.setTargetSteeringAngle(Angle);
+        synchronized (SynchroCtrl3.steeringThread) {
+            SynchroCtrl3.steeringThread.notify();
         }
     }
 
@@ -126,9 +126,9 @@ class CommandHandler extends Thread {
         default:
             /* By default, just execute the raw commands: */
             int speedL = drive_left *
-                SynchroCtrl.steeringLeftThread.getDirection(steer_angle);
+                SynchroCtrl3.steeringLeftThread.getDirection(steer_angle);
             int speedR = drive_right *
-                SynchroCtrl.steeringRightThread.getDirection(steer_angle);
+                SynchroCtrl3.steeringRightThread.getDirection(steer_angle);
 
             setTargetDriveVal(speedL, speedR);
             setTargetSteeringAngle(steer_angle);
@@ -157,8 +157,8 @@ class CommandHandler extends Thread {
                 }catch(InterruptedException e){
                 }
 
-                if (SynchroCtrl.steeringLeftThread.Ready() &&
-                    SynchroCtrl.steeringRightThread.Ready()) {
+                if (SynchroCtrl3.steeringLeftThread.Ready() &&
+                    SynchroCtrl3.steeringRightThread.Ready()) {
                     break;
                 }
             }
@@ -171,15 +171,17 @@ class CommandHandler extends Thread {
      */
     private void moveTo(int angle, int speed, int dist, boolean strict) {
         setTargetSteeringAngle(angle);
-        double deltaD = SynchroCtrl.steeringLeftThread.getClosestAngle(angle);
-	setTargetDriveVal(0, 0);
+        double deltaD = SynchroCtrl3.steeringLeftThread.getClosestAngle(angle);
+	if (Math.abs(deltaD) > 0)
+	    setTargetDriveVal(0, 0);
+
 	if (strict)
 	    waitForSteering(2*deltaD);
 	else
 	    waitForSteering(deltaD);
 
-        int speedL = speed*SynchroCtrl.steeringLeftThread.getDirection(angle);
-        int speedR = speed*SynchroCtrl.steeringRightThread.getDirection(angle);
+        int speedL = speed*SynchroCtrl3.steeringLeftThread.getDirection(angle);
+        int speedR = speed*SynchroCtrl3.steeringRightThread.getDirection(angle);
 
         final double[] X = { 108.0 / Math.abs(speed), 30.0};
         int sleep_time = (int)Math.round( X[0]*dist + X[1] );
@@ -291,7 +293,7 @@ class Communicator extends Thread {
         int drive_right   = dright_dir * (motor_dright & 3);
 
         RConsole.println("parseMessage");
-        CommandHandler handler = SynchroCtrl.commandHandler;
+        CommandHandler handler = SynchroCtrl3.commandHandler;
         synchronized (handler) {
             handler.kick        = kick != 0;
             handler.drive_left  = drive_left;
@@ -443,8 +445,8 @@ class SteeringThread extends Thread{
 
             int target = targetSteeringAngle;
             drawLCD(target);
-            SynchroCtrl.steeringLeftThread.setTargetSteeringAngle( target );
-            SynchroCtrl.steeringRightThread.setTargetSteeringAngle( target );
+            SynchroCtrl3.steeringLeftThread.setTargetSteeringAngle( target );
+            SynchroCtrl3.steeringRightThread.setTargetSteeringAngle( target );
         }
     }
     
@@ -585,8 +587,8 @@ abstract class SteeringMotorThread extends SteeringThread {
             ready = true;
             prev = current_command;
 
-            synchronized (SynchroCtrl.commandHandler) {
-                SynchroCtrl.commandHandler.notify();
+            synchronized (SynchroCtrl3.commandHandler) {
+                SynchroCtrl3.commandHandler.notify();
             }
         }
     }
