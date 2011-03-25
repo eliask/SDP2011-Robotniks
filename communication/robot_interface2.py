@@ -19,6 +19,7 @@ class RealRobotInterface(interface.RobotInterface):
         logging.info("Connected to robot interface server")
 
         self.wait_until = 0
+        self.disable_timeout = 0
 
     def humanLogCommands(self):
         "Log commands in a (perhaps) more human-readable way"
@@ -52,9 +53,20 @@ class RealRobotInterface(interface.RobotInterface):
 
         return message
 
+    def disableAuto(self):
+        self.auto = False
+        self.disable_timeout = time.time() + 2.0
+
     def sendMessage(self):
         "Sends the current commands to the robot."
         self.tick()
+
+        if not self.auto:
+            if self.disable_timeout < time.time():
+                self.auto = True
+            else:
+                return
+
         message = self.encodeCommands()
         self.humanLogCommands()
 
