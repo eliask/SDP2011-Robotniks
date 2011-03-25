@@ -141,9 +141,6 @@ class Final(Main2):
         else:
             return self.moveTo(Dp[1])
 
-    def dist(self, target):
-        return dist(self.me.pos, target)
-
     def targetBall(self):
         ball = self.world.getBall()
         self.moveTo(ball)

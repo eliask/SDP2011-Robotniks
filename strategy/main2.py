@@ -253,6 +253,9 @@ class Main2(Strategy):
             self.post_lock = self.kick
             self.drive_both(3)
 
+    def dist(self, target):
+        return dist(self.me.pos, target)
+
     def orientToKick(self):
         """Orient the robot's body to face the ball.
 
