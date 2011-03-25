@@ -168,7 +168,7 @@ class Main2(Strategy):
         if self.moveTo( ballPos ): # are we there yet?
             self.kick()
 
-    def moveTo(self, dest, force=False):
+    def moveTo(self, dest, force=False, speed=3):
         """Move to the destination
 
         moveTo requires than the wheels are both pointing towards the
@@ -187,7 +187,7 @@ class Main2(Strategy):
             _dist = 0.2 * (dx**2+dy**2) / self.world.res_scale
             if force:
                 _dist *= 1.5
-            self.interface.moveTo( 3, delta, _dist )
+            self.interface.moveTo( speed, delta, _dist )
             return True
 
         if not self.turnTo(dest):
