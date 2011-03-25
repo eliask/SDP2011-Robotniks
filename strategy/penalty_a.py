@@ -6,15 +6,22 @@ from strategy import *
 import apf
 import logging
 import pygame
+from main2 import Main2
 
 # Penalty attack strategy
-class PenaltyA(Strategy):
-    turning_start = 0
+class PenaltyA(Main2):
 
     def __init__(self, *args):
-        Strategy.__init__(self, *args, name='penaltykick')
+        Main2.__init__(self, *args, name='penaltykick')
+        self.back = False
 
     def run(self):
+        # if self.lock_until > time.time():
+        #     return
+        # else:
+        #     if self.post_lock(): return
+        #     self.post_lock = lambda:None
+
         try:
             self.me = self.getSelf() # Find out where I am
             #self.log.debug("My position: %s", pos2string(self.me.pos))
@@ -22,44 +29,32 @@ class PenaltyA(Strategy):
             self.log.warn("couldn't find self: %s", e)
             return
 
-        ballPos = np.array( self.world.getBall().pos )
+        ballPos = self.world.getBall().pos
 
         opponent = self.getOpponent()
 
-	# Decide which direction to kick
-	opp_y = opponent.pos[1]
-	if opp_y >= 200:
-		direction = 1
-	else:
-		direction = -1
+        gp = self.getOpponentGoalPoints()
 
-	# Perform turning and kicking
-       	if self.turning_start == 0:
-                self.turning_start = time.time()
-                self.drive_both(0)
-	if time.time() - self.turning_start < 0.2:
-		self.drive_left(direction)
-		self.drive_right(-direction)
-	else:
-		self.drive_both(0)
-		if time.time() - self.turning_start > 0.5:
-			if self.canKick(ballPos):
-				self.kick()
+        p = self.world.getRobotPoints(opponent.pos, opponent.orientation)
+        s = sorted(p, key=lambda x:x[1])
+        high = s[0][1]
+        low = s[-1][1]
 
+        if gp[0][1] - high > gp[1][1] - low:
+            target = (gp[0][1] + high)/2.
+        else:
+            target = (gp[1][1] + low)/2.
 
-    def canKick(self, target_pos):
-	#	to get the angle between [-pi, pi]
-	if self.me.orientation > pi:
-		self.me.orientation -= 2*pi
+        dx,dy = target - self.me.pos
+        angle = atan2(dy,dx)
+        R = 60
+        target2 = self.me.pos + R*np.array([cos(angle), sin(angle)])
 
-	if dist(self.me.pos, target_pos) < 50:
-           	angle_diff = self.me.orientation - atan2(target_pos[1] - self.me.pos[1],
-                              (target_pos[0] - self.me.pos[0]))
-		if angle_diff > pi:
-			angle_diff -= 2*pi
-		elif angle_diff < -pi:
-			angle_diff += 2*pi
-
-            	if abs(angle_diff) < radians(35):
-                	return True
+        if not self.back and self.dist(target2) < R/2.:
+            self.back = True
+        elif self.back:
+            if self.orientToKick(ball.pos) and self.moveTo(ball.pos):
+                self.kick()
+        else:
+            self.moveTo(target2)
 
