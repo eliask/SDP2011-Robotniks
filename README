@@ -1,4 +1,30 @@
-Most of the code uses Python 2.6, OpenCV 2.1+ and Pygame.
+This is the code repository for the System Design Project group 9 -
+Robotniks for the 2010-2011 course at the University of Edinburgh.
+
+Most of the code uses Python 2.6, OpenCV 2.2 and Pygame.
+
+For the final match, we hastily forked SynchroCtrl into 4 versions and
+determined that SynchroCtrl3 worked the best. The final strategy code
+performed well in tests using this code for the robot, but ultimately
+failed rather miserably in the actual match. No reason is known for
+this.
+
+The vision code performs quite well in most situations, and the
+simulator is relatively sophisticated (though it suffers very slight
+bitrot). The main issues arise with the strategy code and the
+interface to the robot: >20 commands are typically sent per second and
+the robot only responds to few of these so some sort of rate control
+would be desirable, perhaps by aggregating messages that would be sent
+and sending the 'average command' or the one that was issued most
+often.
+
+
+To run the code
+===============
+
+The vision code assumes the use of DICE machines (the MPlayer capture
+method is a hack for bypassing OpenCV limitations on DICE).
+Modification for generic camera input using OpenCV should be easy.
 
 Pygame v1.9 is included, as is OpenCV 2.2.
 Before running code like vision2.py, import the environment variables using:
@@ -25,17 +51,14 @@ done in separate terminals:
   $ ./start-mplayer.sh
 
 3. Start the main control system:
-  $ ./robot.sh blue
-  OR
-  $ ./robot.sh yellow
+  $ ./gui.py
 
 If things go bad, you can stop the robot using:
   $ ./stop.py
 
 
-If you don't want to run the AI (main2 currently), you can omit the
-first step and, making sure the environment variables are set, just
-execute:
+If you don't want to run the AI GUI, you can omit the first step and,
+making sure the environment variables are set, just execute:
   $ ./vision2.py [files..]
 
 If using files for vision input, the MPlayer process won't need to be
@@ -57,4 +80,8 @@ h     - toggle histogram display
 
 Dragging the mouse to form a rectangle further crops the image down to
 a set threshold size.
+
+
+Testing AI with static video:
+  $ python test_ai.py blue final test/vision/prim1.mpg
 
