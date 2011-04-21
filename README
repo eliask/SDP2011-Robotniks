@@ -1,22 +1,32 @@
 This is the code repository for the System Design Project group 9 -
 Robotniks for the 2010-2011 course at the University of Edinburgh.
 
-Most of the code uses Python 2.6, OpenCV 2.2 and Pygame.
+Most of the code uses Python 2.6, OpenCV 2.2 and Pygame. The simulator
+also uses Pymunk, and the communication server uses the included Lejos
+libraries.
 
-For the final match, we hastily forked SynchroCtrl into 4 versions and
-determined that SynchroCtrl3 worked the best. The final strategy code
-performed well in tests using this code for the robot, but ultimately
-failed rather miserably in the actual match. No reason is known for
-this.
+This is the final version version of our codebase and has been
+refactored to be friendly to reuse (consider it a sort of "SDP startup
+kit"). The PDF of our final report is included here, and reading it is
+highly recommended before attempting to use any of this codebase.
 
-The vision code performs quite well in most situations, and the
-simulator is relatively sophisticated (though it suffers very slight
-bitrot). The main issues arise with the strategy code and the
-interface to the robot: >20 commands are typically sent per second and
-the robot only responds to few of these so some sort of rate control
-would be desirable, perhaps by aggregating messages that would be sent
-and sending the 'average command' or the one that was issued most
-often.
+The codebase is made freely available under the MIT licence, as follows:
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 To run the code
@@ -83,5 +93,5 @@ a set threshold size.
 
 
 Testing AI with static video:
-  $ python test_ai.py blue final test/vision/prim1.mpg
+  $ python test_ai.py blue final vision2/test/prim1.mpg
 
