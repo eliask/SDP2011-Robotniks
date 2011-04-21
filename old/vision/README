@@ -1,7 +1,0 @@
-stuff.py is for random experiments with live or recorded pitch video.
-Usage: python stuff.py media/*.mpg # for using captured video
-
-The code assumes the existence of OpenCV 2.0 or 2.1 with python-opencv (as it is called in Debian-like systems).
-
-vision.py should eventually just call all the code responsible for capturing, filtering, classification, etc.
-
